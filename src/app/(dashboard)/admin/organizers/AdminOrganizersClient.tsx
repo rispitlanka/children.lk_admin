@@ -65,6 +65,7 @@ export default function AdminOrganizersClient() {
                   <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Email</TableCell>
                   <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Organization</TableCell>
                   <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Contact</TableCell>
+                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Actions</TableCell>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -77,6 +78,13 @@ export default function AdminOrganizersClient() {
                     </TableCell>
                     <TableCell className="py-4 text-gray-600 dark:text-gray-400">
                       {row.organizationId?.contactPhone ?? row.organizationId?.contactEmail ?? "—"}
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <Link href={`/admin/organizers/${row._id}`}>
+                        <Button size="sm" variant="outline">
+                          View Details
+                        </Button>
+                      </Link>
                     </TableCell>
                   </TableRow>
                 ))}

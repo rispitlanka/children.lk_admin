@@ -39,20 +39,56 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No organization found" }, { status: 400 });
     }
     const body = await req.json();
-    const { name, description, files } = body;
+    const { name, description, contentType, textContent, files, targetAudience, ageGroup } = body;
     if (!name || !description) {
       return NextResponse.json(
         { error: "Name and description required" },
         { status: 400 }
       );
     }
-    await MediaRequest.create({
+    
+    // Validate content based on type
+    if (contentType === "article" || contentType === "poem") {
+      if (!textContent || !textContent.trim()) {
+        return NextResponse.json(
+          { error: `${contentType} content is required` },
+          { status: 400 }
+        );
+      }
+    } else {
+      if (!files || !Array.isArray(files) || files.length === 0) {
+        return NextResponse.json(
+          { error: "At least one file is required" },
+          { status: 400 }
+        );
+      }
+    }
+    
+    console.log("Creating MediaRequest with data:", {
       name,
       description,
+      contentType: contentType || "pictures",
+      textContent: textContent || undefined,
       files: Array.isArray(files) ? files : [],
+      targetAudience: targetAudience || "children",
+      ageGroup: targetAudience === "children" ? (ageGroup || "1-5") : undefined,
       organizationId: user.organizationId,
       status: "pending",
     });
+    
+    const createdMediaRequest = await MediaRequest.create({
+      name,
+      description,
+      contentType: contentType || "pictures",
+      textContent: textContent || undefined,
+      files: Array.isArray(files) ? files : [],
+      targetAudience: targetAudience || "children",
+      ageGroup: targetAudience === "children" ? (ageGroup || "1-5") : undefined,
+      organizationId: user.organizationId,
+      status: "pending",
+    });
+    
+    console.log("Successfully created MediaRequest:", createdMediaRequest);
     return NextResponse.json({ success: true });
   } catch (e) {
     console.error(e);

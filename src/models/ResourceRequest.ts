@@ -17,6 +17,8 @@ export interface IResourceRequest {
   picturePublicId?: string;
   documents: IDocumentFile[];
   tags: string[];
+  targetAudience: "children" | "people_work_for_children";
+  ageGroup?: "1-5" | "5-10" | "11-15" | "15-18" | "above-18";
   organizationId: mongoose.Types.ObjectId;
   status: RequestStatus;
   adminReason?: string;
@@ -44,6 +46,16 @@ const ResourceRequestSchema = new Schema<IResourceRequest>(
     picturePublicId: String,
     documents: [DocumentFileSchema],
     tags: [String],
+    targetAudience: { 
+      type: String, 
+      enum: ["children", "people_work_for_children"], 
+      required: true,
+      default: "children"
+    },
+    ageGroup: { 
+      type: String, 
+      enum: ["1-5", "5-10", "11-15", "15-18", "above-18"]
+    },
     organizationId: { type: Schema.Types.ObjectId, ref: "Organization", required: true },
     status: { type: String, enum: ["pending", "approved", "denied"], default: "pending" },
     adminReason: String,
@@ -53,6 +65,10 @@ const ResourceRequestSchema = new Schema<IResourceRequest>(
   { timestamps: true }
 );
 
+// Force model recreation in development
+if (mongoose.models.ResourceRequest) {
+  delete mongoose.models.ResourceRequest;
+}
+
 export const ResourceRequest: Model<IResourceRequest> =
-  mongoose.models.ResourceRequest ??
   mongoose.model<IResourceRequest>("ResourceRequest", ResourceRequestSchema);

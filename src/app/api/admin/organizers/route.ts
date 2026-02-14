@@ -43,6 +43,7 @@ export async function POST(req: Request) {
       password,
       organizationName,
       shortDescription,
+      logo,
       contactEmail,
       contactPhone,
       address,
@@ -78,6 +79,7 @@ export async function POST(req: Request) {
     await Organization.create({
       name: organizationName,
       shortDescription,
+      logo: logo || undefined,
       contactEmail,
       contactPhone,
       address,

@@ -13,7 +13,11 @@ export interface IMediaRequest {
   _id: mongoose.Types.ObjectId;
   name: string;
   description: string;
+  contentType: "article" | "poem" | "video" | "audio" | "pictures" | "picture_story";
+  textContent?: string;
   files: IMediaFile[];
+  targetAudience: "children" | "people_work_for_children";
+  ageGroup?: "1-5" | "5-10" | "11-15" | "15-18" | "above-18";
   organizationId: mongoose.Types.ObjectId;
   status: RequestStatus;
   adminReason?: string;
@@ -37,7 +41,24 @@ const MediaRequestSchema = new Schema<IMediaRequest>(
   {
     name: { type: String, required: true },
     description: { type: String, required: true },
+    contentType: { 
+      type: String, 
+      enum: ["article", "poem", "video", "audio", "pictures", "picture_story"], 
+      required: true,
+      default: "pictures"
+    },
+    textContent: { type: String },
     files: [MediaFileSchema],
+    targetAudience: { 
+      type: String, 
+      enum: ["children", "people_work_for_children"], 
+      required: true,
+      default: "children"
+    },
+    ageGroup: { 
+      type: String, 
+      enum: ["1-5", "5-10", "11-15", "15-18", "above-18"]
+    },
     organizationId: { type: Schema.Types.ObjectId, ref: "Organization", required: true },
     status: { type: String, enum: ["pending", "approved", "denied"], default: "pending" },
     adminReason: String,
@@ -47,6 +68,10 @@ const MediaRequestSchema = new Schema<IMediaRequest>(
   { timestamps: true }
 );
 
+// Force model recreation in development
+if (mongoose.models.MediaRequest) {
+  delete mongoose.models.MediaRequest;
+}
+
 export const MediaRequest: Model<IMediaRequest> =
-  mongoose.models.MediaRequest ??
   mongoose.model<IMediaRequest>("MediaRequest", MediaRequestSchema);

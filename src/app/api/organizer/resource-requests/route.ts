@@ -18,6 +18,7 @@ export async function GET() {
     const list = await ResourceRequest.find({ organizationId: user.organizationId })
       .sort({ createdAt: -1 })
       .lean();
+    
     return NextResponse.json(list);
   } catch (e) {
     console.error(e);
@@ -40,7 +41,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No organization found" }, { status: 400 });
     }
     const body = await req.json();
-    const { name, shortDescription, picture, picturePublicId, documents, tags } = body;
+    const { name, shortDescription, picture, picturePublicId, documents, tags, targetAudience, ageGroup } = body;
     if (!name || !shortDescription) {
       return NextResponse.json(
         { error: "Name and short description required" },
@@ -55,6 +56,8 @@ export async function POST(req: Request) {
       picturePublicId: picturePublicId || undefined,
       documents: Array.isArray(documents) ? documents : [],
       tags: tagList,
+      targetAudience: targetAudience || "children",
+      ageGroup: targetAudience === "children" ? (ageGroup || "1-5") : undefined,
       organizationId: user.organizationId,
       status: "pending",
     });

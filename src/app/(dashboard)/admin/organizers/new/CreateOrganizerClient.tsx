@@ -11,6 +11,7 @@ import ComponentCard from "@/components/common/ComponentCard";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
 import TextArea from "@/components/form/input/TextArea";
+import Button from "@/components/ui/button/Button";
 
 const CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%";
 const PASSWORD_LENGTH = 14;
@@ -25,12 +26,38 @@ function generatePassword(): string {
   return result;
 }
 
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadLogoToCloudinary(file: File): Promise<string> {
+  const base64 = await fileToBase64(file);
+  const res = await fetch("/api/upload", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      file: base64,
+      folder: "childrenlk/organization",
+      resource_type: "image",
+    }),
+  });
+  const data = await res.json();
+  if (!res.ok || !data.url) throw new Error(data.error ?? "Upload failed");
+  return data.url;
+}
+
 const initialForm = {
   name: "",
   email: "",
   password: "",
   organizationName: "",
   shortDescription: "",
+  logo: "",
   contactEmail: "",
   contactPhone: "",
   address: "",
@@ -43,6 +70,29 @@ export default function CreateOrganizerClient() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+    
+    setUploadingLogo(true);
+    try {
+      const logoUrl = await uploadLogoToCloudinary(file);
+      setForm((f) => ({ ...f, logo: logoUrl }));
+      toast.success("Logo uploaded successfully");
+    } catch (error) {
+      console.error("Logo upload failed:", error);
+      toast.error("Failed to upload logo");
+    }
+    setUploadingLogo(false);
+    e.target.value = "";
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -154,13 +204,52 @@ export default function CreateOrganizerClient() {
             />
           </div>
           <div>
-            <Label>Short Description *</Label>
+            <Label>Summary *</Label>
             <TextArea
               value={form.shortDescription}
               onChange={(value) => setForm((f) => ({ ...f, shortDescription: value }))}
               rows={2}
             />
           </div>
+          
+          {/* Logo Upload Section */}
+          <div>
+            <Label>Organization Logo</Label>
+            <div className="mt-2 space-y-3">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleLogoUpload}
+                disabled={uploadingLogo}
+                className="block w-full text-sm text-gray-500 file:mr-4 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100 dark:file:bg-brand-500/10 dark:file:text-brand-400"
+              />
+              {uploadingLogo && (
+                <p className="text-sm text-gray-500">Uploading logo...</p>
+              )}
+              {form.logo && (
+                <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800/50">
+                  <img
+                    src={form.logo}
+                    alt="Organization logo"
+                    className="h-12 w-12 rounded-lg object-cover"
+                  />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">Logo uploaded</p>
+                    <p className="text-xs text-gray-500">Ready to use</p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setForm((f) => ({ ...f, logo: "" }))}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+          
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label>Contact Email *</Label>

@@ -40,7 +40,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No organization found" }, { status: 400 });
     }
     const body = await req.json();
-    const { name, location, startDate, endDate, description, tags, registrationLink } = body;
+    const { name, location, startDate, endDate, description, tags, registrationLink, coverImage, coverImagePublicId, targetAudience, ageGroup } = body;
     if (!name || !location || !startDate || !description) {
       return NextResponse.json(
         { error: "Name, location, start date and description required" },
@@ -48,7 +48,8 @@ export async function POST(req: Request) {
       );
     }
     const tagList = Array.isArray(tags) ? tags : [];
-    await EventRequest.create({
+    
+    console.log("Creating event with data:", {
       name,
       location,
       startDate: new Date(startDate),
@@ -56,9 +57,31 @@ export async function POST(req: Request) {
       description,
       tags: tagList,
       registrationLink: registrationLink || undefined,
+      coverImage: coverImage || undefined,
+      coverImagePublicId: coverImagePublicId || undefined,
+      targetAudience: targetAudience || "children",
+      ageGroup: targetAudience === "children" ? (ageGroup || "1-5") : undefined,
       organizationId: user.organizationId,
       status: "pending",
     });
+    
+    const createdEvent = await EventRequest.create({
+      name,
+      location,
+      startDate: new Date(startDate),
+      endDate: endDate ? new Date(endDate) : undefined,
+      description,
+      tags: tagList,
+      registrationLink: registrationLink || undefined,
+      coverImage: coverImage || undefined,
+      coverImagePublicId: coverImagePublicId || undefined,
+      targetAudience: targetAudience || "children",
+      ageGroup: targetAudience === "children" ? (ageGroup || "1-5") : undefined,
+      organizationId: user.organizationId,
+      status: "pending",
+    });
+    
+    console.log("Created event:", createdEvent);
     await ensureTags(tagList);
     return NextResponse.json({ success: true });
   } catch (e) {

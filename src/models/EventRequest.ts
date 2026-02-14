@@ -11,6 +11,10 @@ export interface IEventRequest {
   description: string;
   tags: string[];
   registrationLink?: string;
+  coverImage?: string;
+  coverImagePublicId?: string;
+  targetAudience: "children" | "people_work_for_children";
+  ageGroup?: "1-5" | "5-10" | "11-15" | "15-18" | "above-18";
   organizationId: mongoose.Types.ObjectId;
   status: RequestStatus;
   adminReason?: string;
@@ -29,6 +33,18 @@ const EventRequestSchema = new Schema<IEventRequest>(
     description: { type: String, required: true },
     tags: [String],
     registrationLink: String,
+    coverImage: String,
+    coverImagePublicId: String,
+    targetAudience: { 
+      type: String, 
+      enum: ["children", "people_work_for_children"], 
+      required: true,
+      default: "children"
+    },
+    ageGroup: { 
+      type: String, 
+      enum: ["1-5", "5-10", "11-15", "15-18", "above-18"]
+    },
     organizationId: { type: Schema.Types.ObjectId, ref: "Organization", required: true },
     status: { type: String, enum: ["pending", "approved", "denied"], default: "pending" },
     adminReason: String,
@@ -38,6 +54,10 @@ const EventRequestSchema = new Schema<IEventRequest>(
   { timestamps: true }
 );
 
+// Force model recreation in development
+if (mongoose.models.EventRequest) {
+  delete mongoose.models.EventRequest;
+}
+
 export const EventRequest: Model<IEventRequest> =
-  mongoose.models.EventRequest ??
   mongoose.model<IEventRequest>("EventRequest", EventRequestSchema);

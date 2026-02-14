@@ -78,7 +78,14 @@ export default function OrganizerResourcesClient() {
               <TableBody>
                 {list.map((row) => (
                   <TableRow key={row._id} className="border-b border-gray-200 dark:border-gray-800">
-                    <TableCell className="py-4 text-gray-800 dark:text-white/90">{row.name}</TableCell>
+                    <TableCell className="py-4 text-gray-800 dark:text-white/90">
+                      <Link 
+                        href={`/organizer/resources/${row._id}`}
+                        className="text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 font-medium"
+                      >
+                        {row.name}
+                      </Link>
+                    </TableCell>
                     <TableCell className="py-4">{statusBadge(row.status)}</TableCell>
                     <TableCell className="py-4 max-w-[280px] text-sm text-gray-600 dark:text-gray-400">
                       {row.status === "denied" && row.adminReason ? (

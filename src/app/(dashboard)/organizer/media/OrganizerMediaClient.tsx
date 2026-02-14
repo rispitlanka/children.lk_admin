@@ -56,6 +56,7 @@ export default function OrganizerMediaClient() {
               <TableHeader>
                 <TableRow className="border-b border-gray-200 dark:border-gray-800">
                   <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Name</TableCell>
+                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Type</TableCell>
                   <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Status</TableCell>
                   <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Admin message</TableCell>
                   <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Date</TableCell>
@@ -64,7 +65,31 @@ export default function OrganizerMediaClient() {
               <TableBody>
                 {list.map((row) => (
                   <TableRow key={row._id} className="border-b border-gray-200 dark:border-gray-800">
-                    <TableCell className="py-4 text-gray-800 dark:text-white/90">{row.name}</TableCell>
+                    <TableCell className="py-4 text-gray-800 dark:text-white/90">
+                      <Link 
+                        href={`/organizer/media/${row._id}`}
+                        className="text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 font-medium"
+                      >
+                        {row.name}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <Badge 
+                        color={
+                          (row as any).contentType === "article" || (row as any).contentType === "poem" ? "info" :
+                          (row as any).contentType === "video" ? "success" :
+                          (row as any).contentType === "audio" ? "warning" :
+                          "info"
+                        }
+                        size="sm"
+                      >
+                        {(row as any).contentType ? 
+                          ((row as any).contentType === "picture_story" ? "Picture Story" : 
+                           (row as any).contentType.charAt(0).toUpperCase() + (row as any).contentType.slice(1)) :
+                          "Media"
+                        }
+                      </Badge>
+                    </TableCell>
                     <TableCell className="py-4">{statusBadge(row.status)}</TableCell>
                     <TableCell className="py-4 max-w-[280px] text-sm text-gray-600 dark:text-gray-400">
                       {row.status === "denied" && row.adminReason ? (

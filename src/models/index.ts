@@ -26,3 +26,4 @@ export {
   type RequestStatus as SuperHeroRequestStatus,
 } from "./SuperHeroRequest";
 export { Tag, type ITag } from "./Tag";
+export { Announcement, type IAnnouncement } from "./Announcement";

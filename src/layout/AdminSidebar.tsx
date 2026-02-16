@@ -56,6 +56,11 @@ const adminNavItems: NavItem[] = [
     path: "/admin/super-hero-requests",
   },
   {
+    icon: <DocsIcon />,
+    name: "Announcements",
+    path: "/admin/announcements",
+  },
+  {
     icon: <UserCircleIcon />,
     name: "Profile",
     path: "/admin/profile",

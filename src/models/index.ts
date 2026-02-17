@@ -27,3 +27,7 @@ export {
 } from "./SuperHeroRequest";
 export { Tag, type ITag } from "./Tag";
 export { Announcement, type IAnnouncement } from "./Announcement";
+export {
+  DocumentDownloadCount,
+  type IDocumentDownloadCount,
+} from "./DocumentDownloadCount";

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
+import "@/models/Organization";
 import { SuperHeroRequest } from "@/models/SuperHeroRequest";
 
 export async function GET(

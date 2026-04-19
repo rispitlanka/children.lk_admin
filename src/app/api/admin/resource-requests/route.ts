@@ -13,6 +13,9 @@ export async function GET() {
     await connectDB();
     const list = await ResourceRequest.find({})
       .populate("organizationId", "name")
+      .populate("categoryId", "name slug")
+      .populate("subCategoryId", "name slug")
+      .populate("coPublisherOrganizationIds", "name")
       .sort({ createdAt: -1 })
       .lean();
     return NextResponse.json(list);

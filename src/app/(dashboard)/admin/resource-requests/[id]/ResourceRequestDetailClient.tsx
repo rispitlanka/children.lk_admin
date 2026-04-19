@@ -11,22 +11,61 @@ import TextArea from "@/components/form/input/TextArea";
 import LoadingLottie from "@/components/common/LoadingLottie";
 import toast from "react-hot-toast";
 import Badge from "@/components/ui/badge/Badge";
+import {
+  formatAgeAudienceGroups,
+  labelContentType,
+  labelVisibility,
+  taxonomyLine,
+} from "@/lib/resource-display";
+import { LANGUAGE_OPTIONS } from "@/lib/resource-form-constants";
 
-type DocFile = { url: string; publicId: string; type: string; name?: string };
+type PopulatedName = { _id?: string; name?: string };
+
+type DocFile = {
+  url: string;
+  publicId: string;
+  type: string;
+  name?: string;
+  fileFormat?: string;
+  languages?: string[];
+  fileSizeBytes?: number;
+  isPrimary?: boolean;
+};
 
 type ResourceRequestDetail = {
   _id: string;
   name: string;
   shortDescription: string;
+  description?: string;
+  publicationDate?: string;
   picture?: string;
   documents: DocFile[];
   tags: string[];
   organizationId?: { name: string; contactEmail?: string; contactPhone?: string };
+  categoryId?: PopulatedName | string;
+  subCategoryId?: PopulatedName | string;
+  contentType?: string;
+  ageAudienceGroups?: string[];
+  mainPublisherName?: string;
+  hasCoPublishers?: boolean;
+  coPublisherOrganizationIds?: PopulatedName[] | string[];
+  rightsNotice?: string;
+  externalDownloadUrl?: string;
+  countries?: string[];
+  regions?: string[];
+  visibilityStatus?: string;
+  contentPublishedAt?: string;
+  featured?: boolean;
+  slug?: string;
   status: string;
   adminReason?: string;
   reviewedAt?: string;
   createdAt: string;
 };
+
+function langLabel(code: string): string {
+  return LANGUAGE_OPTIONS.find((l) => l.value === code)?.label ?? code;
+}
 
 export default function ResourceRequestDetailClient() {
   const params = useParams();
@@ -142,6 +181,15 @@ export default function ResourceRequestDetailClient() {
   }
 
   const isPending = request.status === "pending";
+  const cat = typeof request.categoryId === "object" ? request.categoryId : null;
+  const sub = typeof request.subCategoryId === "object" ? request.subCategoryId : null;
+  const coNames =
+    request.hasCoPublishers && Array.isArray(request.coPublisherOrganizationIds)
+      ? request.coPublisherOrganizationIds
+          .map((o) => (typeof o === "object" && o?.name ? o.name : null))
+          .filter(Boolean)
+      : [];
+  const bodyText = request.description?.trim() || request.shortDescription;
 
   return (
     <div className="space-y-6">
@@ -160,38 +208,160 @@ export default function ResourceRequestDetailClient() {
           <ComponentCard title="Overview">
             <div className="space-y-4">
               <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Description</p>
-                <p className="mt-1 text-gray-800 dark:text-white/90">{request.shortDescription}</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                  Description
+                </p>
+                <p className="mt-1 whitespace-pre-wrap text-gray-800 dark:text-white/90">{bodyText}</p>
               </div>
-              <div className="flex flex-wrap gap-4 border-t border-gray-200 pt-4 dark:border-gray-800">
+              <div className="grid gap-4 border-t border-gray-200 pt-4 text-sm dark:border-gray-800 sm:grid-cols-2">
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Organization</p>
-                  <p className="mt-1 font-medium text-gray-800 dark:text-white/90">{request.organizationId?.name ?? "—"}</p>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    Organization
+                  </p>
+                  <p className="mt-1 font-medium text-gray-800 dark:text-white/90">
+                    {request.organizationId?.name ?? "—"}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Submitted</p>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    Submitted
+                  </p>
                   <p className="mt-1 text-gray-800 dark:text-white/90">
                     {new Date(request.createdAt).toLocaleDateString(undefined, { dateStyle: "medium" })}
                   </p>
                 </div>
-                {request.tags?.length > 0 && (
-                  <div className="w-full">
-                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Tags</p>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {request.tags.map((tag, i) => (
-                        <span
-                          key={i}
-                          className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    Category
+                  </p>
+                  <p className="mt-1 text-gray-800 dark:text-white/90">{taxonomyLine(cat, sub)}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    Content type
+                  </p>
+                  <p className="mt-1 text-gray-800 dark:text-white/90">
+                    {labelContentType(request.contentType)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    Age / audience
+                  </p>
+                  <p className="mt-1 text-gray-800 dark:text-white/90">
+                    {formatAgeAudienceGroups(request.ageAudienceGroups)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    Visibility
+                  </p>
+                  <p className="mt-1 text-gray-800 dark:text-white/90">
+                    {labelVisibility(request.visibilityStatus)}
+                    {request.featured ? " · Featured" : ""}
+                  </p>
+                </div>
+                {request.publicationDate && (
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                      Publication date
+                    </p>
+                    <p className="mt-1 text-gray-800 dark:text-white/90">
+                      {new Date(request.publicationDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                )}
+                {request.contentPublishedAt && (
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                      Published date
+                    </p>
+                    <p className="mt-1 text-gray-800 dark:text-white/90">
+                      {new Date(request.contentPublishedAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                )}
+                {request.slug && (
+                  <div className="sm:col-span-2">
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Slug</p>
+                    <p className="mt-1 font-mono text-xs text-gray-800 dark:text-white/90">{request.slug}</p>
                   </div>
                 )}
               </div>
+              {request.tags?.length ? (
+                <div className="border-t border-gray-200 pt-4 dark:border-gray-800">
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Tags</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {request.tags.map((tag, i) => (
+                      <span
+                        key={i}
+                        className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
             </div>
           </ComponentCard>
+
+          <ComponentCard title="Publishers &amp; rights">
+            <dl className="grid gap-3 text-sm sm:grid-cols-2">
+              <div>
+                <dt className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                  Main publisher
+                </dt>
+                <dd className="mt-1 font-medium text-gray-900 dark:text-white">{request.mainPublisherName ?? "—"}</dd>
+              </div>
+              {coNames.length > 0 && (
+                <div className="sm:col-span-2">
+                  <dt className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    Co-publishers
+                  </dt>
+                  <dd className="mt-1 text-gray-800 dark:text-white/90">{coNames.join(", ")}</dd>
+                </div>
+              )}
+              {request.rightsNotice && (
+                <div className="sm:col-span-2">
+                  <dt className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    Rights / © notice
+                  </dt>
+                  <dd className="mt-1 whitespace-pre-wrap text-gray-800 dark:text-white/90">{request.rightsNotice}</dd>
+                </div>
+              )}
+            </dl>
+          </ComponentCard>
+
+          {(request.countries?.length || request.regions?.length) ? (
+            <ComponentCard title="Geography">
+              {!!request.countries?.length && (
+                <p className="text-sm text-gray-800 dark:text-white/90">
+                  <span className="text-gray-500">Countries: </span>
+                  {request.countries.join(", ")}
+                </p>
+              )}
+              {!!request.regions?.length && (
+                <p className="mt-2 text-sm text-gray-800 dark:text-white/90">
+                  <span className="text-gray-500">Regions: </span>
+                  {request.regions.join(", ")}
+                </p>
+              )}
+            </ComponentCard>
+          ) : null}
+
+          {request.externalDownloadUrl && (
+            <ComponentCard title="External download">
+              <a
+                href={request.externalDownloadUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm font-medium text-brand-500 hover:text-brand-600"
+              >
+                {request.externalDownloadUrl}
+              </a>
+            </ComponentCard>
+          )}
 
           {request.picture && (
             <ComponentCard title="Cover picture">
@@ -301,6 +471,11 @@ export default function ResourceRequestDetailClient() {
 function DocumentPreview({ doc }: { doc: DocFile }) {
   const type = (doc.type || "pdf").toLowerCase();
   const name = doc.name || `Document (${type})`;
+  const metaParts: string[] = [];
+  if (doc.fileFormat) metaParts.push(`Format: ${doc.fileFormat}`);
+  if (doc.languages?.length) metaParts.push(`Languages: ${doc.languages.map(langLabel).join(", ")}`);
+  if (doc.fileSizeBytes != null) metaParts.push(`${(doc.fileSizeBytes / 1024).toFixed(1)} KB`);
+  if (doc.isPrimary) metaParts.push("Primary file");
   const isImage = type === "image";
   const isVideo = type === "video";
   const isAudio = type === "audio";
@@ -309,11 +484,16 @@ function DocumentPreview({ doc }: { doc: DocFile }) {
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900/50 overflow-hidden">
-      <div className="p-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between gap-2">
-        <span className="text-sm font-medium text-gray-800 dark:text-white/90 truncate">{name}</span>
-        <span className="shrink-0 rounded bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-300 capitalize">
-          {type}
-        </span>
+      <div className="border-b border-gray-200 p-3 dark:border-gray-800">
+        <div className="flex items-center justify-between gap-2">
+          <span className="truncate text-sm font-medium text-gray-800 dark:text-white/90">{name}</span>
+          <span className="shrink-0 rounded bg-gray-200 px-2 py-0.5 text-xs font-medium capitalize text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+            {type}
+          </span>
+        </div>
+        {metaParts.length > 0 && (
+          <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{metaParts.join(" · ")}</p>
+        )}
       </div>
       <div className="min-h-[120px] bg-gray-50 dark:bg-gray-900/50 flex items-center justify-center">
         {isImage && (

@@ -9,6 +9,7 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import Button from "@/components/ui/button/Button";
 import Badge from "@/components/ui/badge/Badge";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
+import { formatAgeAudienceGroups, labelContentType, labelVisibility, taxonomyLine } from "@/lib/resource-display";
 
 type Organization = {
   _id: string;
@@ -29,6 +30,8 @@ type Organizer = {
   organization: Organization;
 };
 
+type PopulatedName = { _id?: string; name?: string };
+
 type ResourceRequest = {
   _id: string;
   name: string;
@@ -36,6 +39,11 @@ type ResourceRequest = {
   status: string;
   targetAudience?: string;
   ageGroup?: string;
+  ageAudienceGroups?: string[];
+  contentType?: string;
+  visibilityStatus?: string;
+  categoryId?: PopulatedName | string;
+  subCategoryId?: PopulatedName | string;
   createdAt: string;
 };
 
@@ -297,45 +305,63 @@ export default function OrganizerDetailsClient() {
             <Table className="w-full text-left text-sm">
               <TableHeader>
                 <TableRow className="border-b border-gray-200 dark:border-gray-800">
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Name</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Description</TableCell>
+                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Title</TableCell>
+                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Summary</TableCell>
+                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Category</TableCell>
+                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Type</TableCell>
+                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Visibility</TableCell>
                   <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Audience</TableCell>
                   <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Status</TableCell>
                   <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Date</TableCell>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {resources.map((resource) => (
+                {resources.map((resource) => {
+                  const cat = typeof resource.categoryId === "object" ? resource.categoryId : null;
+                  const sub = typeof resource.subCategoryId === "object" ? resource.subCategoryId : null;
+                  const audienceText =
+                    resource.ageAudienceGroups && resource.ageAudienceGroups.length > 0
+                      ? formatAgeAudienceGroups(resource.ageAudienceGroups)
+                      : [
+                          resource.targetAudience === "children" ? "Children" : "Professionals",
+                          resource.ageGroup,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ");
+                  return (
                   <TableRow key={resource._id} className="border-b border-gray-200 dark:border-gray-800">
                     <TableCell className="py-4">
                       <Link 
-                        href={`/admin/resources/${resource._id}`}
-                        className="text-brand-600 hover:text-brand-700 dark:text-brand-400 font-medium"
+                        href={`/admin/resource-requests/${resource._id}`}
+                        className="font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400"
                       >
                         {resource.name}
                       </Link>
                     </TableCell>
-                    <TableCell className="py-4 text-gray-600 dark:text-gray-400">
+                    <TableCell className="max-w-[200px] py-4 text-gray-600 dark:text-gray-400">
                       {resource.shortDescription.length > 50 
                         ? resource.shortDescription.substring(0, 50) + "..." 
                         : resource.shortDescription}
                     </TableCell>
-                    <TableCell className="py-4">
-                      <div className="space-y-1">
-                        <Badge color="primary" size="sm">
-                          {resource.targetAudience === "children" ? "Children" : "Professionals"}
-                        </Badge>
-                        {resource.ageGroup && (
-                          <Badge color="info" size="sm">{resource.ageGroup}</Badge>
-                        )}
-                      </div>
+                    <TableCell className="max-w-[180px] py-4 text-gray-600 dark:text-gray-400">
+                      {taxonomyLine(cat, sub)}
+                    </TableCell>
+                    <TableCell className="py-4 text-gray-600 dark:text-gray-400">
+                      {labelContentType(resource.contentType)}
+                    </TableCell>
+                    <TableCell className="py-4 text-gray-600 dark:text-gray-400">
+                      {labelVisibility(resource.visibilityStatus)}
+                    </TableCell>
+                    <TableCell className="max-w-[200px] py-4 text-xs text-gray-600 dark:text-gray-400">
+                      {audienceText || "—"}
                     </TableCell>
                     <TableCell className="py-4">{getStatusBadge(resource.status)}</TableCell>
                     <TableCell className="py-4 text-gray-600 dark:text-gray-400">
                       {new Date(resource.createdAt).toLocaleDateString()}
                     </TableCell>
                   </TableRow>
-                ))}
+                );
+                })}
               </TableBody>
             </Table>
           </div>

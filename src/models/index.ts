@@ -7,6 +7,8 @@ export {
   type IResourceRequest,
   type RequestStatus as ResourceRequestStatus,
 } from "./ResourceRequest";
+export { ResourceCategory, type IResourceCategory } from "./ResourceCategory";
+export { ResourceSubCategory, type IResourceSubCategory } from "./ResourceSubCategory";
 export { Media, type IMedia, type IMediaFile } from "./Media";
 export {
   MediaRequest,

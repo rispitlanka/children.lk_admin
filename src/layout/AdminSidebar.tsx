@@ -36,6 +36,11 @@ const adminNavItems: NavItem[] = [
     path: "/admin/resource-requests",
   },
   {
+    icon: <TableIcon />,
+    name: "Resource taxonomy",
+    path: "/admin/resource-taxonomy",
+  },
+  {
     icon: <VideoIcon />,
     name: "Media Requests",
     path: "/admin/media-requests",

@@ -54,7 +54,11 @@ export async function GET(
     // Fetch all submissions for this organization
     const [resources, media, events] = await Promise.all([
       ResourceRequest.find({ organizationId: organization._id })
-        .select("name shortDescription status targetAudience ageGroup createdAt")
+        .select(
+          "name shortDescription description status targetAudience ageGroup ageAudienceGroups contentType visibilityStatus featured categoryId subCategoryId createdAt"
+        )
+        .populate("categoryId", "name")
+        .populate("subCategoryId", "name")
         .sort({ createdAt: -1 })
         .lean(),
       MediaRequest.find({ organizationId: organization._id })

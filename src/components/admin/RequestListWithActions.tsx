@@ -18,6 +18,12 @@ import {
 import LoadingLottie from "@/components/common/LoadingLottie";
 import toast from "react-hot-toast";
 import Badge from "@/components/ui/badge/Badge";
+import {
+  formatAgeAudienceGroups,
+  labelContentType,
+  labelVisibility,
+  taxonomyLine,
+} from "@/lib/resource-display";
 
 type RequestItem = {
   _id: string;
@@ -43,7 +49,10 @@ function getColumns(requestType: RequestType): { key: string; label: string }[] 
   switch (requestType) {
     case "resource":
       return [
-        { key: "name", label: "Name" },
+        { key: "name", label: "Title" },
+        { key: "categoryId", label: "Category" },
+        { key: "contentType", label: "Content type" },
+        { key: "visibilityStatus", label: "Visibility" },
         { key: "organizationId", label: "Organization" },
         { key: "createdAt", label: "Date" },
       ];
@@ -76,6 +85,13 @@ function getCellValue(row: RequestItem, col: { key: string }): React.ReactNode {
   const key = col.key;
   if (key === "organizationId") return (row.organizationId as { name?: string })?.name ?? "—";
   if (key === "createdAt") return new Date(row.createdAt as string).toLocaleDateString();
+  if (key === "categoryId") {
+    const cat = row.categoryId as { name?: string } | undefined;
+    const sub = row.subCategoryId as { name?: string } | undefined;
+    return taxonomyLine(cat ?? null, sub ?? null);
+  }
+  if (key === "contentType") return labelContentType(row.contentType as string | undefined);
+  if (key === "visibilityStatus") return labelVisibility(row.visibilityStatus as string | undefined);
   return String(row[key] ?? "—");
 }
 
@@ -194,13 +210,52 @@ function renderDetail(requestType: RequestType, row: RequestItem): React.ReactNo
   const org = row.organizationId as { name?: string } | undefined;
   switch (requestType) {
     case "resource":
-      const docs = Array.isArray(row.documents) ? (row.documents as { url: string; type?: string; name?: string }[]) : [];
+      const docs = Array.isArray(row.documents)
+        ? (row.documents as { url: string; type?: string; name?: string; fileFormat?: string; languages?: string[]; fileSizeBytes?: number; isPrimary?: boolean }[])
+        : [];
+      const cat = row.categoryId as { name?: string } | undefined;
+      const sub = row.subCategoryId as { name?: string } | undefined;
+      const co = row.coPublisherOrganizationIds as { name?: string }[] | undefined;
       return (
         <div className="space-y-4">
           <div className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
-            <p><strong>Name:</strong> {String(row.name ?? "—")}</p>
-            <p><strong>Description:</strong> {String(row.shortDescription ?? "—")}</p>
+            <p><strong>Title:</strong> {String(row.name ?? "—")}</p>
+            <p><strong>Summary:</strong> {String(row.shortDescription ?? "—")}</p>
+            {typeof row.description === "string" && row.description.trim() ? (
+              <p><strong>Full description:</strong> {row.description}</p>
+            ) : null}
             <p><strong>Organization:</strong> {org?.name ?? "—"}</p>
+            <p><strong>Category:</strong> {taxonomyLine(cat ?? null, sub ?? null)}</p>
+            <p><strong>Content type:</strong> {labelContentType(row.contentType as string | undefined)}</p>
+            <p><strong>Age / audience:</strong> {formatAgeAudienceGroups(row.ageAudienceGroups as string[] | undefined)}</p>
+            <p><strong>Visibility:</strong> {labelVisibility(row.visibilityStatus as string | undefined)}</p>
+            <p><strong>Featured:</strong> {row.featured === true ? "Yes" : "No"}</p>
+            {typeof row.mainPublisherName === "string" && row.mainPublisherName.trim() ? (
+              <p><strong>Main publisher:</strong> {row.mainPublisherName}</p>
+            ) : null}
+            {row.hasCoPublishers === true && co?.length ? (
+              <p><strong>Co-publishers:</strong> {co.map((o) => o.name).filter(Boolean).join(", ")}</p>
+            ) : null}
+            {typeof row.rightsNotice === "string" && row.rightsNotice.trim() ? (
+              <p><strong>Rights / ©:</strong> {row.rightsNotice}</p>
+            ) : null}
+            {Array.isArray(row.countries) && (row.countries as string[]).length > 0 && (
+              <p><strong>Countries:</strong> {(row.countries as string[]).join(", ")}</p>
+            )}
+            {Array.isArray(row.regions) && (row.regions as string[]).length > 0 && (
+              <p><strong>Regions:</strong> {(row.regions as string[]).join(", ")}</p>
+            )}
+            {typeof row.externalDownloadUrl === "string" && row.externalDownloadUrl.trim() ? (
+              <p>
+                <strong>External URL:</strong>{" "}
+                <a href={row.externalDownloadUrl} target="_blank" rel="noopener noreferrer" className="text-brand-500">
+                  Link
+                </a>
+              </p>
+            ) : null}
+            {typeof row.slug === "string" && row.slug.trim() ? (
+              <p><strong>Slug:</strong> {row.slug}</p>
+            ) : null}
             <p><strong>Tags:</strong> {Array.isArray(row.tags) ? (row.tags as string[]).join(", ") : "—"}</p>
           </div>
           {(() => {

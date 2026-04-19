@@ -18,6 +18,9 @@ export async function GET(
     await connectDB();
     const request = await ResourceRequest.findById(id)
       .populate("organizationId", "name contactEmail contactPhone")
+      .populate("categoryId", "name slug")
+      .populate("subCategoryId", "name slug")
+      .populate("coPublisherOrganizationIds", "name")
       .lean();
     if (!request) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -73,10 +76,29 @@ export async function PATCH(
       await Resource.create({
         name: request.name,
         shortDescription: request.shortDescription,
+        description: request.description,
+        publicationDate: request.publicationDate,
         picture: request.picture,
         picturePublicId: request.picturePublicId,
         documents: request.documents ?? [],
         tags: request.tags ?? [],
+        categoryId: request.categoryId,
+        subCategoryId: request.subCategoryId,
+        contentType: request.contentType,
+        ageAudienceGroups: request.ageAudienceGroups,
+        targetAudience: request.targetAudience,
+        ageGroup: request.ageGroup,
+        mainPublisherName: request.mainPublisherName,
+        hasCoPublishers: request.hasCoPublishers,
+        coPublisherOrganizationIds: request.coPublisherOrganizationIds,
+        rightsNotice: request.rightsNotice,
+        externalDownloadUrl: request.externalDownloadUrl,
+        countries: request.countries,
+        regions: request.regions,
+        visibilityStatus: request.visibilityStatus,
+        contentPublishedAt: request.contentPublishedAt,
+        featured: request.featured,
+        slug: request.slug,
         organizationId: request.organizationId,
       });
     }

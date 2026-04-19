@@ -14,6 +14,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PlusIcon } from "@/icons";
+import { labelContentType, labelVisibility, taxonomyLine } from "@/lib/resource-display";
+
+type PopulatedName = { _id?: string; name?: string };
 
 type Item = {
   _id: string;
@@ -22,6 +25,11 @@ type Item = {
   status: string;
   adminReason?: string;
   createdAt: string;
+  contentType?: string;
+  visibilityStatus?: string;
+  featured?: boolean;
+  categoryId?: PopulatedName | string;
+  subCategoryId?: PopulatedName | string;
 };
 
 export default function OrganizerResourcesClient() {
@@ -44,9 +52,15 @@ export default function OrganizerResourcesClient() {
   }, []);
 
   const statusBadge = (status: string) => {
-    if (status === "pending") return <Badge color="warning">Pending</Badge>;
+    if (status === "pending") return <Badge color="warning">Pending review</Badge>;
     if (status === "approved") return <Badge color="success">Approved</Badge>;
     return <Badge color="error">Denied</Badge>;
+  };
+
+  const categoryCell = (row: Item) => {
+    const cat = typeof row.categoryId === "object" && row.categoryId ? row.categoryId : null;
+    const sub = typeof row.subCategoryId === "object" && row.subCategoryId ? row.subCategoryId : null;
+    return taxonomyLine(cat, sub);
   };
 
   return (
@@ -69,27 +83,62 @@ export default function OrganizerResourcesClient() {
             <Table className="w-full text-left text-theme-sm">
               <TableHeader>
                 <TableRow className="border-b border-gray-200 dark:border-gray-800">
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Name</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Status</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Admin message</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Date</TableCell>
+                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">
+                    Title
+                  </TableCell>
+                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">
+                    Category
+                  </TableCell>
+                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">
+                    Content type
+                  </TableCell>
+                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">
+                    Visibility
+                  </TableCell>
+                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">
+                    Review
+                  </TableCell>
+                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">
+                    Admin message
+                  </TableCell>
+                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">
+                    Submitted
+                  </TableCell>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {list.map((row) => (
                   <TableRow key={row._id} className="border-b border-gray-200 dark:border-gray-800">
                     <TableCell className="py-4 text-gray-800 dark:text-white/90">
-                      <Link 
-                        href={`/organizer/resources/${row._id}`}
-                        className="text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 font-medium"
-                      >
-                        {row.name}
-                      </Link>
+                      <div className="flex flex-col gap-1">
+                        <Link
+                          href={`/organizer/resources/${row._id}`}
+                          className="font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
+                        >
+                          {row.name}
+                        </Link>
+                        {row.featured && (
+                          <Badge color="warning" size="sm">
+                            Featured
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-4 max-w-[200px] text-sm text-gray-600 dark:text-gray-400">
+                      {categoryCell(row)}
+                    </TableCell>
+                    <TableCell className="py-4 text-sm text-gray-600 dark:text-gray-400">
+                      {labelContentType(row.contentType)}
+                    </TableCell>
+                    <TableCell className="py-4 text-sm text-gray-600 dark:text-gray-400">
+                      {labelVisibility(row.visibilityStatus)}
                     </TableCell>
                     <TableCell className="py-4">{statusBadge(row.status)}</TableCell>
-                    <TableCell className="py-4 max-w-[280px] text-sm text-gray-600 dark:text-gray-400">
+                    <TableCell className="py-4 max-w-[220px] text-sm text-gray-600 dark:text-gray-400">
                       {row.status === "denied" && row.adminReason ? (
-                        <span className="block" title={row.adminReason}>{row.adminReason}</span>
+                        <span className="block truncate" title={row.adminReason}>
+                          {row.adminReason}
+                        </span>
                       ) : (
                         "—"
                       )}

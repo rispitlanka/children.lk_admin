@@ -40,14 +40,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No organization found" }, { status: 400 });
     }
     const body = await req.json();
-    const { name, icon, iconType, iconPublicId, phone, shortDescription } = body;
-    if (!name || !icon || !phone || !shortDescription) {
+    const { name, color, contactNumber, image, imagePublicId, description } = body;
+    if (!name || !color || !contactNumber || !image || !description) {
       return NextResponse.json(
-        { error: "Name, icon, phone and short description required" },
+        { error: "Name, color, contact number, image and description are required" },
         { status: 400 }
       );
     }
-    if (!isValidPhone(phone)) {
+    if (!isValidPhone(contactNumber)) {
       return NextResponse.json(
         { error: PHONE_VALIDATION_MESSAGE },
         { status: 400 }
@@ -55,11 +55,11 @@ export async function POST(req: Request) {
     }
     await SuperHeroRequest.create({
       name,
-      icon,
-      iconType: iconType ?? "emoji",
-      iconPublicId: iconPublicId || undefined,
-      phone,
-      shortDescription,
+      color,
+      contactNumber,
+      image,
+      imagePublicId: imagePublicId || undefined,
+      description,
       organizationId: user.organizationId,
       status: "pending",
     });

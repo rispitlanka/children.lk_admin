@@ -3,11 +3,11 @@ import mongoose, { Schema, Model } from "mongoose";
 export interface ISuperHero {
   _id: mongoose.Types.ObjectId;
   name: string;
-  icon: string; // emoji or image URL
-  iconType: "emoji" | "image";
-  iconPublicId?: string; // if image uploaded to Cloudinary
-  phone: string;
-  shortDescription: string;
+  color: string;
+  contactNumber: string;
+  image: string;
+  imagePublicId?: string;
+  description: string;
   organizationId?: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
@@ -16,11 +16,11 @@ export interface ISuperHero {
 const SuperHeroSchema = new Schema<ISuperHero>(
   {
     name: { type: String, required: true },
-    icon: { type: String, required: true },
-    iconType: { type: String, enum: ["emoji", "image"], required: true, default: "emoji" },
-    iconPublicId: String,
-    phone: { type: String, required: true },
-    shortDescription: { type: String, required: true },
+    color: { type: String, required: true, trim: true },
+    contactNumber: { type: String, required: true, trim: true },
+    image: { type: String, required: true },
+    imagePublicId: String,
+    description: { type: String, required: true },
     organizationId: { type: Schema.Types.ObjectId, ref: "Organization" },
   },
   { timestamps: true }

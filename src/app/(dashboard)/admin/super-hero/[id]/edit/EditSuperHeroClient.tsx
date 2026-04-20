@@ -40,14 +40,14 @@ export default function EditSuperHeroClient() {
   const id = params?.id as string;
   const [form, setForm] = useState({
     name: "",
-    icon: "",
-    iconType: "emoji" as "emoji" | "image",
-    iconPublicId: "",
-    phone: "",
-    shortDescription: "",
+    color: "#ff0000",
+    contactNumber: "",
+    image: "",
+    imagePublicId: "",
+    description: "",
   });
   const [loading, setLoading] = useState(true);
-  const [uploadingIcon, setUploadingIcon] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -62,11 +62,11 @@ export default function EditSuperHeroClient() {
         if (!item) throw new Error("Not found");
         setForm({
           name: item.name ?? "",
-          icon: item.icon ?? "",
-          iconType: item.iconType ?? "emoji",
-          iconPublicId: item.iconPublicId ?? "",
-          phone: item.phone ?? "",
-          shortDescription: item.shortDescription ?? "",
+          color: item.color ?? "#ff0000",
+          contactNumber: item.contactNumber ?? "",
+          image: item.image ?? "",
+          imagePublicId: item.imagePublicId ?? "",
+          description: item.description ?? "",
         });
       })
       .catch(() => {
@@ -76,19 +76,19 @@ export default function EditSuperHeroClient() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  const handleIconImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !file.type.startsWith("image/")) return;
     setError("");
-    setUploadingIcon(true);
+    setUploadingImage(true);
     try {
       const result = await uploadImage(file);
-      setForm((f) => ({ ...f, icon: result.url, iconPublicId: result.publicId }));
+      setForm((f) => ({ ...f, image: result.url, imagePublicId: result.publicId }));
     } catch {
       setError("Failed to upload image");
       toast.error("Failed to upload image");
     }
-    setUploadingIcon(false);
+    setUploadingImage(false);
     e.target.value = "";
   };
 
@@ -96,13 +96,13 @@ export default function EditSuperHeroClient() {
     e.preventDefault();
     if (!id) return;
     setError("");
-    if (form.iconType === "image" && !form.icon) {
-      const msg = "Please upload an image for the icon";
+    if (!form.image) {
+      const msg = "Please upload a super hero image";
       setError(msg);
       toast.error(msg);
       return;
     }
-    if (!isValidPhone(form.phone)) {
+    if (!isValidPhone(form.contactNumber)) {
       setError(PHONE_VALIDATION_MESSAGE);
       toast.error(PHONE_VALIDATION_MESSAGE);
       return;
@@ -111,12 +111,12 @@ export default function EditSuperHeroClient() {
     try {
       const body: Record<string, unknown> = {
         name: form.name,
-        icon: form.icon,
-        iconType: form.iconType,
-        phone: form.phone,
-        shortDescription: form.shortDescription,
+        color: form.color,
+        contactNumber: form.contactNumber,
+        image: form.image,
+        description: form.description,
       };
-      if (form.iconPublicId) body.iconPublicId = form.iconPublicId;
+      if (form.imagePublicId) body.imagePublicId = form.imagePublicId;
       const res = await fetch(`/api/admin/super-hero/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -170,7 +170,7 @@ export default function EditSuperHeroClient() {
 
           <div className="grid gap-6 sm:grid-cols-2">
             <div className="sm:col-span-2">
-              <Label>Name *</Label>
+              <Label>Super Hero Name *</Label>
               <Input
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
@@ -178,65 +178,48 @@ export default function EditSuperHeroClient() {
                 className="mt-1"
               />
             </div>
-            <div className="sm:col-span-2">
-              <Label>Icon type</Label>
-              <select
-                value={form.iconType}
-                onChange={(e) => {
-                  const v = e.target.value as "emoji" | "image";
-                  setForm((f) => ({ ...f, iconType: v, icon: "", iconPublicId: "" }));
-                }}
-                className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-              >
-                <option value="emoji">Emoji</option>
-                <option value="image">Image</option>
-              </select>
-            </div>
-            {form.iconType === "emoji" ? (
-              <div className="sm:col-span-2">
-                <Label>Icon (emoji) *</Label>
-                <Input
-                  value={form.icon}
-                  onChange={(e) => setForm((f) => ({ ...f, icon: e.target.value }))}
-                  placeholder="e.g. 🦸"
-                  required
-                  className="mt-1"
-                />
-              </div>
-            ) : (
-              <div className="sm:col-span-2">
-                <Label>Icon (upload image) *</Label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleIconImageUpload}
-                  disabled={uploadingIcon}
-                  className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100 dark:file:bg-brand-500/10 dark:file:text-brand-400"
-                />
-                {uploadingIcon && <p className="mt-1 text-xs text-gray-500">Uploading...</p>}
-                {form.icon && (
-                  <div className="mt-3 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50/50 p-3 dark:border-gray-700 dark:bg-gray-800/30">
-                    <img src={form.icon} alt="" className="h-16 w-16 rounded-full object-cover ring-2 ring-gray-200 dark:ring-gray-700" />
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Current / uploaded</span>
-                  </div>
-                )}
-              </div>
-            )}
             <div>
-              <Label>Phone *</Label>
+              <Label>Super Hero Color *</Label>
               <Input
-                value={form.phone}
-                onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                type="color"
+                value={form.color}
+                onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))}
+                required
+                className="mt-1 h-11"
+              />
+            </div>
+            <div>
+              <Label>Contact Number *</Label>
+              <Input
+                value={form.contactNumber}
+                onChange={(e) => setForm((f) => ({ ...f, contactNumber: e.target.value }))}
                 placeholder="+94771234567"
                 className="mt-1"
               />
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">+94 followed by 9 digits</p>
             </div>
             <div className="sm:col-span-2">
-              <Label>Short description *</Label>
+              <Label>Super Hero Image *</Label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                disabled={uploadingImage}
+                className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100 dark:file:bg-brand-500/10 dark:file:text-brand-400"
+              />
+              {uploadingImage && <p className="mt-1 text-xs text-gray-500">Uploading...</p>}
+              {form.image && (
+                <div className="mt-3 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50/50 p-3 dark:border-gray-700 dark:bg-gray-800/30">
+                  <img src={form.image} alt="" className="h-16 w-16 rounded-full object-cover ring-2 ring-gray-200 dark:ring-gray-700" />
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Current / uploaded</span>
+                </div>
+              )}
+            </div>
+            <div className="sm:col-span-2">
+              <Label>Description *</Label>
               <TextArea
-                value={form.shortDescription}
-                onChange={(v) => setForm((f) => ({ ...f, shortDescription: v }))}
+                value={form.description}
+                onChange={(v) => setForm((f) => ({ ...f, description: v }))}
                 rows={4}
                 required
                 className="mt-1"
@@ -245,7 +228,7 @@ export default function EditSuperHeroClient() {
           </div>
 
           <div className="flex flex-wrap gap-3 border-t border-gray-200 pt-6 dark:border-gray-800">
-            <Button type="submit" size="sm" disabled={submitting || uploadingIcon}>
+            <Button type="submit" size="sm" disabled={submitting || uploadingImage}>
               {submitting ? "Saving..." : "Update Super Hero"}
             </Button>
             <Link href="/admin/super-hero">

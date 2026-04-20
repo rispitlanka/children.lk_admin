@@ -43,11 +43,11 @@ export async function PATCH(
     if (status === "approved") {
       await SuperHero.create({
         name: request.name,
-        icon: request.icon,
-        iconType: request.iconType,
-        iconPublicId: request.iconPublicId,
-        phone: request.phone,
-        shortDescription: request.shortDescription,
+        color: request.color,
+        contactNumber: request.contactNumber,
+        image: request.image,
+        imagePublicId: request.imagePublicId,
+        description: request.description,
         organizationId: request.organizationId,
       });
     }

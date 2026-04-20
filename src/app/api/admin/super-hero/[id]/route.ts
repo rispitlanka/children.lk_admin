@@ -16,8 +16,8 @@ export async function PATCH(
   const { id } = await params;
   try {
     const body = await req.json();
-    const { name, icon, iconType, iconPublicId, phone, shortDescription, organizationId } = body;
-    if (phone !== undefined && !isValidPhone(phone)) {
+    const { name, color, contactNumber, image, imagePublicId, description, organizationId } = body;
+    if (contactNumber !== undefined && !isValidPhone(contactNumber)) {
       return NextResponse.json(
         { error: PHONE_VALIDATION_MESSAGE },
         { status: 400 }
@@ -26,11 +26,11 @@ export async function PATCH(
     await connectDB();
     const update: Record<string, unknown> = {};
     if (name !== undefined) update.name = name;
-    if (icon !== undefined) update.icon = icon;
-    if (iconType !== undefined) update.iconType = iconType;
-    if (iconPublicId !== undefined) update.iconPublicId = iconPublicId;
-    if (phone !== undefined) update.phone = phone;
-    if (shortDescription !== undefined) update.shortDescription = shortDescription;
+    if (color !== undefined) update.color = color;
+    if (contactNumber !== undefined) update.contactNumber = contactNumber;
+    if (image !== undefined) update.image = image;
+    if (imagePublicId !== undefined) update.imagePublicId = imagePublicId;
+    if (description !== undefined) update.description = description;
     if (organizationId !== undefined) update.organizationId = organizationId;
     await SuperHero.updateOne({ _id: id }, update);
     return NextResponse.json({ success: true });

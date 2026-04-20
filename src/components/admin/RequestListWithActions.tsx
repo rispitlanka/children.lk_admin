@@ -72,7 +72,7 @@ function getColumns(requestType: RequestType): { key: string; label: string }[] 
     case "super-hero":
       return [
         { key: "name", label: "Name" },
-        { key: "phone", label: "Phone" },
+        { key: "contactNumber", label: "Contact Number" },
         { key: "organizationId", label: "Organization" },
         { key: "createdAt", label: "Date" },
       ];
@@ -96,18 +96,14 @@ function getCellValue(row: RequestItem, col: { key: string }): React.ReactNode {
 }
 
 function renderSuperHeroDetail(row: RequestItem, org: { name?: string } | undefined): React.ReactNode {
-  const iconType = row.iconType as string | undefined;
-  const isEmoji = iconType === "emoji";
-  const iconContent = isEmoji
-    ? (row.icon ? <span className="text-4xl">{String(row.icon)}</span> : "—")
-    : row.icon
-      ? <img src={String(row.icon)} alt="" className="h-16 w-16 rounded-full object-cover ring-2 ring-gray-200 dark:ring-gray-700" />
-      : null;
+  const imageContent = row.image
+    ? <img src={String(row.image)} alt="" className="h-16 w-16 rounded-full object-cover ring-2 ring-gray-200 dark:ring-gray-700" />
+    : null;
   return (
     <div className="space-y-6">
       <div className="flex flex-col items-center text-center">
         <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-800 ring-1 ring-gray-200 dark:ring-gray-700">
-          {iconContent ?? "—"}
+          {imageContent ?? "—"}
         </div>
         <h3 className="mt-3 text-lg font-semibold text-gray-900 dark:text-white">{String(row.name ?? "—")}</h3>
         {org?.name && (
@@ -116,12 +112,24 @@ function renderSuperHeroDetail(row: RequestItem, org: { name?: string } | undefi
       </div>
       <div className="rounded-xl border border-gray-200 bg-gray-50/50 dark:border-gray-800 dark:bg-gray-800/30 p-4 space-y-3">
         <div className="flex justify-between gap-2 text-sm">
-          <span className="text-gray-500 dark:text-gray-400">Phone</span>
-          <a href={`tel:${row.phone}`} className="font-medium text-gray-900 dark:text-white truncate">{String(row.phone ?? "—")}</a>
+          <span className="text-gray-500 dark:text-gray-400">Contact Number</span>
+          <a href={`tel:${row.contactNumber}`} className="font-medium text-gray-900 dark:text-white truncate">
+            {String(row.contactNumber ?? "—")}
+          </a>
+        </div>
+        <div className="flex justify-between gap-2 text-sm">
+          <span className="text-gray-500 dark:text-gray-400">Color</span>
+          <span className="inline-flex items-center gap-2 font-medium text-gray-900 dark:text-white">
+            <span
+              className="h-4 w-4 rounded-full border border-gray-300 dark:border-gray-600"
+              style={{ backgroundColor: String(row.color ?? "#ffffff") }}
+            />
+            {String(row.color ?? "—")}
+          </span>
         </div>
         <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
-          <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Short description</p>
-          <p className="text-sm text-gray-700 dark:text-gray-300">{String(row.shortDescription ?? "—")}</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Description</p>
+          <p className="text-sm text-gray-700 dark:text-gray-300">{String(row.description ?? "—")}</p>
         </div>
       </div>
     </div>

@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { PlusIcon } from "@/icons";
+import { EyeIcon, PlusIcon } from "@/icons";
 import { labelContentType, labelVisibility, taxonomyLine } from "@/lib/resource-display";
 
 type PopulatedName = { _id?: string; name?: string };
@@ -104,6 +104,9 @@ export default function OrganizerResourcesClient() {
                   <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">
                     Submitted
                   </TableCell>
+                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">
+                    Actions
+                  </TableCell>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -113,7 +116,8 @@ export default function OrganizerResourcesClient() {
                       <div className="flex flex-col gap-1">
                         <Link
                           href={`/organizer/resources/${row._id}`}
-                          className="font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
+                          className="block max-w-[260px] truncate font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
+                          title={row.name}
                         >
                           {row.name}
                         </Link>
@@ -145,6 +149,16 @@ export default function OrganizerResourcesClient() {
                     </TableCell>
                     <TableCell className="py-4 text-gray-600 dark:text-gray-400">
                       {new Date(row.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <Link
+                        href={`/organizer/resources/${row._id}`}
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 transition hover:bg-gray-50 hover:text-brand-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                        aria-label="View resource request"
+                        title="View"
+                      >
+                        <EyeIcon className="h-4 w-4" />
+                      </Link>
                     </TableCell>
                   </TableRow>
                 ))}

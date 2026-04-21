@@ -18,6 +18,7 @@ import {
 import LoadingLottie from "@/components/common/LoadingLottie";
 import toast from "react-hot-toast";
 import Badge from "@/components/ui/badge/Badge";
+import { EyeIcon } from "@/icons";
 import {
   formatAgeAudienceGroups,
   labelContentType,
@@ -51,9 +52,7 @@ function getColumns(requestType: RequestType): { key: string; label: string }[] 
     case "resource":
       return [
         { key: "name", label: "Title" },
-        { key: "categoryId", label: "Category" },
         { key: "contentType", label: "Content type" },
-        { key: "visibilityStatus", label: "Visibility" },
         { key: "organizationId", label: "Organization" },
         { key: "createdAt", label: "Date" },
       ];
@@ -470,6 +469,9 @@ export default function RequestListWithActions({
     return <Badge color="error">Denied</Badge>;
   };
 
+  const actionIconClass =
+    "inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 transition hover:bg-gray-50 hover:text-brand-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700";
+
   return (
     <div>
       <PageBreadcrumb pageTitle={breadcrumb} />
@@ -495,50 +497,42 @@ export default function RequestListWithActions({
                   <TableRow key={row._id} className="border-b border-gray-200 dark:border-gray-800">
                     {columns.map((col) => (
                       <TableCell key={col.key} className="py-4 text-gray-800 dark:text-white/90">
-                        {getCellValue(row, col)}
+                        {col.key === "name" ? (
+                          <span className="block max-w-[260px] truncate" title={String(row.name ?? "")}>
+                            {String(row.name ?? "—")}
+                          </span>
+                        ) : (
+                          getCellValue(row, col)
+                        )}
                       </TableCell>
                     ))}
                     <TableCell className="py-4">{statusBadge(row.status)}</TableCell>
                     <TableCell className="py-4">
                       {viewHref ? (
-                        <>
+                        <div className="flex items-center gap-2">
                           <Link
                             href={viewHref(row)}
-                            className="inline-flex items-center justify-center font-medium rounded-lg transition px-4 py-3 text-sm bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/[0.03]"
+                            className={actionIconClass}
+                            aria-label="View request"
+                            title="View"
                           >
-                            View
+                            <EyeIcon className="h-4 w-4" />
                           </Link>
-                          {row.status === "pending" && (
-                            <>
-                              <Button size="sm" onClick={() => openApprove(row)} className="ml-2">
-                                Approve
-                              </Button>
-                              <Button size="sm" variant="outline" onClick={() => openDeny(row)} className="ml-2">
-                                Deny
-                              </Button>
-                            </>
-                          )}
-                        </>
+                        </div>
                       ) : (
                         <>
-                          {row.status === "pending" && (
-                            <div className="flex gap-2">
-                              <Button size="sm" variant="outline" onClick={() => { setSelected(row); setActionModal(false); }}>
-                                View
-                              </Button>
-                              <Button size="sm" onClick={() => openApprove(row)}>
-                                Approve
-                              </Button>
-                              <Button size="sm" variant="outline" onClick={() => openDeny(row)}>
-                                Deny
-                              </Button>
-                            </div>
-                          )}
-                          {row.status !== "pending" && (
-                            <Button size="sm" variant="outline" onClick={() => { setSelected(row); setActionModal(false); }}>
-                              View
-                            </Button>
-                          )}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelected(row);
+                              setActionModal(false);
+                            }}
+                            className={actionIconClass}
+                            aria-label="View request"
+                            title="View"
+                          >
+                            <EyeIcon className="h-4 w-4" />
+                          </button>
                         </>
                       )}
                     </TableCell>

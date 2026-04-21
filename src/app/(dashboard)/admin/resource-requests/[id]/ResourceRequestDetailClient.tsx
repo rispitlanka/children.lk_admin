@@ -44,10 +44,10 @@ function ensureExtension(name: string, type: string, fileFormat?: string): strin
 }
 
 function getCloudinaryAttachmentUrl(doc: DocFile): string {
-  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-  if (!cloudName || !doc.publicId) return doc.url;
+  if (!doc.publicId) return doc.url;
   const fileName = ensureExtension(sanitizeDownloadName(doc.name || "resource-file"), doc.type, doc.fileFormat);
-  return `https://res.cloudinary.com/${cloudName}/raw/upload/fl_attachment:${encodeURIComponent(fileName)}/${doc.publicId}`;
+  const format = (doc.fileFormat || (doc.type === "pdf" ? "pdf" : "bin")).toLowerCase();
+  return `/api/public/files/cloudinary-download?publicId=${encodeURIComponent(doc.publicId)}&format=${encodeURIComponent(format)}&fileName=${encodeURIComponent(fileName)}`;
 }
 
 type ResourceRequestDetail = {

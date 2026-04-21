@@ -176,13 +176,20 @@ export default function EventViewClient() {
     <div>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <PageBreadcrumb pageTitle="Event Details" />
-        <Button 
-          size="sm" 
-          variant="outline" 
-          onClick={() => router.push("/organizer/events")}
-        >
-          Back to Events
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {event.registrationMode === "internal" && event.status === "approved" ? (
+            <Link href={`/organizer/events/${event._id}/bookings`}>
+              <Button size="sm">View Bookings</Button>
+            </Link>
+          ) : null}
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => router.push("/organizer/events")}
+          >
+            Back to Events
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-8">

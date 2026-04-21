@@ -66,7 +66,6 @@ function getColumns(requestType: RequestType): { key: string; label: string }[] 
       return [
         { key: "name", label: "Name" },
         { key: "eventCategory", label: "Category" },
-        { key: "location", label: "Location" },
         { key: "organizationId", label: "Organization" },
         { key: "createdAt", label: "Date" },
       ];

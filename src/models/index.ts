@@ -16,6 +16,7 @@ export {
   type RequestStatus as MediaRequestStatus,
 } from "./MediaRequest";
 export { Event, type IEvent } from "./Event";
+export { EventBooking, type IEventBooking } from "./EventBooking";
 export {
   EventRequest,
   type IEventRequest,

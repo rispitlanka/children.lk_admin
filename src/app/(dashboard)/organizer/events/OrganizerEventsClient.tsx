@@ -9,7 +9,7 @@ import Badge from "@/components/ui/badge/Badge";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 import { PlusIcon } from "@/icons";
 
-type Item = { _id: string; name: string; location: string; startDate: string; status: string; adminReason?: string; createdAt: string };
+type Item = { _id: string; name: string; startDate: string; status: string; adminReason?: string; createdAt: string };
 
 export default function OrganizerEventsClient() {
   const [list, setList] = useState<Item[]>([]);
@@ -52,7 +52,6 @@ export default function OrganizerEventsClient() {
               <TableHeader>
                 <TableRow className="border-b border-gray-200 dark:border-gray-800">
                   <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Name</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Location</TableCell>
                   <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Start</TableCell>
                   <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Status</TableCell>
                   <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Admin message</TableCell>
@@ -69,7 +68,6 @@ export default function OrganizerEventsClient() {
                         {row.name}
                       </Link>
                     </TableCell>
-                    <TableCell className="py-4 text-gray-600 dark:text-gray-400">{row.location}</TableCell>
                     <TableCell className="py-4 text-gray-600 dark:text-gray-400">{row.startDate ? new Date(row.startDate).toLocaleString() : "—"}</TableCell>
                     <TableCell className="py-4">{statusBadge(row.status)}</TableCell>
                     <TableCell className="py-4 max-w-[280px] text-sm text-gray-600 dark:text-gray-400">

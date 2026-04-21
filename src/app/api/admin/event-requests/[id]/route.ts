@@ -7,11 +7,12 @@ import { EventRequest } from "@/models/EventRequest";
 import { Event } from "@/models/Event";
 
 async function uniqueApprovedEventSlug(base: string): Promise<string> {
-  let slug = base || "event";
+  const safeBase = typeof base === "string" && base.trim() ? base.trim() : "event";
+  let slug = safeBase;
   let n = 0;
   while (await Event.exists({ slug })) {
     n += 1;
-    slug = `${base}-${n}`;
+    slug = `${safeBase}-${n}`;
   }
   return slug;
 }
@@ -79,11 +80,26 @@ export async function PATCH(
     const reviewedBy = session.user.id;
     const reviewedAt = new Date();
     if (status === "approved") {
-      const slugBase = slugify(request.slug || request.name || "event");
+      const baseFromRequestSlug =
+        typeof request.slug === "string" && request.slug.trim() ? request.slug.trim() : "";
+      const baseFromRequestName =
+        typeof request.name === "string" && request.name.trim() ? request.name.trim() : "";
+      const slugBase = slugify(baseFromRequestSlug || baseFromRequestName || "event");
       const approvedSlug = await uniqueApprovedEventSlug(slugBase || "event");
-      await Event.create({
+      const finalApprovedSlug =
+        typeof approvedSlug === "string" && approvedSlug.trim()
+          ? approvedSlug.trim()
+          : `event-${Date.now()}`;
+      if (!finalApprovedSlug) {
+        return NextResponse.json(
+          { error: "Failed to generate a valid event slug" },
+          { status: 500 }
+        );
+      }
+      const now = new Date();
+      await Event.collection.insertOne({
         name: request.name,
-        slug: approvedSlug,
+        slug: finalApprovedSlug,
         location: request.location,
         eventCategory: request.eventCategory,
         locationName: request.locationName,
@@ -109,6 +125,8 @@ export async function PATCH(
         highlight2: request.highlight2,
         highlight3: request.highlight3,
         organizationId: request.organizationId,
+        createdAt: now,
+        updatedAt: now,
       });
     }
     await EventRequest.updateOne(

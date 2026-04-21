@@ -299,6 +299,40 @@ const OPERATION_OVERRIDES: Record<string, Partial<Record<Lowercase<HttpMethod>, 
       summary: "Get public event by slug",
     },
   },
+  "/api/public/events/{id}/bookings": {
+    post: {
+      summary: "Create event booking for internal-registration events",
+      requestBody: buildRequestBody(
+        {
+          name: { type: "string" },
+          email: { type: "string", format: "email" },
+          phone: { type: "string" },
+          ticketType: { type: "string", description: "Required for paid events" },
+        },
+        ["name", "email", "phone"],
+        {
+          name: "Alex Perera",
+          email: "alex@example.com",
+          phone: "+94771234567",
+          ticketType: "General",
+        }
+      ),
+    },
+  },
+  "/api/organizer/event-requests/{id}/bookings": {
+    get: {
+      summary: "List bookings for an organizer event request",
+      parameters: [
+        {
+          name: "id",
+          in: "path",
+          required: true,
+          schema: { type: "string" },
+          description: "Event request ID",
+        },
+      ],
+    },
+  },
   "/api/public/super-hero": {
     get: {
       summary: "List public super heroes",

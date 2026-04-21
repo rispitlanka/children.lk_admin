@@ -6,6 +6,7 @@ const HTTP_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"
 
 type HttpMethod = (typeof HTTP_METHODS)[number];
 type PrimitiveType = "string" | "number" | "boolean";
+type OpenApiOperation = Record<string, unknown>;
 
 function walkApiRoutes(dirPath: string, acc: string[] = []): string[] {
   const entries = fs.readdirSync(dirPath, { withFileTypes: true });
@@ -122,6 +123,148 @@ function extractQueryParams(methodSource: string) {
   }));
 }
 
+function buildRequestBody(properties: Record<string, unknown>, required: string[] = [], example?: Record<string, unknown>) {
+  return {
+    required: required.length > 0,
+    content: {
+      "application/json": {
+        schema: {
+          type: "object",
+          properties,
+          ...(required.length > 0 ? { required } : {}),
+        },
+        ...(example ? { example } : {}),
+      },
+    },
+  };
+}
+
+function mergeOperation(base: OpenApiOperation, override?: OpenApiOperation): OpenApiOperation {
+  if (!override) return base;
+  const merged = { ...base, ...override };
+
+  if (base.responses || override.responses) {
+    merged.responses = {
+      ...(base.responses as Record<string, unknown> | undefined),
+      ...(override.responses as Record<string, unknown> | undefined),
+    };
+  }
+
+  return merged;
+}
+
+const OPERATION_OVERRIDES: Record<string, Partial<Record<Lowercase<HttpMethod>, OpenApiOperation>>> = {
+  "/api/organizer/event-requests": {
+    post: {
+      summary: "Create organizer event request",
+      requestBody: buildRequestBody(
+        {
+          name: { type: "string" },
+          eventCategory: { type: "string", enum: ["workshop", "conference", "seminar", "webinar", "festival", "competition", "training", "other"] },
+          startDate: { type: "string", format: "date-time" },
+          endDate: { type: "string", format: "date-time" },
+          locationName: { type: "string" },
+          locationAddress: { type: "string" },
+          locationContact: { type: "string" },
+          locationLatitude: { type: "number" },
+          locationLongitude: { type: "number" },
+          description: { type: "string", description: "HTML rich text" },
+          coverImage: { type: "string", format: "uri" },
+          coverImagePublicId: { type: "string" },
+          highlight1: { type: "string" },
+          highlight2: { type: "string" },
+          highlight3: { type: "string" },
+          targetAudience: { type: "string", enum: ["children", "people_work_for_children"] },
+          ageGroup: { type: "string", enum: ["1-5", "5-10", "11-15", "15-18", "above-18"] },
+          tags: { type: "array", items: { type: "string" } },
+          registrationLink: { type: "string", format: "uri" },
+        },
+        ["name", "eventCategory", "startDate", "locationName", "locationAddress", "locationContact", "description"],
+        {
+          name: "Children's Day Workshop",
+          eventCategory: "workshop",
+          startDate: "2026-05-12T09:00:00.000Z",
+          endDate: "2026-05-12T12:00:00.000Z",
+          locationName: "City Hall",
+          locationAddress: "123 Main Street, Colombo",
+          locationContact: "199",
+          locationLatitude: 6.9271,
+          locationLongitude: 79.8612,
+          description: "<p>Hands-on event for kids.</p>",
+          highlight1: "1: Interactive stations",
+          highlight2: "2: Free materials",
+          highlight3: "3: Parent guidance",
+          targetAudience: "children",
+          ageGroup: "5-10",
+          tags: ["kids", "workshop"],
+          registrationLink: "https://example.com/register",
+        }
+      ),
+    },
+  },
+  "/api/admin/super-hero": {
+    post: {
+      summary: "Create super hero",
+      requestBody: buildRequestBody(
+        {
+          name: { type: "string" },
+          color: { type: "string" },
+          contactNumber: { type: "string", description: "Flexible contact field; supports short codes like 199 and numbers like +94775921581." },
+          image: { type: "string", format: "uri" },
+          imagePublicId: { type: "string" },
+          description: { type: "string" },
+          organizationId: { type: "string" },
+        },
+        ["name", "color", "contactNumber", "image", "description"],
+        {
+          name: "Fire and Rescue",
+          color: "#ff0000",
+          contactNumber: "199",
+          image: "https://res.cloudinary.com/demo/image/upload/v1/super-hero.jpg",
+          description: "Emergency response hero",
+        }
+      ),
+    },
+  },
+  "/api/admin/super-hero/{id}": {
+    patch: {
+      summary: "Update super hero",
+      requestBody: buildRequestBody({
+        name: { type: "string" },
+        color: { type: "string" },
+        contactNumber: { type: "string", description: "Flexible contact field; supports short codes like 199 and numbers like +94775921581." },
+        image: { type: "string", format: "uri" },
+        imagePublicId: { type: "string" },
+        description: { type: "string" },
+        organizationId: { type: "string" },
+      }),
+    },
+  },
+  "/api/organizer/super-hero-requests": {
+    post: {
+      summary: "Create organizer super hero request",
+      requestBody: buildRequestBody(
+        {
+          name: { type: "string" },
+          color: { type: "string" },
+          contactNumber: { type: "string", description: "Flexible contact field; supports short codes like 199 and numbers like +94775921581." },
+          image: { type: "string", format: "uri" },
+          imagePublicId: { type: "string" },
+          description: { type: "string" },
+        },
+        ["name", "color", "contactNumber", "image", "description"],
+        {
+          name: "Fire and Rescue",
+          color: "#ff0000",
+          contactNumber: "+94775921581",
+          image: "https://res.cloudinary.com/demo/image/upload/v1/super-hero.jpg",
+          description: "Emergency response hero",
+        }
+      ),
+    },
+  },
+};
+
 export function buildOpenApiSpec() {
   const routeFiles = walkApiRoutes(API_ROOT);
 
@@ -177,7 +320,8 @@ export function buildOpenApiSpec() {
         };
       }
 
-      routeItem[method.toLowerCase()] = operation;
+      const override = OPERATION_OVERRIDES[apiPath]?.[method.toLowerCase() as Lowercase<HttpMethod>];
+      routeItem[method.toLowerCase()] = mergeOperation(operation, override);
     }
 
     paths[apiPath] = routeItem;

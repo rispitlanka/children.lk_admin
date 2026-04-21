@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import "@/models/Organization";
-import { SuperHeroRequest } from "@/models/SuperHeroRequest";
+import { SuperHero } from "@/models/SuperHero";
 
 export async function GET() {
   try {
     await connectDB();
-    const list = await SuperHeroRequest.find({ status: "approved" })
+    const list = await SuperHero.find({})
       .populate("organizationId", "name logo shortDescription")
       .sort({ createdAt: -1 })
       .lean();

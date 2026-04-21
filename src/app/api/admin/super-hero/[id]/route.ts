@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
-import { isValidPhone, PHONE_VALIDATION_MESSAGE } from "@/lib/validation";
+import {
+  isValidSuperHeroContact,
+  SUPER_HERO_CONTACT_VALIDATION_MESSAGE,
+} from "@/lib/validation";
 import { SuperHero } from "@/models/SuperHero";
 
 export async function PATCH(
@@ -17,9 +20,9 @@ export async function PATCH(
   try {
     const body = await req.json();
     const { name, color, contactNumber, image, imagePublicId, description, organizationId } = body;
-    if (contactNumber !== undefined && !isValidPhone(contactNumber)) {
+    if (contactNumber !== undefined && !isValidSuperHeroContact(contactNumber)) {
       return NextResponse.json(
-        { error: PHONE_VALIDATION_MESSAGE },
+        { error: SUPER_HERO_CONTACT_VALIDATION_MESSAGE },
         { status: 400 }
       );
     }
@@ -27,7 +30,7 @@ export async function PATCH(
     const update: Record<string, unknown> = {};
     if (name !== undefined) update.name = name;
     if (color !== undefined) update.color = color;
-    if (contactNumber !== undefined) update.contactNumber = contactNumber;
+    if (contactNumber !== undefined) update.contactNumber = String(contactNumber).trim();
     if (image !== undefined) update.image = image;
     if (imagePublicId !== undefined) update.imagePublicId = imagePublicId;
     if (description !== undefined) update.description = description;

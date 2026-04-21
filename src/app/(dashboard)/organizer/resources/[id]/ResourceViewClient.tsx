@@ -27,6 +27,7 @@ import {
   taxonomyLine,
 } from "@/lib/resource-display";
 import { LANGUAGE_OPTIONS } from "@/lib/resource-form-constants";
+import { isRichTextEmpty, sanitizeRichTextHtml } from "@/lib/rich-text";
 
 type PopulatedName = { _id?: string; name?: string };
 
@@ -210,7 +211,10 @@ export default function ResourceViewClient() {
           .map((o) => (typeof o === "object" && o?.name ? o.name : null))
           .filter(Boolean)
       : [];
-  const bodyText = resource.description?.trim() || resource.shortDescription;
+  const richDescription = resource.description ?? "";
+  const safeDescriptionHtml = !isRichTextEmpty(richDescription)
+    ? sanitizeRichTextHtml(richDescription)
+    : "";
 
   return (
     <div>
@@ -260,7 +264,17 @@ export default function ResourceViewClient() {
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="space-y-6 lg:col-span-2">
             <ComponentCard title="Description">
-              <p className="whitespace-pre-wrap leading-relaxed text-gray-700 dark:text-gray-300">{bodyText}</p>
+              {safeDescriptionHtml ? (
+                <div
+                  className="prose prose-sm max-w-none leading-relaxed text-gray-700 dark:prose-invert dark:text-gray-300"
+                  // eslint-disable-next-line react/no-danger -- sanitized rich-text HTML
+                  dangerouslySetInnerHTML={{ __html: safeDescriptionHtml }}
+                />
+              ) : (
+                <p className="whitespace-pre-wrap leading-relaxed text-gray-700 dark:text-gray-300">
+                  {resource.shortDescription}
+                </p>
+              )}
             </ComponentCard>
 
             {(resource.publicationDate || resource.contentPublishedAt) && (

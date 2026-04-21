@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import "@/models/Organization";
-import { SuperHeroRequest } from "@/models/SuperHeroRequest";
+import { SuperHero } from "@/models/SuperHero";
 
 export async function GET(
   _req: Request,
@@ -16,10 +16,7 @@ export async function GET(
       );
     }
     await connectDB();
-    const superHero = await SuperHeroRequest.findOne({
-      _id: id,
-      status: "approved",
-    })
+    const superHero = await SuperHero.findById(id)
       .populate("organizationId", "name logo shortDescription")
       .lean();
 

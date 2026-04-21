@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
-import { isValidPhone, PHONE_VALIDATION_MESSAGE } from "@/lib/validation";
+import {
+  isValidSuperHeroContact,
+  SUPER_HERO_CONTACT_VALIDATION_MESSAGE,
+} from "@/lib/validation";
 import { SuperHero } from "@/models/SuperHero";
 
 export async function GET() {
@@ -40,9 +43,9 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    if (!isValidPhone(contactNumber)) {
+    if (!isValidSuperHeroContact(contactNumber)) {
       return NextResponse.json(
-        { error: PHONE_VALIDATION_MESSAGE },
+        { error: SUPER_HERO_CONTACT_VALIDATION_MESSAGE },
         { status: 400 }
       );
     }
@@ -50,7 +53,7 @@ export async function POST(req: Request) {
     const doc = await SuperHero.create({
       name,
       color,
-      contactNumber,
+      contactNumber: String(contactNumber).trim(),
       image,
       imagePublicId: imagePublicId || undefined,
       description,

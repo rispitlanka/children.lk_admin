@@ -10,7 +10,10 @@ import Button from "@/components/ui/button/Button";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
 import TextArea from "@/components/form/input/TextArea";
-import { isValidPhone, PHONE_VALIDATION_MESSAGE } from "@/lib/validation";
+import {
+  isValidSuperHeroContact,
+  SUPER_HERO_CONTACT_VALIDATION_MESSAGE,
+} from "@/lib/validation";
 
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -74,9 +77,9 @@ export default function AddSuperHeroClient() {
       toast.error(msg);
       return;
     }
-    if (!isValidPhone(form.contactNumber)) {
-      setError(PHONE_VALIDATION_MESSAGE);
-      toast.error(PHONE_VALIDATION_MESSAGE);
+    if (!isValidSuperHeroContact(form.contactNumber)) {
+      setError(SUPER_HERO_CONTACT_VALIDATION_MESSAGE);
+      toast.error(SUPER_HERO_CONTACT_VALIDATION_MESSAGE);
       return;
     }
     setSubmitting(true);
@@ -157,10 +160,12 @@ export default function AddSuperHeroClient() {
               <Input
                 value={form.contactNumber}
                 onChange={(e) => setForm((f) => ({ ...f, contactNumber: e.target.value }))}
-                placeholder="+94771234567"
+                placeholder="e.g. 199 or +94775921581"
                 className="mt-1"
               />
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">+94 followed by 9 digits</p>
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Short code or full number; any common format is fine.
+              </p>
             </div>
             <div className="sm:col-span-2">
               <Label>Super Hero Image *</Label>

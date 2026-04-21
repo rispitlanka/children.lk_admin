@@ -27,7 +27,15 @@ type EventRequestDetail = {
   endDate?: string;
   description: string;
   tags: string[];
-  registrationLink?: string;
+  slug?: string;
+  pricingType?: "free" | "paid";
+  ticketOptions?: { ticketType: string; ticketPrice: number }[];
+  ticketType?: string;
+  ticketPrice?: number;
+  registrationMode?: "internal" | "external";
+  registrationExternalUrl?: string;
+  internalRegistrationFields?: string[];
+  whoCanJoin?: string[];
   coverImage?: string;
   highlight1?: string;
   highlight2?: string;
@@ -232,17 +240,51 @@ export default function EventRequestDetailClient() {
                   <p className="mt-1 text-gray-800 dark:text-white/90">{formatDate(request.createdAt)}</p>
                 </div>
               </div>
-              {request.registrationLink && (
+              {(request.pricingType || request.registrationMode) && (
                 <div className="border-t border-gray-200 pt-4 dark:border-gray-800">
-                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Registration link</p>
-                  <a
-                    href={request.registrationLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-1 inline-block text-brand-500 hover:text-brand-600 font-medium break-all"
-                  >
-                    {request.registrationLink}
-                  </a>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Pricing & ticketing</p>
+                  <div className="mt-2 space-y-1 text-sm text-gray-800 dark:text-white/90">
+                    <p><strong>Pricing:</strong> {request.pricingType ?? "free"}</p>
+                    {request.pricingType === "paid" && (
+                      <>
+                        {(request.ticketOptions ?? []).length > 0 ? (
+                          <p>
+                            <strong>Ticket categories:</strong>{" "}
+                            {(request.ticketOptions ?? [])
+                              .map((ticket) => `${ticket.ticketType}: ${ticket.ticketPrice}`)
+                              .join(", ")}
+                          </p>
+                        ) : (
+                          <>
+                            <p><strong>Ticket type:</strong> {request.ticketType || "—"}</p>
+                            <p><strong>Ticket price:</strong> {request.ticketPrice ?? "—"}</p>
+                          </>
+                        )}
+                      </>
+                    )}
+                    <p><strong>Registration:</strong> {request.registrationMode ?? "external"}</p>
+                    {request.registrationMode === "external" && request.registrationExternalUrl && (
+                      <p>
+                        <strong>External URL:</strong>{" "}
+                        <a href={request.registrationExternalUrl} target="_blank" rel="noopener noreferrer" className="text-brand-500 hover:text-brand-600">
+                          {request.registrationExternalUrl}
+                        </a>
+                      </p>
+                    )}
+                    {request.registrationMode === "internal" && (
+                      <p><strong>Internal fields:</strong> {(request.internalRegistrationFields ?? []).join(", ") || "name, email, phone"}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+              {(request.whoCanJoin ?? []).length > 0 && (
+                <div className="border-t border-gray-200 pt-4 dark:border-gray-800">
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Who can join</p>
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-gray-800 dark:text-white/90">
+                    {(request.whoCanJoin ?? []).map((item, i) => (
+                      <li key={i}>{item}</li>
+                    ))}
+                  </ul>
                 </div>
               )}
               {request.tags?.length > 0 && (

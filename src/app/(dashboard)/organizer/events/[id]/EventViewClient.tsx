@@ -8,7 +8,7 @@ import LoadingLottie from "@/components/common/LoadingLottie";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import Badge from "@/components/ui/badge/Badge";
 import Button from "@/components/ui/button/Button";
-import { CalenderIcon, CheckCircleIcon, AlertIcon, CloseLineIcon, UserIcon, GroupIcon, TimeIcon } from "@/icons";
+import { CalenderIcon, CheckCircleIcon, AlertIcon, CloseLineIcon, TimeIcon } from "@/icons";
 import { EVENT_CATEGORY_LABELS, type EventCategoryValue } from "@/lib/event-form-constants";
 
 type Event = {
@@ -25,14 +25,20 @@ type Event = {
   endDate?: string;
   description: string;
   tags: string[];
-  registrationLink?: string;
+  slug?: string;
+  pricingType?: "free" | "paid";
+  ticketOptions?: { ticketType: string; ticketPrice: number }[];
+  ticketType?: string;
+  ticketPrice?: number;
+  registrationMode?: "internal" | "external";
+  registrationExternalUrl?: string;
+  internalRegistrationFields?: string[];
+  whoCanJoin?: string[];
   coverImage?: string;
   coverImagePublicId?: string;
   highlight1?: string;
   highlight2?: string;
   highlight3?: string;
-  targetAudience?: "children" | "people_work_for_children";
-  ageGroup?: "1-5" | "5-10" | "11-15" | "15-18" | "above-18";
   status: string;
   adminReason?: string;
   createdAt: string;
@@ -99,39 +105,6 @@ export default function EventViewClient() {
     const start = new Date(startDate);
     const end = endDate ? new Date(endDate) : start;
     return now >= start && now <= end;
-  };
-
-  const getAudienceInfo = (audience?: string, ageGroup?: string) => {
-    if (audience === "children") {
-      return {
-        emoji: "👶",
-        icon: UserIcon,
-        label: "Children",
-        ageLabel: ageGroup ? getAgeGroupLabel(ageGroup) : undefined
-      };
-    } else if (audience === "people_work_for_children") {
-      return {
-        emoji: "👨‍💼",
-        icon: GroupIcon,
-        label: "Professionals",
-        ageLabel: undefined
-      };
-    }
-    return null;
-  };
-
-  const getAgeGroupLabel = (ageGroup: string) => {
-    const ageEmojis = {
-      "1-5": "🍼",
-      "5-10": "🎒", 
-      "11-15": "📚",
-      "15-18": "🎓",
-      "above-18": "🎯"
-    };
-    return {
-      emoji: ageEmojis[ageGroup as keyof typeof ageEmojis] || "👶",
-      label: ageGroup === "above-18" ? "Above 18 years" : `${ageGroup} years`
-    };
   };
 
   const getStatusInfo = (status: string) => {
@@ -318,7 +291,7 @@ export default function EventViewClient() {
                   </div>
                 </div>
 
-                {event.registrationLink && (
+                {event.registrationExternalUrl && (
                   <div className="flex items-start gap-3 p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50">
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-500/20">
                       <span className="text-lg">🔗</span>
@@ -326,7 +299,7 @@ export default function EventViewClient() {
                     <div className="flex-1">
                       <h4 className="font-medium text-gray-900 dark:text-white mb-1">Registration</h4>
                       <Link
-                        href={event.registrationLink}
+                        href={event.registrationExternalUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 break-all hover:underline"
@@ -338,6 +311,47 @@ export default function EventViewClient() {
                 )}
               </div>
             </ComponentCard>
+
+            <ComponentCard title="🎟️ Pricing & ticketing">
+              <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                <p><strong>Pricing:</strong> {event.pricingType ?? "free"}</p>
+                {event.pricingType === "paid" && (
+                  <>
+                    {(event.ticketOptions ?? []).length > 0 ? (
+                      <div>
+                        <p><strong>Ticket categories:</strong></p>
+                        <ul className="mt-1 list-disc pl-5">
+                          {(event.ticketOptions ?? []).map((ticket, i) => (
+                            <li key={i}>
+                              {ticket.ticketType}: {ticket.ticketPrice}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : (
+                      <>
+                        <p><strong>Ticket type:</strong> {event.ticketType || "—"}</p>
+                        <p><strong>Ticket price:</strong> {event.ticketPrice ?? "—"}</p>
+                      </>
+                    )}
+                  </>
+                )}
+                <p><strong>Registration mode:</strong> {event.registrationMode ?? "external"}</p>
+                {event.registrationMode === "internal" ? (
+                  <p><strong>Internal fields:</strong> {(event.internalRegistrationFields ?? []).join(", ") || "name, email, phone"}</p>
+                ) : null}
+              </div>
+            </ComponentCard>
+
+            {(event.whoCanJoin ?? []).length > 0 && (
+              <ComponentCard title="🙋 Who can join">
+                <ul className="list-disc space-y-1 pl-5 text-sm text-gray-700 dark:text-gray-300">
+                  {(event.whoCanJoin ?? []).map((item, i) => (
+                    <li key={i}>{item}</li>
+                  ))}
+                </ul>
+              </ComponentCard>
+            )}
 
             {/* Description */}
             <ComponentCard title="📝 Description">
@@ -454,42 +468,6 @@ export default function EventViewClient() {
                 </div>
               </div>
             </ComponentCard>
-
-            {/* Target Audience */}
-            {event.targetAudience && getAudienceInfo(event.targetAudience, event.ageGroup) && (
-              <ComponentCard title="👥 Target Audience">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-500/20">
-                      <span className="text-lg">{getAudienceInfo(event.targetAudience, event.ageGroup)!.emoji}</span>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium text-gray-900 dark:text-white">
-                          {getAudienceInfo(event.targetAudience, event.ageGroup)!.label}
-                        </p>
-                        {React.createElement(getAudienceInfo(event.targetAudience, event.ageGroup)!.icon, { 
-                          className: "h-4 w-4 text-brand-600 dark:text-brand-400" 
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {event.targetAudience === "children" && event.ageGroup && (
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-500/10">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-500/20">
-                        <span className="text-sm">{getAgeGroupLabel(event.ageGroup).emoji}</span>
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                          Age Group: {getAgeGroupLabel(event.ageGroup).label}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </ComponentCard>
-            )}
 
             {/* Tags */}
             {event.tags && event.tags.length > 0 && (

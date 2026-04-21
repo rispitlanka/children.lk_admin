@@ -358,13 +358,43 @@ function renderDetail(requestType: RequestType, row: RequestItem): React.ReactNo
           })}
           <p><strong>Organization:</strong> {org?.name ?? "—"}</p>
           <p><strong>Tags:</strong> {Array.isArray(row.tags) ? (row.tags as string[]).join(", ") : "—"}</p>
-          {row.registrationLink ? (
+          {row.pricingType ? <p><strong>Pricing:</strong> {String(row.pricingType)}</p> : null}
+          {row.pricingType === "paid" ? (
+            <>
+              {Array.isArray(row.ticketOptions) && (row.ticketOptions as { ticketType?: string; ticketPrice?: number }[]).length > 0 ? (
+                <p>
+                  <strong>Ticket categories:</strong>{" "}
+                  {(row.ticketOptions as { ticketType?: string; ticketPrice?: number }[])
+                    .map((ticket) => `${ticket.ticketType ?? "—"}: ${ticket.ticketPrice ?? "—"}`)
+                    .join(", ")}
+                </p>
+              ) : (
+                <>
+                  <p><strong>Ticket type:</strong> {String(row.ticketType ?? "—")}</p>
+                  <p><strong>Ticket price:</strong> {String(row.ticketPrice ?? "—")}</p>
+                </>
+              )}
+            </>
+          ) : null}
+          {row.registrationMode ? <p><strong>Registration mode:</strong> {String(row.registrationMode)}</p> : null}
+          {row.registrationMode === "external" && row.registrationExternalUrl ? (
             <p>
-              <strong>Registration:</strong>{" "}
-              <a href={String(row.registrationLink)} target="_blank" rel="noopener noreferrer" className="text-brand-500">
+              <strong>External registration:</strong>{" "}
+              <a href={String(row.registrationExternalUrl)} target="_blank" rel="noopener noreferrer" className="text-brand-500">
                 Link
               </a>
             </p>
+          ) : null}
+          {row.registrationMode === "internal" ? (
+            <p>
+              <strong>Internal fields:</strong>{" "}
+              {Array.isArray(row.internalRegistrationFields)
+                ? (row.internalRegistrationFields as string[]).join(", ")
+                : "name, email, phone"}
+            </p>
+          ) : null}
+          {Array.isArray(row.whoCanJoin) && (row.whoCanJoin as string[]).length > 0 ? (
+            <p><strong>Who can join:</strong> {(row.whoCanJoin as string[]).join(", ")}</p>
           ) : null}
         </div>
       );

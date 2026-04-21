@@ -18,14 +18,19 @@ export interface IEventRequest {
   endDate?: Date;
   description: string;
   tags: string[];
-  registrationLink?: string;
+  pricingType?: "free" | "paid";
+  ticketOptions?: { ticketType: string; ticketPrice: number }[];
+  ticketType?: string;
+  ticketPrice?: number;
+  registrationMode?: "internal" | "external";
+  registrationExternalUrl?: string;
+  internalRegistrationFields?: string[];
+  whoCanJoin: string[];
   coverImage?: string;
   coverImagePublicId?: string;
   highlight1?: string;
   highlight2?: string;
   highlight3?: string;
-  targetAudience: "children" | "people_work_for_children";
-  ageGroup?: "1-5" | "5-10" | "11-15" | "15-18" | "above-18";
   organizationId: mongoose.Types.ObjectId;
   status: RequestStatus;
   adminReason?: string;
@@ -50,22 +55,24 @@ const EventRequestSchema = new Schema<IEventRequest>(
     endDate: Date,
     description: { type: String, required: true },
     tags: [String],
-    registrationLink: String,
+    pricingType: { type: String, enum: ["free", "paid"], default: "free" },
+    ticketOptions: [
+      {
+        ticketType: { type: String, trim: true },
+        ticketPrice: Number,
+      },
+    ],
+    ticketType: String,
+    ticketPrice: Number,
+    registrationMode: { type: String, enum: ["internal", "external"], default: "external" },
+    registrationExternalUrl: String,
+    internalRegistrationFields: [String],
+    whoCanJoin: { type: [String], required: true, default: [] },
     coverImage: String,
     coverImagePublicId: String,
     highlight1: String,
     highlight2: String,
     highlight3: String,
-    targetAudience: { 
-      type: String, 
-      enum: ["children", "people_work_for_children"], 
-      required: true,
-      default: "children"
-    },
-    ageGroup: { 
-      type: String, 
-      enum: ["1-5", "5-10", "11-15", "15-18", "above-18"]
-    },
     organizationId: { type: Schema.Types.ObjectId, ref: "Organization", required: true },
     status: { type: String, enum: ["pending", "approved", "denied"], default: "pending" },
     adminReason: String,

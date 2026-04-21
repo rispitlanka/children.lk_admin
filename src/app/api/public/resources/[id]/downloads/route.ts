@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
-import { ResourceRequest } from "@/models/ResourceRequest";
+import { Resource } from "@/models/Resource";
 import { DocumentDownloadCount } from "@/models/DocumentDownloadCount";
 
 export async function GET(
@@ -18,10 +18,7 @@ export async function GET(
 
     await connectDB();
 
-    const resource = await ResourceRequest.findOne({
-      _id: resourceId,
-      status: "approved",
-    })
+    const resource = await Resource.findById(resourceId)
       .select("_id")
       .lean();
 

@@ -15,7 +15,14 @@ export interface IEvent {
   endDate?: Date;
   description: string;
   tags: string[];
-  registrationLink?: string;
+  pricingType?: "free" | "paid";
+  ticketOptions?: { ticketType: string; ticketPrice: number }[];
+  ticketType?: string;
+  ticketPrice?: number;
+  registrationMode?: "internal" | "external";
+  registrationExternalUrl?: string;
+  internalRegistrationFields?: string[];
+  whoCanJoin: string[];
   coverImage?: string;
   coverImagePublicId?: string;
   highlight1?: string;
@@ -41,7 +48,19 @@ const EventSchema = new Schema<IEvent>(
     endDate: Date,
     description: { type: String, required: true },
     tags: [String],
-    registrationLink: String,
+    pricingType: { type: String, enum: ["free", "paid"], default: "free" },
+    ticketOptions: [
+      {
+        ticketType: { type: String, trim: true },
+        ticketPrice: Number,
+      },
+    ],
+    ticketType: String,
+    ticketPrice: Number,
+    registrationMode: { type: String, enum: ["internal", "external"], default: "external" },
+    registrationExternalUrl: String,
+    internalRegistrationFields: [String],
+    whoCanJoin: { type: [String], required: true, default: [] },
     coverImage: String,
     coverImagePublicId: String,
     highlight1: String,

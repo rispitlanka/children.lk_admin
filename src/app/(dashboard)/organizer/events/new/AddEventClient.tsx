@@ -16,35 +16,6 @@ import ResourceDescriptionQuill from "@/components/form/ResourceDescriptionQuill
 import { EVENT_CATEGORY_LABELS, EVENT_CATEGORY_VALUES, type EventCategoryValue } from "@/lib/event-form-constants";
 import { parseLatLngFromGoogleMapsUrl } from "@/lib/google-maps-url";
 import { isRichTextEmpty } from "@/lib/rich-text";
-import { UserIcon, GroupIcon } from "@/icons";
-
-type TargetAudience = "children" | "people_work_for_children";
-type AgeGroup = "1-5" | "5-10" | "11-15" | "15-18" | "above-18";
-
-const AUDIENCE_OPTIONS = [
-  {
-    value: "children" as TargetAudience,
-    label: "Children",
-    emoji: "👶",
-    icon: UserIcon,
-    description: "Content designed for children",
-  },
-  {
-    value: "people_work_for_children" as TargetAudience,
-    label: "Professionals",
-    emoji: "👨‍💼",
-    icon: GroupIcon,
-    description: "Content for people who work with children",
-  },
-];
-
-const AGE_GROUP_OPTIONS = [
-  { value: "1-5" as AgeGroup, label: "1-5 years", emoji: "🍼", description: "Toddlers and early childhood" },
-  { value: "5-10" as AgeGroup, label: "5-10 years", emoji: "🎒", description: "Elementary school age" },
-  { value: "11-15" as AgeGroup, label: "11-15 years", emoji: "📚", description: "Middle school and early teens" },
-  { value: "15-18" as AgeGroup, label: "15-18 years", emoji: "🎓", description: "High school teenagers" },
-  { value: "above-18" as AgeGroup, label: "Above 18 years", emoji: "🎯", description: "Young adults and above" },
-];
 
 const selectClass =
   "mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800";
@@ -74,12 +45,16 @@ const initialForm = {
   locationAddress: "",
   locationContact: "",
   description: "",
-  registrationLink: "",
+  pricingType: "free" as "free" | "paid",
+  ticketOptions: [{ ticketType: "", ticketPrice: "" }],
+  registrationMode: "external" as "internal" | "external",
+  registrationExternalUrl: "",
   coverImage: "",
   coverImagePublicId: "",
   highlight1: "",
   highlight2: "",
   highlight3: "",
+  whoCanJoin: ["For Students"],
 };
 
 function fileToBase64(file: File): Promise<string> {
@@ -111,8 +86,6 @@ export default function AddEventClient() {
   const router = useRouter();
   const [form, setForm] = useState(initialForm);
   const [tags, setTags] = useState<string[]>([]);
-  const [targetAudience, setTargetAudience] = useState<TargetAudience>("children");
-  const [ageGroup, setAgeGroup] = useState<AgeGroup>("1-5");
   const [submitting, setSubmitting] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [error, setError] = useState("");
@@ -185,6 +158,27 @@ export default function AddEventClient() {
       toast.error("Location name, address, and contact are required.");
       return;
     }
+    if (form.pricingType === "paid") {
+      const validTicketOptions = form.ticketOptions
+        .map((item) => ({ ticketType: item.ticketType.trim(), ticketPrice: Number(item.ticketPrice) }))
+        .filter((item) => item.ticketType && Number.isFinite(item.ticketPrice) && item.ticketPrice >= 0);
+      if (validTicketOptions.length === 0) {
+        setError("Add at least one valid ticket type and price for paid events.");
+        toast.error("Add at least one valid ticket type and price for paid events.");
+        return;
+      }
+    }
+    if (form.registrationMode === "external" && !form.registrationExternalUrl.trim()) {
+      setError("External registration URL is required.");
+      toast.error("External registration URL is required.");
+      return;
+    }
+    const whoCanJoin = form.whoCanJoin.map((x) => x.trim()).filter(Boolean);
+    if (whoCanJoin.length === 0) {
+      setError("Add at least one audience in Who can join.");
+      toast.error("Add at least one audience in Who can join.");
+      return;
+    }
     setSubmitting(true);
     try {
       const res = await fetch("/api/organizer/event-requests", {
@@ -203,14 +197,24 @@ export default function AddEventClient() {
           endDate: form.endDate || undefined,
           description: form.description.trim(),
           tags,
-          registrationLink: form.registrationLink.trim() || undefined,
+          pricingType: form.pricingType,
+          ticketOptions:
+            form.pricingType === "paid"
+              ? form.ticketOptions
+                  .map((item) => ({ ticketType: item.ticketType.trim(), ticketPrice: Number(item.ticketPrice) }))
+                  .filter((item) => item.ticketType && Number.isFinite(item.ticketPrice) && item.ticketPrice >= 0)
+              : [],
+          registrationMode: form.registrationMode,
+          registrationExternalUrl:
+            form.registrationMode === "external" ? form.registrationExternalUrl.trim() || undefined : undefined,
+          internalRegistrationFields:
+            form.registrationMode === "internal" ? ["name", "email", "phone"] : [],
+          whoCanJoin,
           coverImage: form.coverImage || undefined,
           coverImagePublicId: form.coverImagePublicId || undefined,
           highlight1: form.highlight1.trim() || undefined,
           highlight2: form.highlight2.trim() || undefined,
           highlight3: form.highlight3.trim() || undefined,
-          targetAudience,
-          ageGroup: targetAudience === "children" ? ageGroup : undefined,
         }),
       });
       const data = await res.json();
@@ -397,6 +401,21 @@ export default function AddEventClient() {
                 </div>
               </div>
             </ComponentCard>
+
+            <ComponentCard title="Tags" desc="Optional tags for search and grouping.">
+              <div className="space-y-6">
+                <div className="grid gap-6 sm:grid-cols-2">
+                  <div className="sm:col-span-2">
+                    <TagsSelect
+                      label="Tags"
+                      value={tags}
+                      onChange={setTags}
+                      placeholder="Select or type to add tags (e.g. workshop, kids, free)"
+                    />
+                  </div>
+                </div>
+              </div>
+            </ComponentCard>
           </div>
 
           <div className="space-y-6">
@@ -410,6 +429,188 @@ export default function AddEventClient() {
                     placeholder="Describe the event, agenda, and who it is for."
                     className={descriptionEditorClass}
                   />
+                </div>
+
+                <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-800/30">
+                  <Label className="mb-2 block">Pricing & ticketing</Label>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <Label>Free or paid *</Label>
+                      <select
+                        value={form.pricingType}
+                        onChange={(e) =>
+                          setForm((f) => ({
+                            ...f,
+                            pricingType: e.target.value as "free" | "paid",
+                            ticketOptions:
+                              e.target.value === "paid"
+                                ? f.ticketOptions.length > 0
+                                  ? f.ticketOptions
+                                  : [{ ticketType: "", ticketPrice: "" }]
+                                : [{ ticketType: "", ticketPrice: "" }],
+                          }))
+                        }
+                        className={selectClass}
+                      >
+                        <option value="free">Free</option>
+                        <option value="paid">Paid</option>
+                      </select>
+                    </div>
+                    {form.pricingType === "paid" && (
+                      <div className="sm:col-span-2 space-y-3">
+                        <Label>Ticket categories & prices *</Label>
+                        {form.ticketOptions.map((item, index) => (
+                          <div key={index} className="grid gap-3 sm:grid-cols-[1fr_160px_auto] sm:items-end">
+                            <div>
+                              <Label>Ticket category</Label>
+                              <Input
+                                value={item.ticketType}
+                                onChange={(e) =>
+                                  setForm((f) => ({
+                                    ...f,
+                                    ticketOptions: f.ticketOptions.map((opt, i) =>
+                                      i === index ? { ...opt, ticketType: e.target.value } : opt
+                                    ),
+                                  }))
+                                }
+                                placeholder="General / VIP / Early bird"
+                                className="mt-1"
+                              />
+                            </div>
+                            <div>
+                              <Label>Price</Label>
+                              <Input
+                                value={item.ticketPrice}
+                                onChange={(e) =>
+                                  setForm((f) => ({
+                                    ...f,
+                                    ticketOptions: f.ticketOptions.map((opt, i) =>
+                                      i === index ? { ...opt, ticketPrice: e.target.value } : opt
+                                    ),
+                                  }))
+                                }
+                                placeholder="0.00"
+                                className="mt-1"
+                              />
+                            </div>
+                            {form.ticketOptions.length > 1 && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  setForm((f) => ({
+                                    ...f,
+                                    ticketOptions: f.ticketOptions.filter((_, i) => i !== index),
+                                  }))
+                                }
+                              >
+                                Remove
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            setForm((f) => ({
+                              ...f,
+                              ticketOptions: [...f.ticketOptions, { ticketType: "", ticketPrice: "" }],
+                            }))
+                          }
+                        >
+                          Add ticket category
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-800/30">
+                  <Label className="mb-2 block">Registration mode</Label>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <Label>Register internal or external *</Label>
+                      <select
+                        value={form.registrationMode}
+                        onChange={(e) =>
+                          setForm((f) => ({ ...f, registrationMode: e.target.value as "internal" | "external" }))
+                        }
+                        className={selectClass}
+                      >
+                        <option value="external">External</option>
+                        <option value="internal">Internal</option>
+                      </select>
+                    </div>
+                    {form.registrationMode === "external" ? (
+                      <div>
+                        <Label>External URL *</Label>
+                        <Input
+                          type="url"
+                          value={form.registrationExternalUrl}
+                          onChange={(e) => setForm((f) => ({ ...f, registrationExternalUrl: e.target.value }))}
+                          placeholder="https://..."
+                          className="mt-1"
+                        />
+                      </div>
+                    ) : (
+                      <div>
+                        <Label>Internal fields</Label>
+                        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Name, Email, Phone Number</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-800/30">
+                  <Label className="mb-2 block">Who can join *</Label>
+                  <div className="space-y-3">
+                    {form.whoCanJoin.map((value, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <Input
+                          value={value}
+                          onChange={(e) =>
+                            setForm((f) => ({
+                              ...f,
+                              whoCanJoin: f.whoCanJoin.map((item, i) => (i === index ? e.target.value : item)),
+                            }))
+                          }
+                          placeholder="For Students / For Children / For Teachers"
+                          className="mt-0"
+                        />
+                        {form.whoCanJoin.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              setForm((f) => ({
+                                ...f,
+                                whoCanJoin: f.whoCanJoin.filter((_, i) => i !== index),
+                              }))
+                            }
+                          >
+                            Remove
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setForm((f) => ({
+                          ...f,
+                          whoCanJoin: [...f.whoCanJoin, ""],
+                        }))
+                      }
+                    >
+                      Add audience
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-800/30">
@@ -479,182 +680,6 @@ export default function AddEventClient() {
             </ComponentCard>
           </div>
         </div>
-
-        <ComponentCard title="Audience, tags & registration" desc="Who the event is for and how people can register.">
-          <div className="space-y-6">
-            <div className="grid gap-6 sm:grid-cols-2">
-              <div>
-                <Label>Registration link</Label>
-                <Input
-                  type="url"
-                  value={form.registrationLink}
-                  onChange={(e) => setForm((f) => ({ ...f, registrationLink: e.target.value }))}
-                  placeholder="https://..."
-                  className="mt-1"
-                />
-              </div>
-              <div className="sm:col-span-2">
-                <TagsSelect
-                  label="Tags"
-                  value={tags}
-                  onChange={setTags}
-                  placeholder="Select or type to add tags (e.g. workshop, kids, free)"
-                />
-              </div>
-            </div>
-
-            <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-5 dark:border-gray-800 dark:bg-gray-800/30">
-              <h4 className="text-sm font-medium text-gray-800 dark:text-white/90">Target audience</h4>
-              <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">Who is this event for?</p>
-
-              <div className="mt-4 space-y-4">
-                <div>
-                  <Label className="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Audience type *
-                  </Label>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {AUDIENCE_OPTIONS.map((option) => {
-                      const Icon = option.icon;
-                      const isSelected = targetAudience === option.value;
-                      return (
-                        <button
-                          key={option.value}
-                          type="button"
-                          onClick={() => setTargetAudience(option.value)}
-                          className={`group relative rounded-lg border-2 p-4 text-left transition-all hover:shadow-md ${
-                            isSelected
-                              ? "border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-500/10"
-                              : "border-gray-200 bg-white hover:border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600"
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={`flex h-10 w-10 items-center justify-center rounded-lg ${
-                                isSelected
-                                  ? "bg-brand-100 text-brand-600 dark:bg-brand-500/20 dark:text-brand-400"
-                                  : "bg-gray-100 text-gray-600 group-hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-400"
-                              }`}
-                            >
-                              <span className="text-lg">{option.emoji}</span>
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <h5
-                                  className={`font-medium ${
-                                    isSelected
-                                      ? "text-brand-900 dark:text-brand-100"
-                                      : "text-gray-900 dark:text-white"
-                                  }`}
-                                >
-                                  {option.label}
-                                </h5>
-                                <Icon
-                                  className={`h-4 w-4 ${
-                                    isSelected
-                                      ? "text-brand-600 dark:text-brand-400"
-                                      : "text-gray-500 dark:text-gray-400"
-                                  }`}
-                                />
-                              </div>
-                              <p
-                                className={`mt-1 text-xs ${
-                                  isSelected
-                                    ? "text-brand-700 dark:text-brand-300"
-                                    : "text-gray-500 dark:text-gray-400"
-                                }`}
-                              >
-                                {option.description}
-                              </p>
-                            </div>
-                          </div>
-                          {isSelected && (
-                            <div className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand-500 text-white dark:bg-brand-400">
-                              <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path
-                                  fillRule="evenodd"
-                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                  clipRule="evenodd"
-                                />
-                              </svg>
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {targetAudience === "children" && (
-                  <div className="animate-in slide-in-from-top-2 duration-200">
-                    <Label className="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Age group *
-                    </Label>
-                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                      {AGE_GROUP_OPTIONS.map((option) => {
-                        const isSelected = ageGroup === option.value;
-                        return (
-                          <button
-                            key={option.value}
-                            type="button"
-                            onClick={() => setAgeGroup(option.value)}
-                            className={`group relative rounded-lg border-2 p-3 text-left transition-all hover:shadow-sm ${
-                              isSelected
-                                ? "border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-500/10"
-                                : "border-gray-200 bg-white hover:border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600"
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div
-                                className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-                                  isSelected
-                                    ? "bg-brand-100 text-brand-600 dark:bg-brand-500/20 dark:text-brand-400"
-                                    : "bg-gray-100 text-gray-600 group-hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-400"
-                                }`}
-                              >
-                                <span className="text-sm">{option.emoji}</span>
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <h5
-                                  className={`text-sm font-medium ${
-                                    isSelected
-                                      ? "text-brand-900 dark:text-brand-100"
-                                      : "text-gray-900 dark:text-white"
-                                  }`}
-                                >
-                                  {option.label}
-                                </h5>
-                                <p
-                                  className={`text-xs ${
-                                    isSelected
-                                      ? "text-brand-700 dark:text-brand-300"
-                                      : "text-gray-500 dark:text-gray-400"
-                                  }`}
-                                >
-                                  {option.description}
-                                </p>
-                              </div>
-                            </div>
-                            {isSelected && (
-                              <div className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-brand-500 text-white dark:bg-brand-400">
-                                <svg className="h-2.5 w-2.5" fill="currentColor" viewBox="0 0 20 20">
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
-                              </div>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </ComponentCard>
 
         <div className="flex flex-wrap gap-3 rounded-2xl border border-gray-200 bg-white px-6 py-5 dark:border-gray-800 dark:bg-white/[0.03]">
           <Button type="submit" size="sm" disabled={submitting || uploadingImage}>

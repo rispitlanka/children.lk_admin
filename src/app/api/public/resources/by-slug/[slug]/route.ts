@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import "@/models/Organization";
-import { ResourceRequest } from "@/models/ResourceRequest";
+import { Resource } from "@/models/Resource";
 
 export async function GET(
   _req: Request,
@@ -17,10 +17,7 @@ export async function GET(
       );
     }
     await connectDB();
-    const resource = await ResourceRequest.findOne({
-      slug,
-      status: "approved",
-    })
+    const resource = await Resource.findOne({ slug })
       .populate("organizationId", "name logo shortDescription")
       .lean();
 
@@ -31,7 +28,10 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(resource);
+    return NextResponse.json({
+      ...resource,
+      publicationDate: resource.publicationDate ?? resource.contentPublishedAt ?? null,
+    });
   } catch (e) {
     console.error(e);
     return NextResponse.json(

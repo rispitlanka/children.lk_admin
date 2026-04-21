@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
-import { ResourceRequest } from "@/models/ResourceRequest";
+import { Resource } from "@/models/Resource";
 import { DocumentDownloadCount } from "@/models/DocumentDownloadCount";
 
 export async function POST(req: Request) {
@@ -17,16 +17,13 @@ export async function POST(req: Request) {
 
     await connectDB();
 
-    const resource = await ResourceRequest.findOne({
-      _id: resourceId,
-      status: "approved",
-    })
+    const resource = await Resource.findById(resourceId)
       .select("documents")
       .lean();
 
     if (!resource) {
       return NextResponse.json(
-        { error: "Resource not found or not approved" },
+        { error: "Resource not found" },
         { status: 404 }
       );
     }

@@ -75,14 +75,19 @@ export async function POST(req: Request) {
       endDate,
       description,
       tags,
-      registrationLink,
+      pricingType,
+      ticketOptions,
+      ticketType,
+      ticketPrice,
+      registrationMode,
+      registrationExternalUrl,
+      internalRegistrationFields,
+      whoCanJoin,
       coverImage,
       coverImagePublicId,
       highlight1,
       highlight2,
       highlight3,
-      targetAudience,
-      ageGroup,
       slug: slugInput,
     } = body;
 
@@ -92,6 +97,29 @@ export async function POST(req: Request) {
     const locAddr = typeof locationAddress === "string" ? locationAddress.trim() : "";
     const locContact = typeof locationContact === "string" ? locationContact.trim() : "";
     const desc = typeof description === "string" ? description : "";
+    const normalizedPricingType = pricingType === "paid" ? "paid" : "free";
+    const normalizedRegistrationMode = registrationMode === "internal" ? "internal" : "external";
+    const normalizedWhoCanJoin = Array.isArray(whoCanJoin)
+      ? whoCanJoin
+          .map((x) => (typeof x === "string" ? x.trim() : ""))
+          .filter(Boolean)
+      : [];
+    const normalizedInternalFields = Array.isArray(internalRegistrationFields)
+      ? internalRegistrationFields
+          .map((x) => (typeof x === "string" ? x.trim().toLowerCase() : ""))
+          .filter((x) => ["name", "email", "phone"].includes(x))
+      : [];
+    const normalizedTicketOptions = Array.isArray(ticketOptions)
+      ? ticketOptions
+          .map((item) => {
+            if (!item || typeof item !== "object") return null;
+            const t = "ticketType" in item && typeof item.ticketType === "string" ? item.ticketType.trim() : "";
+            const p = "ticketPrice" in item ? Number(item.ticketPrice) : Number.NaN;
+            if (!t || !Number.isFinite(p) || p < 0) return null;
+            return { ticketType: t, ticketPrice: p };
+          })
+          .filter((item): item is { ticketType: string; ticketPrice: number } => item !== null)
+      : [];
     const slugBase =
       typeof slugInput === "string" && slugInput.trim()
         ? slugify(slugInput.trim())
@@ -108,6 +136,33 @@ export async function POST(req: Request) {
         { error: "Location name, address, and contact are required" },
         { status: 400 }
       );
+    }
+    if (normalizedPricingType === "paid") {
+      if (normalizedTicketOptions.length === 0) {
+        const fallbackType = typeof ticketType === "string" ? ticketType.trim() : "";
+        const fallbackPrice = Number(ticketPrice);
+        if (!fallbackType || !Number.isFinite(fallbackPrice) || fallbackPrice < 0) {
+          return NextResponse.json(
+            { error: "Add at least one valid ticket type and price for paid events" },
+            { status: 400 }
+          );
+        }
+        normalizedTicketOptions.push({ ticketType: fallbackType, ticketPrice: fallbackPrice });
+      }
+    }
+    if (normalizedRegistrationMode === "external") {
+      if (typeof registrationExternalUrl !== "string" || !registrationExternalUrl.trim()) {
+        return NextResponse.json({ error: "External registration URL is required" }, { status: 400 });
+      }
+    }
+    if (normalizedRegistrationMode === "internal" && normalizedInternalFields.length === 0) {
+      return NextResponse.json(
+        { error: "Select at least one internal registration field (name/email/phone)" },
+        { status: 400 }
+      );
+    }
+    if (normalizedWhoCanJoin.length === 0) {
+      return NextResponse.json({ error: "Add at least one \"Who can join\" audience" }, { status: 400 });
     }
     if (!slugBase) {
       return NextResponse.json(
@@ -148,14 +203,23 @@ export async function POST(req: Request) {
       endDate: endDate ? new Date(endDate) : undefined,
       description: desc.trim(),
       tags: tagList,
-      registrationLink: registrationLink || undefined,
+      pricingType: normalizedPricingType,
+      ticketOptions: normalizedPricingType === "paid" ? normalizedTicketOptions : [],
+      ticketType: normalizedPricingType === "paid" ? normalizedTicketOptions[0]?.ticketType : undefined,
+      ticketPrice: normalizedPricingType === "paid" ? normalizedTicketOptions[0]?.ticketPrice : undefined,
+      registrationMode: normalizedRegistrationMode,
+      registrationExternalUrl:
+        normalizedRegistrationMode === "external" && typeof registrationExternalUrl === "string"
+          ? registrationExternalUrl.trim()
+          : undefined,
+      internalRegistrationFields:
+        normalizedRegistrationMode === "internal" ? normalizedInternalFields : [],
+      whoCanJoin: normalizedWhoCanJoin,
       coverImage: coverImage || undefined,
       coverImagePublicId: coverImagePublicId || undefined,
       highlight1: typeof highlight1 === "string" ? highlight1.trim() || undefined : undefined,
       highlight2: typeof highlight2 === "string" ? highlight2.trim() || undefined : undefined,
       highlight3: typeof highlight3 === "string" ? highlight3.trim() || undefined : undefined,
-      targetAudience: targetAudience || "children",
-      ageGroup: targetAudience === "children" ? (ageGroup || "1-5") : undefined,
       organizationId: user.organizationId,
       status: "pending",
     });

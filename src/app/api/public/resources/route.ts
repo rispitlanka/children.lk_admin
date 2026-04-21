@@ -1,16 +1,20 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import "@/models/Organization";
-import { ResourceRequest } from "@/models/ResourceRequest";
+import { Resource } from "@/models/Resource";
 
 export async function GET() {
   try {
     await connectDB();
-    const list = await ResourceRequest.find({ status: "approved" })
+    const list = await Resource.find({})
       .populate("organizationId", "name")
       .sort({ createdAt: -1 })
       .lean();
-    return NextResponse.json(list);
+    const normalized = list.map((item) => ({
+      ...item,
+      publicationDate: item.publicationDate ?? item.contentPublishedAt ?? null,
+    }));
+    return NextResponse.json(normalized);
   } catch (e) {
     console.error(e);
     return NextResponse.json(

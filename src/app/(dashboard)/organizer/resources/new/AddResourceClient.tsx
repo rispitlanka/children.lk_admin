@@ -9,6 +9,7 @@ import Button from "@/components/ui/button/Button";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
 import TextArea from "@/components/form/input/TextArea";
+import ResourceDescriptionQuill from "@/components/form/ResourceDescriptionQuill";
 import TagsSelect from "@/components/form/TagsSelect";
 import Checkbox from "@/components/form/input/Checkbox";
 import Badge from "@/components/ui/badge/Badge";
@@ -30,6 +31,15 @@ import {
   type FileFormatValue,
   type VisibilityStatusValue,
 } from "@/lib/resource-form-constants";
+
+function isRichTextEmpty(html: string): boolean {
+  const text = html
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text.length === 0;
+}
 
 type DocType = "pdf" | "video" | "audio" | "docx" | "ppt" | "image";
 type DocumentFile = {
@@ -264,6 +274,11 @@ export default function AddResourceClient() {
       setError("Upload a primary file.");
       return;
     }
+    if (isRichTextEmpty(form.description)) {
+      setError("Enter a description.");
+      toast.error("Enter a description.");
+      return;
+    }
     const langs = primaryLanguages.length ? primaryLanguages : ["en"];
     setSubmitting(true);
     try {
@@ -320,424 +335,453 @@ export default function AddResourceClient() {
 
   const docAccept = DOC_TYPE_OPTIONS.find((o) => o.value === documentType)?.accept ?? "";
 
+  const selectClass =
+    "mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800";
+
+  const descriptionEditorClass = [
+    "resource-description-editor mt-1 rounded-lg border border-gray-300 shadow-theme-xs overflow-hidden",
+    "dark:border-gray-700",
+    "[&_.ql-toolbar]:rounded-t-lg [&_.ql-toolbar]:border-0 [&_.ql-toolbar]:border-b [&_.ql-toolbar]:border-gray-200 [&_.ql-toolbar]:bg-gray-50",
+    "dark:[&_.ql-toolbar]:border-gray-700 dark:[&_.ql-toolbar]:bg-gray-800/80",
+    "[&_.ql-container]:rounded-b-lg [&_.ql-container]:border-0 [&_.ql-container]:bg-transparent dark:[&_.ql-container]:bg-gray-900",
+    "[&_.ql-editor]:min-h-[220px] [&_.ql-editor]:px-3 [&_.ql-editor]:py-2.5 [&_.ql-editor]:text-sm",
+    "text-gray-800 dark:[&_.ql-editor]:text-white/90",
+    "[&_.ql-stroke]:stroke-gray-600 dark:[&_.ql-stroke]:stroke-gray-400",
+    "[&_.ql-fill]:fill-gray-600 dark:[&_.ql-fill]:fill-gray-400",
+  ].join(" ");
+
   return (
-    <div className="w-full">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="w-full space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <PageBreadcrumb pageTitle="Add Resource" />
         <Button size="sm" variant="outline" onClick={() => router.push("/organizer/resources")}>
           Back to Resources
         </Button>
       </div>
 
-      <ComponentCard
-        title="Add new resource"
-        desc="Submit a resource for review. Fields marked * are required."
-      >
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {error && (
-            <p className="rounded-lg bg-error-50 px-4 py-2 text-sm text-error-600 dark:bg-error-500/10 dark:text-error-400">
-              {error}
-            </p>
-          )}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {error && (
+          <p className="rounded-lg bg-error-50 px-4 py-2 text-sm text-error-600 dark:bg-error-500/10 dark:text-error-400">
+            {error}
+          </p>
+        )}
 
-          <section className="space-y-4">
-            <h3 className="text-base font-semibold text-gray-900 dark:text-white">Basic information</h3>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="sm:col-span-2">
-                <Label>Title *</Label>
-                <Input
-                  value={form.name}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                  placeholder="Resource title"
-                  required
-                  className="mt-1"
-                />
-              </div>
-              <div className="sm:col-span-2">
-                <Label>Description *</Label>
-                <TextArea
-                  value={form.description}
-                  onChange={(v) => setForm((f) => ({ ...f, description: v }))}
-                  rows={5}
-                  placeholder="Full description of the resource"
-                  required
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label>Publication date</Label>
-                <Input
-                  type="date"
-                  value={form.publicationDate}
-                  onChange={(e) => setForm((f) => ({ ...f, publicationDate: e.target.value }))}
-                  className="mt-1"
-                />
-              </div>
-            </div>
-            <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-800/30">
-              <Label>Cover image</Label>
-              <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">Optional promotional image.</p>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handlePictureChange}
-                disabled={uploadingPicture}
-                className="mt-2 block w-full text-sm text-gray-500 file:mr-4 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100 dark:file:bg-brand-500/10 dark:file:text-brand-400"
-              />
-              {uploadingPicture && <p className="mt-1 text-xs text-gray-500">Uploading…</p>}
-              {picturePreview && (
-                <div className="mt-3 flex items-center gap-3">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={picturePreview.url}
-                    alt="Cover preview"
-                    className="h-20 w-20 rounded-lg object-cover ring-2 ring-gray-200 dark:ring-gray-700"
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+          <div className="space-y-6">
+            <ComponentCard
+              title="Basic information"
+              desc="Title, publication date, and optional cover image. Fields marked * are required."
+            >
+              <div className="space-y-6">
+                <div>
+                  <Label>Title *</Label>
+                  <Input
+                    value={form.name}
+                    onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                    placeholder="Resource title"
+                    required
+                    className="mt-1"
                   />
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Uploaded</span>
                 </div>
-              )}
-            </div>
-          </section>
-
-          <section className="space-y-4">
-            <h3 className="text-base font-semibold text-gray-900 dark:text-white">Classification &amp; taxonomy</h3>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <Label>Category *</Label>
-                <select
-                  required
-                  value={form.categoryId}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, categoryId: e.target.value, subCategoryId: "" }))
-                  }
-                  className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-900 dark:text-white"
-                >
-                  {taxonomy.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <Label>Sub category *</Label>
-                <select
-                  required
-                  value={form.subCategoryId}
-                  onChange={(e) => setForm((f) => ({ ...f, subCategoryId: e.target.value }))}
-                  className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-900 dark:text-white"
-                >
-                  {subOptions.map((s) => (
-                    <option key={s._id} value={s._id}>
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="sm:col-span-2">
-                <TagsSelect
-                  label="Tags / keywords"
-                  value={tags}
-                  onChange={setTags}
-                  placeholder="Add tags (search or type new)"
-                />
-              </div>
-              <div>
-                <Label>Content type *</Label>
-                <select
-                  required
-                  value={form.contentType}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, contentType: e.target.value as ContentTypeValue }))
-                  }
-                  className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-900 dark:text-white"
-                >
-                  <option value="">Select…</option>
-                  {CONTENT_TYPE_VALUES.map((v) => (
-                    <option key={v} value={v}>
-                      {CONTENT_TYPE_LABELS[v]}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <div>
-              <Label className="mb-2 block">Age group / audience * (multi)</Label>
-              <div className="flex flex-wrap gap-2">
-                {AGE_AUDIENCE_VALUES.map((v) => (
-                  <button
-                    key={v}
-                    type="button"
-                    onClick={() => setAgeAudienceGroups((prev) => toggleInList(prev, v))}
-                    className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
-                      ageAudienceGroups.includes(v)
-                        ? "border-brand-500 bg-brand-50 text-brand-800 dark:border-brand-400 dark:bg-brand-500/15 dark:text-brand-100"
-                        : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
-                    }`}
-                  >
-                    {AGE_AUDIENCE_LABELS[v]}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          <section className="space-y-4">
-            <h3 className="text-base font-semibold text-gray-900 dark:text-white">Publisher &amp; attribution</h3>
-            <div>
-              <Label>Main publisher *</Label>
-              <Input
-                value={form.mainPublisherName}
-                onChange={(e) => setForm((f) => ({ ...f, mainPublisherName: e.target.value }))}
-                placeholder="Organization or publisher name"
-                required
-                className="mt-1"
-              />
-              <p className="mt-1 text-xs text-gray-500">Defaults to your organization name; you may edit it.</p>
-            </div>
-            <Checkbox
-              label="There is a secondary publisher (co-publishers)"
-              checked={hasCoPublishers}
-              onChange={(checked) => {
-                setHasCoPublishers(checked);
-                if (!checked) setCoPublisherIds([]);
-              }}
-            />
-            {hasCoPublishers && (
-              <div className="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
-                <Label className="mb-2 block">Co-publishers (multi)</Label>
-                <div className="max-h-48 space-y-2 overflow-y-auto">
-                  {coOrgs.map((o) => (
-                    <Checkbox
-                      key={o._id}
-                      label={o.name}
-                      checked={coPublisherIds.includes(o._id)}
-                      onChange={(c) =>
-                        setCoPublisherIds((prev) =>
-                          c ? [...prev, o._id] : prev.filter((id) => id !== o._id)
-                        )
-                      }
-                    />
-                  ))}
-                  {coOrgs.length === 0 && (
-                    <p className="text-sm text-gray-500">No other organizations to select.</p>
+                <div>
+                  <Label>Publication date</Label>
+                  <Input
+                    type="date"
+                    value={form.publicationDate}
+                    onChange={(e) => setForm((f) => ({ ...f, publicationDate: e.target.value }))}
+                    className="mt-1"
+                  />
+                </div>
+                <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-800/30">
+                  <Label>Cover image</Label>
+                  <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">Optional promotional image.</p>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePictureChange}
+                    disabled={uploadingPicture}
+                    className="mt-2 block w-full text-sm text-gray-500 file:mr-4 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100 dark:file:bg-brand-500/10 dark:file:text-brand-400"
+                  />
+                  {uploadingPicture && <p className="mt-1 text-xs text-gray-500">Uploading…</p>}
+                  {picturePreview && (
+                    <div className="mt-3 flex items-center gap-3">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={picturePreview.url}
+                        alt="Cover preview"
+                        className="h-20 w-20 rounded-lg object-cover ring-2 ring-gray-200 dark:ring-gray-700"
+                      />
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Uploaded</span>
+                    </div>
                   )}
                 </div>
               </div>
-            )}
-            <div>
-              <Label>Rights / © notice</Label>
-              <TextArea
-                value={form.rightsNotice}
-                onChange={(v) => setForm((f) => ({ ...f, rightsNotice: v }))}
-                rows={2}
-                placeholder="Optional copyright or usage notice"
-                className="mt-1"
-              />
-            </div>
-          </section>
+            </ComponentCard>
 
-          <section className="space-y-4">
-            <h3 className="text-base font-semibold text-gray-900 dark:text-white">Document / file</h3>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <Label>File format *</Label>
-                <select
-                  value={primaryFileFormat}
-                  onChange={(e) => setPrimaryFileFormat(e.target.value as FileFormatValue)}
-                  className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-900 dark:text-white"
-                >
-                  {FILE_FORMAT_VALUES.map((v) => (
-                    <option key={v} value={v}>
-                      {FILE_FORMAT_LABELS[v]}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <Label>Language * (multi)</Label>
-                <div className="mt-2 flex flex-wrap gap-3">
-                  {LANGUAGE_OPTIONS.map((lang) => (
-                    <Checkbox
-                      key={lang.value}
-                      label={lang.label}
-                      checked={primaryLanguages.includes(lang.value)}
-                      onChange={(c) =>
-                        setPrimaryLanguages((prev) =>
-                          c
-                            ? [...prev, lang.value]
-                            : prev.filter((x) => x !== lang.value)
-                        )
+            <ComponentCard title="Classification & taxonomy" desc="Category, sub-category, tags, and content type.">
+              <div className="space-y-6">
+                <div className="grid gap-6 sm:grid-cols-2">
+                  <div>
+                    <Label>Category *</Label>
+                    <select
+                      required
+                      value={form.categoryId}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, categoryId: e.target.value, subCategoryId: "" }))
                       }
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-800/30">
-              <Label>Primary file *</Label>
-              <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-                Choose how the file is stored, then upload. File size is detected automatically.
-              </p>
-              <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                {DOC_TYPE_OPTIONS.map((option) => {
-                  const Icon = option.icon;
-                  const isSelected = documentType === option.value;
-                  return (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => setDocumentType(option.value)}
-                      className={`relative rounded-lg border-2 p-3 text-left text-sm ${
-                        isSelected
-                          ? "border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-500/10"
-                          : "border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800"
-                      }`}
+                      className={selectClass}
                     >
-                      <span className="mr-2">{option.emoji}</span>
-                      {option.label}
-                      <Icon className="ml-1 inline size-4 align-middle opacity-60" />
-                    </button>
-                  );
-                })}
-              </div>
-              <input
-                type="file"
-                accept={docAccept}
-                onChange={handlePrimaryUpload}
-                disabled={uploadingDoc}
-                className="mt-3 block w-full text-sm text-gray-500 file:mr-4 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100 dark:file:bg-brand-500/10 dark:file:text-brand-400"
-              />
-              {uploadingDoc && <p className="mt-1 text-xs text-gray-500">Uploading…</p>}
-              {primaryDoc && (
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-800/50">
-                  <span className="flex flex-wrap items-center gap-2 text-sm">
-                    <Badge color="info" size="sm">{primaryDoc.fileFormat}</Badge>
-                    <span className="truncate">{primaryDoc.name}</span>
-                    {primaryDoc.fileSizeBytes != null && (
-                      <span className="text-xs text-gray-500">
-                        {(primaryDoc.fileSizeBytes / 1024).toFixed(1)} KB
-                      </span>
-                    )}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setPrimaryDoc(null)}
-                    className="rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-error-500 dark:hover:bg-gray-700"
-                    aria-label="Remove file"
-                  >
-                    <TrashBinIcon className="size-4" />
-                  </button>
+                      {taxonomy.map((c) => (
+                        <option key={c._id} value={c._id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <Label>Sub category *</Label>
+                    <select
+                      required
+                      value={form.subCategoryId}
+                      onChange={(e) => setForm((f) => ({ ...f, subCategoryId: e.target.value }))}
+                      className={selectClass}
+                    >
+                      {subOptions.map((s) => (
+                        <option key={s._id} value={s._id}>
+                          {s.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-              )}
-            </div>
-            <div>
-              <Label>External download URL (optional)</Label>
-              <Input
-                value={form.externalDownloadUrl}
-                onChange={(e) => setForm((f) => ({ ...f, externalDownloadUrl: e.target.value }))}
-                placeholder="https://…"
-                className="mt-1"
-              />
-            </div>
-          </section>
-
-          <section className="space-y-4">
-            <h3 className="text-base font-semibold text-gray-900 dark:text-white">Geographic &amp; regional scope</h3>
-            <div>
-              <Label className="mb-2 block">Country (multi)</Label>
-              <div className="flex flex-wrap gap-2">
-                {COUNTRY_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => setCountries((prev) => toggleInList(prev, opt.value))}
-                    className={`rounded-full border px-3 py-1.5 text-sm ${
-                      countries.includes(opt.value)
-                        ? "border-brand-500 bg-brand-50 text-brand-800 dark:border-brand-400 dark:bg-brand-500/15"
-                        : "border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800"
-                    }`}
+                <div>
+                  <TagsSelect
+                    label="Tags / keywords"
+                    value={tags}
+                    onChange={setTags}
+                    placeholder="Add tags (search or type new)"
+                  />
+                </div>
+                <div>
+                  <Label>Content type *</Label>
+                  <select
+                    required
+                    value={form.contentType}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, contentType: e.target.value as ContentTypeValue }))
+                    }
+                    className={selectClass}
                   >
-                    {opt.label}
-                  </button>
-                ))}
+                    <option value="">Select category</option>
+                    {CONTENT_TYPE_VALUES.map((v) => (
+                      <option key={v} value={v}>
+                        {CONTENT_TYPE_LABELS[v]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <Label className="mb-2 block">Age group / audience * (multi)</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {AGE_AUDIENCE_VALUES.map((v) => (
+                      <button
+                        key={v}
+                        type="button"
+                        onClick={() => setAgeAudienceGroups((prev) => toggleInList(prev, v))}
+                        className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
+                          ageAudienceGroups.includes(v)
+                            ? "border-brand-500 bg-brand-50 text-brand-800 dark:border-brand-400 dark:bg-brand-500/15 dark:text-brand-100"
+                            : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
+                        }`}
+                      >
+                        {AGE_AUDIENCE_LABELS[v]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
-            <div>
-              <Label className="mb-2 block">Region (multi)</Label>
-              <div className="flex flex-wrap gap-2">
-                {REGION_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => setRegions((prev) => toggleInList(prev, opt.value))}
-                    className={`rounded-full border px-3 py-1.5 text-sm ${
-                      regions.includes(opt.value)
-                        ? "border-brand-500 bg-brand-50 text-brand-800 dark:border-brand-400 dark:bg-brand-500/15"
-                        : "border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800"
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </section>
+            </ComponentCard>
 
-          <section className="space-y-4">
-            <h3 className="text-base font-semibold text-gray-900 dark:text-white">Publishing &amp; visibility</h3>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <Label>Status</Label>
-                <select
-                  value={form.visibilityStatus}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      visibilityStatus: e.target.value as VisibilityStatusValue,
-                    }))
-                  }
-                  className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-900 dark:text-white"
-                >
-                  {VISIBILITY_STATUS_VALUES.map((v) => (
-                    <option key={v} value={v}>
-                      {VISIBILITY_STATUS_LABELS[v]}
-                    </option>
-                  ))}
-                </select>
+            <ComponentCard title="Geographic & regional scope" desc="Where this resource applies.">
+              <div className="space-y-6">
+                <div>
+                  <Label className="mb-2 block">Country (multi)</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {COUNTRY_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setCountries((prev) => toggleInList(prev, opt.value))}
+                        className={`rounded-full border px-3 py-1.5 text-sm ${
+                          countries.includes(opt.value)
+                            ? "border-brand-500 bg-brand-50 text-brand-800 dark:border-brand-400 dark:bg-brand-500/15"
+                            : "border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <Label className="mb-2 block">Region (multi)</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {REGION_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setRegions((prev) => toggleInList(prev, opt.value))}
+                        className={`rounded-full border px-3 py-1.5 text-sm ${
+                          regions.includes(opt.value)
+                            ? "border-brand-500 bg-brand-50 text-brand-800 dark:border-brand-400 dark:bg-brand-500/15"
+                            : "border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
-              <div>
-                <Label>Published date</Label>
-                <Input
-                  type="date"
-                  value={form.contentPublishedAt}
-                  onChange={(e) => setForm((f) => ({ ...f, contentPublishedAt: e.target.value }))}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label>URL slug (optional)</Label>
-                <Input
-                  value={form.slug}
-                  onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
-                  placeholder="Leave blank to auto-generate from title"
-                  className="mt-1"
-                />
-              </div>
-            </div>
-            <Checkbox label="Featured" checked={featured} onChange={setFeatured} />
-          </section>
-
-          <div className="flex flex-wrap gap-3 border-t border-gray-200 pt-6 dark:border-gray-800">
-            <Button type="submit" size="sm" disabled={submitting || uploadingPicture || uploadingDoc}>
-              {submitting ? "Submitting…" : "Submit request"}
-            </Button>
-            <Button type="button" variant="outline" size="sm" onClick={() => router.push("/organizer/resources")}>
-              Cancel
-            </Button>
+            </ComponentCard>
           </div>
-        </form>
-      </ComponentCard>
+
+          <div className="space-y-6">
+            <ComponentCard
+              title="Description"
+              desc="Rich text with headings, lists, links, and basic formatting."
+            >
+              <div>
+                <Label>Description *</Label>
+                <ResourceDescriptionQuill
+                  value={form.description}
+                  onChange={(html) => setForm((f) => ({ ...f, description: html }))}
+                  placeholder="Full description of the resource"
+                  className={descriptionEditorClass}
+                />
+              </div>
+            </ComponentCard>
+
+            <ComponentCard title="Publisher & attribution" desc="Who published this resource and rights notice.">
+              <div className="space-y-6">
+                <div>
+                  <Label>Main publisher *</Label>
+                  <Input
+                    value={form.mainPublisherName}
+                    onChange={(e) => setForm((f) => ({ ...f, mainPublisherName: e.target.value }))}
+                    placeholder="Organization or publisher name"
+                    required
+                    className="mt-1"
+                  />
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Defaults to your organization name; you may edit it.
+                  </p>
+                </div>
+                <Checkbox
+                  label="There is a secondary publisher (co-publishers)"
+                  checked={hasCoPublishers}
+                  onChange={(checked) => {
+                    setHasCoPublishers(checked);
+                    if (!checked) setCoPublisherIds([]);
+                  }}
+                />
+                {hasCoPublishers && (
+                  <div className="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+                    <Label className="mb-2 block">Co-publishers (multi)</Label>
+                    <div className="max-h-48 space-y-2 overflow-y-auto">
+                      {coOrgs.map((o) => (
+                        <Checkbox
+                          key={o._id}
+                          label={o.name}
+                          checked={coPublisherIds.includes(o._id)}
+                          onChange={(c) =>
+                            setCoPublisherIds((prev) =>
+                              c ? [...prev, o._id] : prev.filter((id) => id !== o._id)
+                            )
+                          }
+                        />
+                      ))}
+                      {coOrgs.length === 0 && (
+                        <p className="text-sm text-gray-500">No other organizations to select.</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+                <div>
+                  <Label>Rights / © notice</Label>
+                  <TextArea
+                    value={form.rightsNotice}
+                    onChange={(v) => setForm((f) => ({ ...f, rightsNotice: v }))}
+                    rows={3}
+                    placeholder="Optional copyright or usage notice"
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+            </ComponentCard>
+
+            <ComponentCard title="Document / file" desc="Upload the primary file for this resource.">
+              <div className="space-y-6">
+                <div className="grid gap-6 sm:grid-cols-2">
+                  <div>
+                    <Label>File format *</Label>
+                    <select
+                      value={primaryFileFormat}
+                      onChange={(e) => setPrimaryFileFormat(e.target.value as FileFormatValue)}
+                      className={selectClass}
+                    >
+                      {FILE_FORMAT_VALUES.map((v) => (
+                        <option key={v} value={v}>
+                          {FILE_FORMAT_LABELS[v]}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <Label>Language * (multi)</Label>
+                    <div className="mt-2 flex flex-wrap gap-3">
+                      {LANGUAGE_OPTIONS.map((lang) => (
+                        <Checkbox
+                          key={lang.value}
+                          label={lang.label}
+                          checked={primaryLanguages.includes(lang.value)}
+                          onChange={(c) =>
+                            setPrimaryLanguages((prev) =>
+                              c
+                                ? [...prev, lang.value]
+                                : prev.filter((x) => x !== lang.value)
+                            )
+                          }
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-800/30">
+                  <Label>Primary file *</Label>
+                  <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                    Choose how the file is stored, then upload. File size is detected automatically.
+                  </p>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    {DOC_TYPE_OPTIONS.map((option) => {
+                      const Icon = option.icon;
+                      const isSelected = documentType === option.value;
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => setDocumentType(option.value)}
+                          className={`relative rounded-lg border-2 p-3 text-left text-sm ${
+                            isSelected
+                              ? "border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-500/10"
+                              : "border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800"
+                          }`}
+                        >
+                          <span className="mr-2">{option.emoji}</span>
+                          {option.label}
+                          <Icon className="ml-1 inline size-4 align-middle opacity-60" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <input
+                    type="file"
+                    accept={docAccept}
+                    onChange={handlePrimaryUpload}
+                    disabled={uploadingDoc}
+                    className="mt-3 block w-full text-sm text-gray-500 file:mr-4 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100 dark:file:bg-brand-500/10 dark:file:text-brand-400"
+                  />
+                  {uploadingDoc && <p className="mt-1 text-xs text-gray-500">Uploading…</p>}
+                  {primaryDoc && (
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-800/50">
+                      <span className="flex flex-wrap items-center gap-2 text-sm">
+                        <Badge color="info" size="sm">{primaryDoc.fileFormat}</Badge>
+                        <span className="truncate">{primaryDoc.name}</span>
+                        {primaryDoc.fileSizeBytes != null && (
+                          <span className="text-xs text-gray-500">
+                            {(primaryDoc.fileSizeBytes / 1024).toFixed(1)} KB
+                          </span>
+                        )}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setPrimaryDoc(null)}
+                        className="rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-error-500 dark:hover:bg-gray-700"
+                        aria-label="Remove file"
+                      >
+                        <TrashBinIcon className="size-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <Label>External download URL (optional)</Label>
+                  <Input
+                    value={form.externalDownloadUrl}
+                    onChange={(e) => setForm((f) => ({ ...f, externalDownloadUrl: e.target.value }))}
+                    placeholder="https://…"
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+            </ComponentCard>
+
+            <ComponentCard title="Publishing & visibility" desc="Draft status, dates, slug, and featured flag.">
+              <div className="space-y-6">
+                <div className="grid gap-6 sm:grid-cols-2">
+                  <div>
+                    <Label>Status</Label>
+                    <select
+                      value={form.visibilityStatus}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          visibilityStatus: e.target.value as VisibilityStatusValue,
+                        }))
+                      }
+                      className={selectClass}
+                    >
+                      {VISIBILITY_STATUS_VALUES.map((v) => (
+                        <option key={v} value={v}>
+                          {VISIBILITY_STATUS_LABELS[v]}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <Label>Published date</Label>
+                    <Input
+                      type="date"
+                      value={form.contentPublishedAt}
+                      onChange={(e) => setForm((f) => ({ ...f, contentPublishedAt: e.target.value }))}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Label>URL slug (optional)</Label>
+                    <Input
+                      value={form.slug}
+                      onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
+                      placeholder="Leave blank to auto-generate from title"
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+                <Checkbox label="Featured" checked={featured} onChange={setFeatured} />
+              </div>
+            </ComponentCard>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-3 rounded-2xl border border-gray-200 bg-white px-6 py-5 dark:border-gray-800 dark:bg-white/[0.03]">
+          <Button type="submit" size="sm" disabled={submitting || uploadingPicture || uploadingDoc}>
+            {submitting ? "Submitting…" : "Submit request"}
+          </Button>
+          <Button type="button" variant="outline" size="sm" onClick={() => router.push("/organizer/resources")}>
+            Cancel
+          </Button>
+        </div>
+      </form>
     </div>
   );
 }

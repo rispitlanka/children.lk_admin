@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import Quill from "quill";
 import "quill/dist/quill.snow.css";
 
 const TOOLBAR_OPTIONS = [
@@ -36,29 +35,43 @@ export default function ResourceDescriptionQuill({
   useEffect(() => {
     const wrap = wrapRef.current;
     if (!wrap) return;
+    let cancelled = false;
+    let cleanup: (() => void) | undefined;
 
-    const host = document.createElement("div");
-    wrap.appendChild(host);
+    const initialize = async () => {
+      const { default: Quill } = await import("quill");
+      if (cancelled) return;
 
-    const quill = new Quill(host, {
-      theme: "snow",
-      placeholder,
-      modules: {
-        toolbar: TOOLBAR_OPTIONS,
-      },
-    });
-    if (value) {
-      quill.clipboard.dangerouslyPasteHTML(value, "silent");
-    }
+      const host = document.createElement("div");
+      wrap.appendChild(host);
 
-    const onTextChange = () => {
-      onChangeRef.current(quill.root.innerHTML);
+      const quill = new Quill(host, {
+        theme: "snow",
+        placeholder,
+        modules: {
+          toolbar: TOOLBAR_OPTIONS,
+        },
+      });
+      if (value) {
+        quill.clipboard.dangerouslyPasteHTML(value, "silent");
+      }
+
+      const onTextChange = () => {
+        onChangeRef.current(quill.root.innerHTML);
+      };
+      quill.on("text-change", onTextChange);
+
+      cleanup = () => {
+        quill.off("text-change", onTextChange);
+        wrap.innerHTML = "";
+      };
     };
-    quill.on("text-change", onTextChange);
+
+    void initialize();
 
     return () => {
-      quill.off("text-change", onTextChange);
-      wrap.innerHTML = "";
+      cancelled = true;
+      cleanup?.();
     };
     // Intentionally only re-run when placeholder changes; `value` is initial HTML only.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- avoid remounting Quill on each keystroke

@@ -4,11 +4,22 @@ export interface IEvent {
   _id: mongoose.Types.ObjectId;
   name: string;
   location: string;
+  eventCategory?: string;
+  locationName?: string;
+  locationAddress?: string;
+  locationContact?: string;
+  locationLatitude?: number;
+  locationLongitude?: number;
   startDate: Date;
   endDate?: Date;
   description: string;
   tags: string[];
   registrationLink?: string;
+  coverImage?: string;
+  coverImagePublicId?: string;
+  highlight1?: string;
+  highlight2?: string;
+  highlight3?: string;
   organizationId: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
@@ -18,11 +29,22 @@ const EventSchema = new Schema<IEvent>(
   {
     name: { type: String, required: true },
     location: { type: String, required: true },
+    eventCategory: { type: String, trim: true },
+    locationName: { type: String, trim: true },
+    locationAddress: { type: String, trim: true },
+    locationContact: { type: String, trim: true },
+    locationLatitude: Number,
+    locationLongitude: Number,
     startDate: { type: Date, required: true },
     endDate: Date,
     description: { type: String, required: true },
     tags: [String],
     registrationLink: String,
+    coverImage: String,
+    coverImagePublicId: String,
+    highlight1: String,
+    highlight2: String,
+    highlight3: String,
     organizationId: { type: Schema.Types.ObjectId, ref: "Organization", required: true },
   },
   { timestamps: true }

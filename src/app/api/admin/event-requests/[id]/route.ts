@@ -71,11 +71,22 @@ export async function PATCH(
       await Event.create({
         name: request.name,
         location: request.location,
+        eventCategory: request.eventCategory,
+        locationName: request.locationName,
+        locationAddress: request.locationAddress,
+        locationContact: request.locationContact,
+        locationLatitude: request.locationLatitude,
+        locationLongitude: request.locationLongitude,
         startDate: request.startDate,
         endDate: request.endDate,
         description: request.description,
         tags: request.tags ?? [],
         registrationLink: request.registrationLink,
+        coverImage: request.coverImage,
+        coverImagePublicId: request.coverImagePublicId,
+        highlight1: request.highlight1,
+        highlight2: request.highlight2,
+        highlight3: request.highlight3,
         organizationId: request.organizationId,
       });
     }

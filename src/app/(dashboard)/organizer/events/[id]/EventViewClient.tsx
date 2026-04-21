@@ -9,11 +9,18 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import Badge from "@/components/ui/badge/Badge";
 import Button from "@/components/ui/button/Button";
 import { CalenderIcon, CheckCircleIcon, AlertIcon, CloseLineIcon, UserIcon, GroupIcon, TimeIcon } from "@/icons";
+import { EVENT_CATEGORY_LABELS, type EventCategoryValue } from "@/lib/event-form-constants";
 
 type Event = {
   _id: string;
   name: string;
   location: string;
+  eventCategory?: string;
+  locationName?: string;
+  locationAddress?: string;
+  locationContact?: string;
+  locationLatitude?: number;
+  locationLongitude?: number;
   startDate: string;
   endDate?: string;
   description: string;
@@ -21,6 +28,9 @@ type Event = {
   registrationLink?: string;
   coverImage?: string;
   coverImagePublicId?: string;
+  highlight1?: string;
+  highlight2?: string;
+  highlight3?: string;
   targetAudience?: "children" | "people_work_for_children";
   ageGroup?: "1-5" | "5-10" | "11-15" | "15-18" | "above-18";
   status: string;
@@ -331,12 +341,77 @@ export default function EventViewClient() {
 
             {/* Description */}
             <ComponentCard title="📝 Description">
-              <div className="prose prose-gray dark:prose-invert max-w-none">
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
-                  {event.description}
-                </p>
-              </div>
+              <div
+                className="prose prose-gray prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300"
+                // eslint-disable-next-line react/no-danger
+                dangerouslySetInnerHTML={{ __html: event.description || "" }}
+              />
             </ComponentCard>
+
+            {(event.highlight1?.trim() ||
+              event.highlight2?.trim() ||
+              event.highlight3?.trim()) && (
+              <ComponentCard title="✨ Highlights">
+                <ol className="list-decimal space-y-3 pl-5 text-sm text-gray-800 dark:text-white/90">
+                  {[event.highlight1, event.highlight2, event.highlight3].map((h, i) =>
+                    h?.trim() ? <li key={i}>{h}</li> : null
+                  )}
+                </ol>
+              </ComponentCard>
+            )}
+
+            {event.eventCategory && (
+              <ComponentCard title="📂 Category">
+                <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                  {EVENT_CATEGORY_LABELS[event.eventCategory as EventCategoryValue] ?? event.eventCategory}
+                </p>
+              </ComponentCard>
+            )}
+
+            {(event.locationName ||
+              event.locationAddress ||
+              event.locationContact ||
+              (event.locationLatitude != null &&
+                event.locationLongitude != null &&
+                Number.isFinite(event.locationLatitude) &&
+                Number.isFinite(event.locationLongitude))) && (
+              <ComponentCard title="📍 Venue details">
+                <div className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
+                  {event.locationName?.trim() && (
+                    <p>
+                      <span className="font-medium text-gray-900 dark:text-white">Name: </span>
+                      {event.locationName}
+                    </p>
+                  )}
+                  {event.locationAddress?.trim() && (
+                    <p className="whitespace-pre-wrap">
+                      <span className="font-medium text-gray-900 dark:text-white">Address: </span>
+                      {event.locationAddress}
+                    </p>
+                  )}
+                  {event.locationContact?.trim() && (
+                    <p>
+                      <span className="font-medium text-gray-900 dark:text-white">Contact: </span>
+                      {event.locationContact}
+                    </p>
+                  )}
+                  {event.locationLatitude != null &&
+                    event.locationLongitude != null &&
+                    Number.isFinite(event.locationLatitude) &&
+                    Number.isFinite(event.locationLongitude) && (
+                      <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+                        <iframe
+                          title="Venue map"
+                          src={`https://www.google.com/maps?q=${encodeURIComponent(String(event.locationLatitude))},${encodeURIComponent(String(event.locationLongitude))}&z=15&output=embed`}
+                          className="h-56 w-full border-0"
+                          loading="lazy"
+                          referrerPolicy="no-referrer-when-downgrade"
+                        />
+                      </div>
+                    )}
+                </div>
+              </ComponentCard>
+            )}
 
             {/* Admin Message */}
             {event.status === "denied" && event.adminReason && (

@@ -24,6 +24,7 @@ import {
   labelVisibility,
   taxonomyLine,
 } from "@/lib/resource-display";
+import { EVENT_CATEGORY_LABELS, type EventCategoryValue } from "@/lib/event-form-constants";
 
 type RequestItem = {
   _id: string;
@@ -65,6 +66,7 @@ function getColumns(requestType: RequestType): { key: string; label: string }[] 
     case "event":
       return [
         { key: "name", label: "Name" },
+        { key: "eventCategory", label: "Category" },
         { key: "location", label: "Location" },
         { key: "organizationId", label: "Organization" },
         { key: "createdAt", label: "Date" },
@@ -92,6 +94,11 @@ function getCellValue(row: RequestItem, col: { key: string }): React.ReactNode {
   }
   if (key === "contentType") return labelContentType(row.contentType as string | undefined);
   if (key === "visibilityStatus") return labelVisibility(row.visibilityStatus as string | undefined);
+  if (key === "eventCategory") {
+    const v = row.eventCategory as string | undefined;
+    if (!v?.trim()) return "—";
+    return EVENT_CATEGORY_LABELS[v as EventCategoryValue] ?? v;
+  }
   return String(row[key] ?? "—");
 }
 
@@ -316,18 +323,51 @@ function renderDetail(requestType: RequestType, row: RequestItem): React.ReactNo
       );
     case "event":
       return (
-        <>
+        <div className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
           <p><strong>Name:</strong> {String(row.name ?? "—")}</p>
-          <p><strong>Location:</strong> {String(row.location ?? "—")}</p>
+          {typeof row.eventCategory === "string" && row.eventCategory.trim() ? (
+            <p><strong>Category:</strong> {row.eventCategory}</p>
+          ) : null}
+          <p><strong>Location (summary):</strong> {String(row.location ?? "—")}</p>
+          {typeof row.locationName === "string" && row.locationName.trim() ? (
+            <p><strong>Venue name:</strong> {row.locationName}</p>
+          ) : null}
+          {typeof row.locationAddress === "string" && row.locationAddress.trim() ? (
+            <p><strong>Address:</strong> {row.locationAddress}</p>
+          ) : null}
+          {typeof row.locationContact === "string" && row.locationContact.trim() ? (
+            <p><strong>Venue contact:</strong> {row.locationContact}</p>
+          ) : null}
           <p><strong>Start:</strong> {row.startDate ? new Date(String(row.startDate)).toLocaleString() : "—"}</p>
-          {row.endDate && <p><strong>End:</strong> {new Date(String(row.endDate)).toLocaleString()}</p>}
-          <p><strong>Description:</strong> {String(row.description ?? "—")}</p>
+          {row.endDate ? (
+            <p><strong>End:</strong> {new Date(String(row.endDate)).toLocaleString()}</p>
+          ) : null}
+          <div>
+            <p className="font-medium text-gray-800 dark:text-white/90">Description</p>
+            <div
+              className="prose prose-sm dark:prose-invert mt-1 max-w-none text-gray-700 dark:text-gray-300"
+              // eslint-disable-next-line react/no-danger -- admin-reviewed organizer HTML
+              dangerouslySetInnerHTML={{ __html: String(row.description ?? "") || "—" }}
+            />
+          </div>
+          {[1, 2, 3].map((n) => {
+            const h = row[`highlight${n}` as "highlight1"] as string | undefined;
+            if (!h || !String(h).trim()) return null;
+            return (
+              <p key={n}><strong>Highlight {n}:</strong> {h}</p>
+            );
+          })}
           <p><strong>Organization:</strong> {org?.name ?? "—"}</p>
           <p><strong>Tags:</strong> {Array.isArray(row.tags) ? (row.tags as string[]).join(", ") : "—"}</p>
-          {row.registrationLink && (
-            <p><strong>Registration:</strong> <a href={String(row.registrationLink)} target="_blank" rel="noopener noreferrer" className="text-brand-500">Link</a></p>
-          )}
-        </>
+          {row.registrationLink ? (
+            <p>
+              <strong>Registration:</strong>{" "}
+              <a href={String(row.registrationLink)} target="_blank" rel="noopener noreferrer" className="text-brand-500">
+                Link
+              </a>
+            </p>
+          ) : null}
+        </div>
       );
     case "super-hero":
       return renderSuperHeroDetail(row, org);

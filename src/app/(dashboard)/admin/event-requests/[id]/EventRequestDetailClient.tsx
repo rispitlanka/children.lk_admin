@@ -11,16 +11,27 @@ import TextArea from "@/components/form/input/TextArea";
 import LoadingLottie from "@/components/common/LoadingLottie";
 import toast from "react-hot-toast";
 import Badge from "@/components/ui/badge/Badge";
+import { EVENT_CATEGORY_LABELS, type EventCategoryValue } from "@/lib/event-form-constants";
 
 type EventRequestDetail = {
   _id: string;
   name: string;
   location: string;
+  eventCategory?: string;
+  locationName?: string;
+  locationAddress?: string;
+  locationContact?: string;
+  locationLatitude?: number;
+  locationLongitude?: number;
   startDate: string;
   endDate?: string;
   description: string;
   tags: string[];
   registrationLink?: string;
+  coverImage?: string;
+  highlight1?: string;
+  highlight2?: string;
+  highlight3?: string;
   organizationId?: { name: string; contactEmail?: string; contactPhone?: string };
   status: string;
   adminReason?: string;
@@ -163,15 +174,45 @@ export default function EventRequestDetailClient() {
         <div className="lg:col-span-2 space-y-6">
           <ComponentCard title="Overview">
             <div className="space-y-4">
+              {request.eventCategory && (
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Category</p>
+                  <p className="mt-1 font-medium text-gray-800 dark:text-white/90">
+                    {EVENT_CATEGORY_LABELS[request.eventCategory as EventCategoryValue] ?? request.eventCategory}
+                  </p>
+                </div>
+              )}
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Description</p>
-                <p className="mt-1 text-gray-800 dark:text-white/90">{request.description}</p>
+                <div
+                  className="prose prose-sm dark:prose-invert mt-1 max-w-none text-gray-800 dark:text-white/90"
+                  // eslint-disable-next-line react/no-danger
+                  dangerouslySetInnerHTML={{ __html: request.description || "—" }}
+                />
               </div>
               <div className="grid gap-4 border-t border-gray-200 pt-4 dark:border-gray-800 sm:grid-cols-2">
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Location</p>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Location (summary)</p>
                   <p className="mt-1 font-medium text-gray-800 dark:text-white/90">{request.location}</p>
                 </div>
+                {request.locationName && (
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Venue name</p>
+                    <p className="mt-1 text-gray-800 dark:text-white/90">{request.locationName}</p>
+                  </div>
+                )}
+                {request.locationAddress && (
+                  <div className="sm:col-span-2">
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Address</p>
+                    <p className="mt-1 whitespace-pre-wrap text-gray-800 dark:text-white/90">{request.locationAddress}</p>
+                  </div>
+                )}
+                {request.locationContact && (
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Venue contact</p>
+                    <p className="mt-1 text-gray-800 dark:text-white/90">{request.locationContact}</p>
+                  </div>
+                )}
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Start date</p>
                   <p className="mt-1 text-gray-800 dark:text-white/90">{formatDateTime(request.startDate)}</p>
@@ -217,6 +258,46 @@ export default function EventRequestDetailClient() {
                       </span>
                     ))}
                   </div>
+                </div>
+              )}
+              {request.coverImage && (
+                <div className="border-t border-gray-200 pt-4 dark:border-gray-800">
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Cover image</p>
+                  <a href={request.coverImage} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={request.coverImage}
+                      alt="Cover"
+                      className="max-h-48 rounded-lg border border-gray-200 object-cover dark:border-gray-700"
+                    />
+                  </a>
+                </div>
+              )}
+              {request.locationLatitude != null &&
+                request.locationLongitude != null &&
+                Number.isFinite(request.locationLatitude) &&
+                Number.isFinite(request.locationLongitude) && (
+                  <div className="border-t border-gray-200 pt-4 dark:border-gray-800">
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Map</p>
+                    <div className="mt-2 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+                      <iframe
+                        title="Venue map"
+                        src={`https://www.google.com/maps?q=${encodeURIComponent(String(request.locationLatitude))},${encodeURIComponent(String(request.locationLongitude))}&z=15&output=embed`}
+                        className="h-56 w-full border-0"
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                      />
+                    </div>
+                  </div>
+                )}
+              {[request.highlight1, request.highlight2, request.highlight3].some((h) => h?.trim()) && (
+                <div className="border-t border-gray-200 pt-4 dark:border-gray-800">
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Highlights</p>
+                  <ul className="mt-2 list-decimal space-y-2 pl-5 text-sm text-gray-800 dark:text-white/90">
+                    {[request.highlight1, request.highlight2, request.highlight3].map((h, i) =>
+                      h?.trim() ? <li key={i}>{h}</li> : null
+                    )}
+                  </ul>
                 </div>
               )}
             </div>

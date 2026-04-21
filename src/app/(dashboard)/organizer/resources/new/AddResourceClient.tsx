@@ -31,15 +31,7 @@ import {
   type FileFormatValue,
   type VisibilityStatusValue,
 } from "@/lib/resource-form-constants";
-
-function isRichTextEmpty(html: string): boolean {
-  const text = html
-    .replace(/<[^>]*>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-  return text.length === 0;
-}
+import { isRichTextEmpty } from "@/lib/rich-text";
 
 type DocType = "pdf" | "video" | "audio" | "docx" | "ppt" | "image";
 type DocumentFile = {

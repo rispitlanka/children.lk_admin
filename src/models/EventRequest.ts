@@ -5,7 +5,14 @@ export type RequestStatus = "pending" | "approved" | "denied";
 export interface IEventRequest {
   _id: mongoose.Types.ObjectId;
   name: string;
+  /** Display line built from venue fields; kept for listings and legacy data */
   location: string;
+  eventCategory?: string;
+  locationName?: string;
+  locationAddress?: string;
+  locationContact?: string;
+  locationLatitude?: number;
+  locationLongitude?: number;
   startDate: Date;
   endDate?: Date;
   description: string;
@@ -13,6 +20,9 @@ export interface IEventRequest {
   registrationLink?: string;
   coverImage?: string;
   coverImagePublicId?: string;
+  highlight1?: string;
+  highlight2?: string;
+  highlight3?: string;
   targetAudience: "children" | "people_work_for_children";
   ageGroup?: "1-5" | "5-10" | "11-15" | "15-18" | "above-18";
   organizationId: mongoose.Types.ObjectId;
@@ -28,6 +38,12 @@ const EventRequestSchema = new Schema<IEventRequest>(
   {
     name: { type: String, required: true },
     location: { type: String, required: true },
+    eventCategory: { type: String, trim: true },
+    locationName: { type: String, trim: true },
+    locationAddress: { type: String, trim: true },
+    locationContact: { type: String, trim: true },
+    locationLatitude: Number,
+    locationLongitude: Number,
     startDate: { type: Date, required: true },
     endDate: Date,
     description: { type: String, required: true },
@@ -35,6 +51,9 @@ const EventRequestSchema = new Schema<IEventRequest>(
     registrationLink: String,
     coverImage: String,
     coverImagePublicId: String,
+    highlight1: String,
+    highlight2: String,
+    highlight3: String,
     targetAudience: { 
       type: String, 
       enum: ["children", "people_work_for_children"], 

@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import "@/models/Organization";
-import { EventRequest } from "@/models/EventRequest";
+import { Event } from "@/models/Event";
 
 export async function GET() {
   try {
     await connectDB();
-    const list = await EventRequest.find({ status: "approved" })
+    const list = await Event.find({})
       .populate("organizationId", "name")
       .sort({ startDate: 1 })
       .lean();

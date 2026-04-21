@@ -160,6 +160,7 @@ const OPERATION_OVERRIDES: Record<string, Partial<Record<Lowercase<HttpMethod>, 
       requestBody: buildRequestBody(
         {
           name: { type: "string" },
+          slug: { type: "string", description: "Optional custom slug. If omitted, generated from event title." },
           eventCategory: { type: "string", enum: ["workshop", "conference", "seminar", "webinar", "festival", "competition", "training", "other"] },
           startDate: { type: "string", format: "date-time" },
           endDate: { type: "string", format: "date-time" },
@@ -182,6 +183,7 @@ const OPERATION_OVERRIDES: Record<string, Partial<Record<Lowercase<HttpMethod>, 
         ["name", "eventCategory", "startDate", "locationName", "locationAddress", "locationContact", "description"],
         {
           name: "Children's Day Workshop",
+          slug: "childrens-day-workshop",
           eventCategory: "workshop",
           startDate: "2026-05-12T09:00:00.000Z",
           endDate: "2026-05-12T12:00:00.000Z",
@@ -261,6 +263,55 @@ const OPERATION_OVERRIDES: Record<string, Partial<Record<Lowercase<HttpMethod>, 
           description: "Emergency response hero",
         }
       ),
+    },
+  },
+  "/api/public/events": {
+    get: {
+      summary: "List public events",
+    },
+  },
+  "/api/public/events/{id}": {
+    get: {
+      summary: "Get public event by ID",
+    },
+  },
+  "/api/public/events/by-slug/{slug}": {
+    get: {
+      summary: "Get public event by slug",
+    },
+  },
+  "/api/public/super-hero": {
+    get: {
+      summary: "List public super heroes",
+    },
+  },
+  "/api/public/super-hero/{id}": {
+    get: {
+      summary: "Get public super hero by ID",
+    },
+  },
+  "/api/public/resource-categories": {
+    get: {
+      summary: "List public resource categories with subcategories",
+    },
+  },
+  "/api/public/files/cloudinary-download": {
+    get: {
+      summary: "Create signed Cloudinary raw download redirect",
+      parameters: [
+        {
+          name: "publicId",
+          in: "query",
+          required: true,
+          schema: { type: "string" },
+        },
+        {
+          name: "format",
+          in: "query",
+          required: false,
+          schema: { type: "string" },
+        },
+      ],
     },
   },
 };

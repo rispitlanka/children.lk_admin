@@ -5,6 +5,7 @@ export type RequestStatus = "pending" | "approved" | "denied";
 export interface IEventRequest {
   _id: mongoose.Types.ObjectId;
   name: string;
+  slug: string;
   /** Display line built from venue fields; kept for listings and legacy data */
   location: string;
   eventCategory?: string;
@@ -37,6 +38,7 @@ export interface IEventRequest {
 const EventRequestSchema = new Schema<IEventRequest>(
   {
     name: { type: String, required: true },
+    slug: { type: String, required: true, trim: true, unique: true },
     location: { type: String, required: true },
     eventCategory: { type: String, trim: true },
     locationName: { type: String, trim: true },

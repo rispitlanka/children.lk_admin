@@ -63,6 +63,7 @@ const descriptionEditorClass = [
 
 const initialForm = {
   name: "",
+  slug: "",
   eventCategory: "" as EventCategoryValue | "",
   startDate: "",
   endDate: "",
@@ -191,6 +192,7 @@ export default function AddEventClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: form.name.trim(),
+          slug: form.slug.trim() || undefined,
           eventCategory: form.eventCategory,
           locationName: form.locationName.trim(),
           locationAddress: form.locationAddress.trim(),
@@ -280,6 +282,15 @@ export default function AddEventClient() {
                       </option>
                     ))}
                   </select>
+                </div>
+                <div>
+                  <Label>Slug (optional)</Label>
+                  <Input
+                    value={form.slug}
+                    onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
+                    placeholder="Leave empty to auto-generate from title"
+                    className="mt-1"
+                  />
                 </div>
                 <div className="grid gap-6 sm:grid-cols-2">
                   <div>

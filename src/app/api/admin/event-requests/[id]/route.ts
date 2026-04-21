@@ -2,8 +2,19 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
+import { slugify } from "@/lib/slugify";
 import { EventRequest } from "@/models/EventRequest";
 import { Event } from "@/models/Event";
+
+async function uniqueApprovedEventSlug(base: string): Promise<string> {
+  let slug = base || "event";
+  let n = 0;
+  while (await Event.exists({ slug })) {
+    n += 1;
+    slug = `${base}-${n}`;
+  }
+  return slug;
+}
 
 export async function GET(
   _req: Request,
@@ -68,8 +79,11 @@ export async function PATCH(
     const reviewedBy = session.user.id;
     const reviewedAt = new Date();
     if (status === "approved") {
+      const slugBase = slugify(request.slug || request.name || "event");
+      const approvedSlug = await uniqueApprovedEventSlug(slugBase || "event");
       await Event.create({
         name: request.name,
+        slug: approvedSlug,
         location: request.location,
         eventCategory: request.eventCategory,
         locationName: request.locationName,

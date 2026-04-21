@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import "@/models/Organization";
-import { EventRequest } from "@/models/EventRequest";
+import { Event } from "@/models/Event";
 
 export async function GET(
   _req: Request,
@@ -16,10 +16,7 @@ export async function GET(
       );
     }
     await connectDB();
-    const event = await EventRequest.findOne({
-      _id: id,
-      status: "approved",
-    })
+    const event = await Event.findById(id)
       .populate("organizationId", "name")
       .lean();
 

@@ -4,8 +4,10 @@ import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import { ensureTags } from "@/lib/tags";
 import { isRichTextEmpty } from "@/lib/rich-text";
+import { slugify } from "@/lib/slugify";
 import { User } from "@/models/User";
 import { EventRequest } from "@/models/EventRequest";
+import { Event } from "@/models/Event";
 
 function buildEventLocationDisplay(name: string, address: string, contact: string): string {
   const bits = [
@@ -14,6 +16,16 @@ function buildEventLocationDisplay(name: string, address: string, contact: strin
     contact.trim() ? `Contact: ${contact.trim()}` : "",
   ].filter(Boolean);
   return bits.join(" · ");
+}
+
+async function uniqueEventSlug(base: string): Promise<string> {
+  let slug = base || "event";
+  let n = 0;
+  while ((await EventRequest.exists({ slug })) || (await Event.exists({ slug }))) {
+    n += 1;
+    slug = `${base}-${n}`;
+  }
+  return slug;
 }
 
 export async function GET() {
@@ -71,6 +83,7 @@ export async function POST(req: Request) {
       highlight3,
       targetAudience,
       ageGroup,
+      slug: slugInput,
     } = body;
 
     const nm = typeof name === "string" ? name.trim() : "";
@@ -79,6 +92,10 @@ export async function POST(req: Request) {
     const locAddr = typeof locationAddress === "string" ? locationAddress.trim() : "";
     const locContact = typeof locationContact === "string" ? locationContact.trim() : "";
     const desc = typeof description === "string" ? description : "";
+    const slugBase =
+      typeof slugInput === "string" && slugInput.trim()
+        ? slugify(slugInput.trim())
+        : slugify(nm);
 
     if (!nm || !cat || !startDate || isRichTextEmpty(desc)) {
       return NextResponse.json(
@@ -89,6 +106,12 @@ export async function POST(req: Request) {
     if (!locName || !locAddr || !locContact) {
       return NextResponse.json(
         { error: "Location name, address, and contact are required" },
+        { status: 400 }
+      );
+    }
+    if (!slugBase) {
+      return NextResponse.json(
+        { error: "A valid slug could not be generated for this event" },
         { status: 400 }
       );
     }
@@ -109,9 +132,11 @@ export async function POST(req: Request) {
         : buildEventLocationDisplay(locName, locAddr, locContact);
 
     const tagList = Array.isArray(tags) ? tags : [];
+    const slug = await uniqueEventSlug(slugBase);
 
     const createdEvent = await EventRequest.create({
       name: nm,
+      slug,
       location: locationDisplay,
       eventCategory: cat,
       locationName: locName,

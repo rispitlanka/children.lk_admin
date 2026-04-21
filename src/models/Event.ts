@@ -3,6 +3,7 @@ import mongoose, { Schema, Model } from "mongoose";
 export interface IEvent {
   _id: mongoose.Types.ObjectId;
   name: string;
+  slug: string;
   location: string;
   eventCategory?: string;
   locationName?: string;
@@ -28,6 +29,7 @@ export interface IEvent {
 const EventSchema = new Schema<IEvent>(
   {
     name: { type: String, required: true },
+    slug: { type: String, required: true, trim: true, unique: true },
     location: { type: String, required: true },
     eventCategory: { type: String, trim: true },
     locationName: { type: String, trim: true },

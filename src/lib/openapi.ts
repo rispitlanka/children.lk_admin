@@ -348,6 +348,31 @@ const OPERATION_OVERRIDES: Record<string, Partial<Record<Lowercase<HttpMethod>, 
       summary: "List public resource categories with subcategories",
     },
   },
+  "/api/public/resources": {
+    get: {
+      summary: "List public resources",
+    },
+  },
+  "/api/public/resources/{id}": {
+    get: {
+      summary: "Get public resource by ID",
+    },
+  },
+  "/api/public/resources/by-slug/{slug}": {
+    get: {
+      summary: "Get public resource by slug",
+    },
+  },
+  "/api/public/resources/download": {
+    post: {
+      summary: "Record public resource file download",
+    },
+  },
+  "/api/public/resources/{id}/downloads": {
+    get: {
+      summary: "Get download counts for a public resource",
+    },
+  },
   "/api/public/files/cloudinary-download": {
     get: {
       summary: "Create signed Cloudinary raw download redirect",

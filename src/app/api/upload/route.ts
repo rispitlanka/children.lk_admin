@@ -10,7 +10,12 @@ export async function POST(req: Request) {
   }
   try {
     const body = await req.json();
-    const { file: base64, folder = "childrenlk", resource_type = "auto" } = body;
+    const {
+      file: base64,
+      folder = "childrenlk",
+      resource_type = "auto",
+      file_name,
+    } = body;
     if (!base64 || typeof base64 !== "string") {
       return NextResponse.json(
         { error: "Missing or invalid file (base64)" },
@@ -20,6 +25,7 @@ export async function POST(req: Request) {
     const result = await uploadToCloudinary(base64, {
       folder,
       resource_type: resource_type as "image" | "video" | "raw" | "auto",
+      original_filename: typeof file_name === "string" && file_name.trim() ? file_name.trim() : undefined,
     });
     return NextResponse.json({ url: result.secure_url, publicId: result.public_id });
   } catch (e) {

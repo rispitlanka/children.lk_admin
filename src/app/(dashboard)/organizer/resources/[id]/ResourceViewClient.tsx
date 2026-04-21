@@ -42,6 +42,23 @@ type DocumentFile = {
   isPrimary?: boolean;
 };
 
+function sanitizeDownloadName(name: string): string {
+  return name.replace(/[^\w.\- ]+/g, "").trim() || "resource-file";
+}
+
+function ensureExtension(name: string, type: DocumentFile["type"], fileFormat?: string): string {
+  if (/\.[a-z0-9]{2,8}$/i.test(name)) return name;
+  const ext = (fileFormat || (type === "pdf" ? "pdf" : "")).toLowerCase();
+  return ext ? `${name}.${ext}` : name;
+}
+
+function getCloudinaryAttachmentUrl(doc: DocumentFile): string {
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  if (!cloudName || !doc.publicId) return doc.url;
+  const fileName = ensureExtension(sanitizeDownloadName(doc.name || "resource-file"), doc.type, doc.fileFormat);
+  return `https://res.cloudinary.com/${cloudName}/raw/upload/fl_attachment:${encodeURIComponent(fileName)}/${doc.publicId}`;
+}
+
 type Resource = {
   _id: string;
   name: string;
@@ -511,7 +528,7 @@ export default function ResourceViewClient() {
                       )}
                     </div>
                     <Link
-                      href={doc.url}
+                      href={doc.type === "pdf" ? getCloudinaryAttachmentUrl(doc) : doc.url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400"

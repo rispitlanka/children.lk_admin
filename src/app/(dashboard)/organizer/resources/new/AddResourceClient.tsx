@@ -9,6 +9,7 @@ import Button from "@/components/ui/button/Button";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
 import TextArea from "@/components/form/input/TextArea";
+import DatePicker from "@/components/form/date-picker";
 import ResourceDescriptionQuill from "@/components/form/ResourceDescriptionQuill";
 import TagsSelect from "@/components/form/TagsSelect";
 import Checkbox from "@/components/form/input/Checkbox";
@@ -102,7 +103,12 @@ async function uploadFile(
   const res = await fetch("/api/upload", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ file: base64, folder, resource_type: resourceType }),
+    body: JSON.stringify({
+      file: base64,
+      folder,
+      resource_type: resourceType,
+      file_name: file.name,
+    }),
   });
   const data = await res.json();
   if (!res.ok || !data.url) throw new Error(data.error ?? "Upload failed");
@@ -376,12 +382,11 @@ export default function AddResourceClient() {
                   />
                 </div>
                 <div>
-                  <Label>Publication date</Label>
-                  <Input
-                    type="date"
+                  <DatePicker
+                    id="resource-publication-date"
+                    label="Publication date"
                     value={form.publicationDate}
-                    onChange={(e) => setForm((f) => ({ ...f, publicationDate: e.target.value }))}
-                    className="mt-1"
+                    onChange={(nextDate) => setForm((f) => ({ ...f, publicationDate: nextDate }))}
                   />
                 </div>
                 <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-800/30">
@@ -741,12 +746,11 @@ export default function AddResourceClient() {
                     </select>
                   </div>
                   <div>
-                    <Label>Published date</Label>
-                    <Input
-                      type="date"
+                    <DatePicker
+                      id="resource-content-published-date"
+                      label="Published date"
                       value={form.contentPublishedAt}
-                      onChange={(e) => setForm((f) => ({ ...f, contentPublishedAt: e.target.value }))}
-                      className="mt-1"
+                      onChange={(nextDate) => setForm((f) => ({ ...f, contentPublishedAt: nextDate }))}
                     />
                   </div>
                   <div className="sm:col-span-2">

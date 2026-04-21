@@ -1,58 +1,81 @@
-import { useEffect } from 'react';
-import flatpickr from 'flatpickr';
-import 'flatpickr/dist/flatpickr.css';
-import Label from './Label';
-import { CalenderIcon } from '../../icons';
-import Hook = flatpickr.Options.Hook;
-import DateOption = flatpickr.Options.DateOption;
+"use client";
 
-type PropsType = {
+import { useEffect, useRef } from "react";
+import flatpickr from "flatpickr";
+import "flatpickr/dist/flatpickr.css";
+import type { Instance } from "flatpickr/dist/types/instance";
+import Label from "./Label";
+import { CalenderIcon } from "../../icons";
+
+type DatePickerProps = {
   id: string;
-  mode?: "single" | "multiple" | "range" | "time";
-  onChange?: Hook | Hook[];
-  defaultDate?: DateOption;
+  value?: string;
+  onChange?: (value: string) => void;
   label?: string;
   placeholder?: string;
+  enableTime?: boolean;
+  required?: boolean;
+  className?: string;
 };
 
 export default function DatePicker({
   id,
-  mode,
+  value = "",
   onChange,
   label,
-  defaultDate,
   placeholder,
-}: PropsType) {
+  enableTime = false,
+  required = false,
+  className = "mt-1",
+}: DatePickerProps) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const pickerRef = useRef<Instance | null>(null);
+
   useEffect(() => {
-    const flatPickr = flatpickr(`#${id}`, {
-      mode: mode || "single",
+    if (!inputRef.current) return;
+
+    pickerRef.current = flatpickr(inputRef.current, {
       static: true,
       monthSelectorType: "static",
-      dateFormat: "Y-m-d",
-      defaultDate,
-      onChange,
+      enableTime,
+      time_24hr: true,
+      dateFormat: enableTime ? "Y-m-d\\TH:i" : "Y-m-d",
+      defaultDate: value || undefined,
+      onChange: (dates) => {
+        if (!onChange) return;
+        const selected = dates[0];
+        onChange(selected ? pickerRef.current?.formatDate(selected, enableTime ? "Y-m-d\\TH:i" : "Y-m-d") ?? "" : "");
+      },
     });
 
     return () => {
-      if (!Array.isArray(flatPickr)) {
-        flatPickr.destroy();
-      }
+      pickerRef.current?.destroy();
+      pickerRef.current = null;
     };
-  }, [mode, onChange, id, defaultDate]);
+  }, [enableTime, onChange]);
+
+  useEffect(() => {
+    const picker = pickerRef.current;
+    if (!picker) return;
+    const currentValue = inputRef.current?.value ?? "";
+    if ((value || "") !== currentValue) {
+      picker.setDate(value || "", false, enableTime ? "Y-m-d\\TH:i" : "Y-m-d");
+    }
+  }, [value, enableTime]);
 
   return (
-    <div>
+    <div className={className}>
       {label && <Label htmlFor={id}>{label}</Label>}
-
       <div className="relative">
         <input
+          ref={inputRef}
           id={id}
+          required={required}
           placeholder={placeholder}
-          className="h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3  dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30  bg-transparent text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700  dark:focus:border-brand-800"
+          className="h-11 w-full rounded-lg border appearance-none bg-transparent px-4 py-2.5 pr-10 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
         />
-
-        <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
-          <CalenderIcon className="size-6" />
+        <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-gray-500 dark:text-gray-400">
+          <CalenderIcon className="size-5" />
         </span>
       </div>
     </div>

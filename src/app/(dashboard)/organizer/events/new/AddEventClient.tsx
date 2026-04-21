@@ -10,6 +10,7 @@ import Button from "@/components/ui/button/Button";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
 import TextArea from "@/components/form/input/TextArea";
+import DatePicker from "@/components/form/date-picker";
 import TagsSelect from "@/components/form/TagsSelect";
 import ResourceDescriptionQuill from "@/components/form/ResourceDescriptionQuill";
 import { EVENT_CATEGORY_LABELS, EVENT_CATEGORY_VALUES, type EventCategoryValue } from "@/lib/event-form-constants";
@@ -282,22 +283,22 @@ export default function AddEventClient() {
                 </div>
                 <div className="grid gap-6 sm:grid-cols-2">
                   <div>
-                    <Label>Start date &amp; time *</Label>
-                    <Input
-                      type="datetime-local"
+                    <DatePicker
+                      id="event-start-date"
+                      label="Start date & time *"
                       value={form.startDate}
-                      onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))}
+                      onChange={(nextDate) => setForm((f) => ({ ...f, startDate: nextDate }))}
+                      enableTime
                       required
-                      className="mt-1"
                     />
                   </div>
                   <div>
-                    <Label>End date &amp; time</Label>
-                    <Input
-                      type="datetime-local"
+                    <DatePicker
+                      id="event-end-date"
+                      label="End date & time"
                       value={form.endDate}
-                      onChange={(e) => setForm((f) => ({ ...f, endDate: e.target.value }))}
-                      className="mt-1"
+                      onChange={(nextDate) => setForm((f) => ({ ...f, endDate: nextDate }))}
+                      enableTime
                     />
                   </div>
                 </div>

@@ -14,12 +14,16 @@ export async function uploadToCloudinary(
     folder?: string;
     resource_type?: CloudinaryResourceType;
     public_id?: string;
+    original_filename?: string;
   } = {}
 ): Promise<{ secure_url: string; public_id: string }> {
   const result = await cloudinary.uploader.upload(file as string, {
     folder: options.folder ?? "childrenlk",
     resource_type: options.resource_type ?? "auto",
     public_id: options.public_id,
+    filename_override: options.original_filename,
+    type: "upload",
+    access_mode: "public",
   });
   return { secure_url: result.secure_url, public_id: result.public_id };
 }

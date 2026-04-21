@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import mongoose from "mongoose";
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
@@ -21,25 +20,24 @@ export async function GET(
     if (!id) {
       return NextResponse.json({ error: "ID parameter is required" }, { status: 400 });
     }
+    if (!/^[a-f\d]{24}$/i.test(id)) {
+      return NextResponse.json({ error: "Invalid resource ID" }, { status: 400 });
+    }
 
     await connectDB();
+
+    if (!/^[a-f\d]{24}$/i.test(session.user.id)) {
+      return NextResponse.json({ error: "Invalid user session" }, { status: 401 });
+    }
 
     const user = await User.findOne({ _id: session.user.id }).select("organizationId").lean();
     if (!user?.organizationId) {
       return NextResponse.json({ error: "No organization found" }, { status: 400 });
     }
 
-    const orgFilter = mongoose.Types.ObjectId.isValid(String(user.organizationId))
-      ? new mongoose.Types.ObjectId(String(user.organizationId))
-      : user.organizationId;
-
-    const idFilter = mongoose.Types.ObjectId.isValid(id)
-      ? new mongoose.Types.ObjectId(id)
-      : id;
-
     const resourceRequest = await ResourceRequest.findOne({
-      _id: idFilter,
-      organizationId: orgFilter,
+      _id: id,
+      organizationId: user.organizationId,
     })
       .populate("categoryId", "name slug")
       .populate("subCategoryId", "name slug")

@@ -18,6 +18,7 @@ import {
   taxonomyLine,
 } from "@/lib/resource-display";
 import { LANGUAGE_OPTIONS } from "@/lib/resource-form-constants";
+import { isRichTextEmpty, sanitizeRichTextHtml } from "@/lib/rich-text";
 
 type PopulatedName = { _id?: string; name?: string };
 
@@ -31,6 +32,23 @@ type DocFile = {
   fileSizeBytes?: number;
   isPrimary?: boolean;
 };
+
+function sanitizeDownloadName(name: string): string {
+  return name.replace(/[^\w.\- ]+/g, "").trim() || "resource-file";
+}
+
+function ensureExtension(name: string, type: string, fileFormat?: string): string {
+  if (/\.[a-z0-9]{2,8}$/i.test(name)) return name;
+  const ext = (fileFormat || (type === "pdf" ? "pdf" : "")).toLowerCase();
+  return ext ? `${name}.${ext}` : name;
+}
+
+function getCloudinaryAttachmentUrl(doc: DocFile): string {
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  if (!cloudName || !doc.publicId) return doc.url;
+  const fileName = ensureExtension(sanitizeDownloadName(doc.name || "resource-file"), doc.type, doc.fileFormat);
+  return `https://res.cloudinary.com/${cloudName}/raw/upload/fl_attachment:${encodeURIComponent(fileName)}/${doc.publicId}`;
+}
 
 type ResourceRequestDetail = {
   _id: string;
@@ -189,7 +207,10 @@ export default function ResourceRequestDetailClient() {
           .map((o) => (typeof o === "object" && o?.name ? o.name : null))
           .filter(Boolean)
       : [];
-  const bodyText = request.description?.trim() || request.shortDescription;
+  const richDescription = request.description ?? "";
+  const safeDescriptionHtml = !isRichTextEmpty(richDescription)
+    ? sanitizeRichTextHtml(richDescription)
+    : "";
 
   return (
     <div className="space-y-6">
@@ -211,7 +232,17 @@ export default function ResourceRequestDetailClient() {
                 <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Description
                 </p>
-                <p className="mt-1 whitespace-pre-wrap text-gray-800 dark:text-white/90">{bodyText}</p>
+                {safeDescriptionHtml ? (
+                  <div
+                    className="prose prose-sm mt-1 max-w-none text-gray-800 dark:prose-invert dark:text-white/90"
+                    // eslint-disable-next-line react/no-danger -- sanitized rich-text HTML from editor
+                    dangerouslySetInnerHTML={{ __html: safeDescriptionHtml }}
+                  />
+                ) : (
+                  <p className="mt-1 whitespace-pre-wrap text-gray-800 dark:text-white/90">
+                    {request.shortDescription}
+                  </p>
+                )}
               </div>
               <div className="grid gap-4 border-t border-gray-200 pt-4 text-sm dark:border-gray-800 sm:grid-cols-2">
                 <div>
@@ -521,20 +552,28 @@ function DocumentPreview({ doc }: { doc: DocFile }) {
           </div>
         )}
         {isPdf && (
-          <div className="w-full h-64 flex flex-col">
-            <iframe
-              src={doc.url}
-              title={name}
-              className="flex-1 w-full min-h-[200px] border-0"
-            />
-            <a
-              href={doc.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block text-center py-2 text-sm font-medium text-brand-500 hover:text-brand-600 border-t border-gray-200 dark:border-gray-800"
-            >
-              Open in new tab
-            </a>
+          <div className="w-full p-4">
+            <div className="rounded-lg border border-gray-200 bg-white p-4 text-center dark:border-gray-700 dark:bg-gray-800/50">
+              <p className="text-sm font-medium text-gray-800 dark:text-white/90">PDF file</p>
+              <div className="mt-3 flex items-center justify-center gap-3">
+                <a
+                  href={doc.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700/50"
+                >
+                  Open
+                </a>
+                <a
+                  href={getCloudinaryAttachmentUrl(doc)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-600"
+                >
+                  Download .pdf
+                </a>
+              </div>
+            </div>
           </div>
         )}
         {!isImage && !isEmbeddable && (

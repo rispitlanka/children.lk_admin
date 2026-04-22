@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import LoadingLottie from "@/components/common/LoadingLottie";
+import { DashboardPageSkeleton } from "@/components/common/PageSkeleton";
 import {
   DocsIcon,
   VideoIcon,
@@ -83,11 +83,7 @@ export default function OrganizerDashboard() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex min-h-[200px] items-center justify-center">
-        <LoadingLottie variant="block" />
-      </div>
-    );
+    return <DashboardPageSkeleton />;
   }
 
   const c = counts ?? {

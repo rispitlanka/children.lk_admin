@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -16,6 +16,7 @@ import ResourceDescriptionQuill from "@/components/form/ResourceDescriptionQuill
 import { EVENT_CATEGORY_LABELS, EVENT_CATEGORY_VALUES, type EventCategoryValue } from "@/lib/event-form-constants";
 import { parseLatLngFromGoogleMapsUrl } from "@/lib/google-maps-url";
 import { isRichTextEmpty } from "@/lib/rich-text";
+import { slugify } from "@/lib/slugify";
 
 const selectClass =
   "mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800";
@@ -86,9 +87,20 @@ export default function AddEventClient() {
   const router = useRouter();
   const [form, setForm] = useState(initialForm);
   const [tags, setTags] = useState<string[]>([]);
+  const [slugEditedManually, setSlugEditedManually] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (slugEditedManually) return;
+    setForm((f) => ({ ...f, slug: slugify(f.name) }));
+  }, [form.name, slugEditedManually]);
+
+  const today = new Date();
+  const minDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(
+    today.getDate()
+  ).padStart(2, "0")}`;
 
   const applyGoogleMapsLink = () => {
     const parsed = parseLatLngFromGoogleMapsUrl(form.googleMapsUrl);
@@ -156,6 +168,30 @@ export default function AddEventClient() {
     if (!form.locationName.trim() || !form.locationAddress.trim() || !form.locationContact.trim()) {
       setError("Location name, address, and contact are required.");
       toast.error("Location name, address, and contact are required.");
+      return;
+    }
+    const startDateTime = form.startDate ? new Date(form.startDate) : null;
+    const endDateTime = form.endDate ? new Date(form.endDate) : null;
+    if (!startDateTime || Number.isNaN(startDateTime.getTime())) {
+      setError("Enter a valid start date and time.");
+      toast.error("Enter a valid start date and time.");
+      return;
+    }
+    const startDay = new Date(startDateTime.getFullYear(), startDateTime.getMonth(), startDateTime.getDate());
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    if (startDay < todayStart) {
+      setError("Start date cannot be in the past.");
+      toast.error("Start date cannot be in the past.");
+      return;
+    }
+    if (endDateTime && Number.isNaN(endDateTime.getTime())) {
+      setError("Enter a valid end date and time.");
+      toast.error("Enter a valid end date and time.");
+      return;
+    }
+    if (endDateTime && endDateTime <= startDateTime) {
+      setError("End date and time must be after the start date and time.");
+      toast.error("End date and time must be after the start date and time.");
       return;
     }
     if (form.pricingType === "paid") {
@@ -270,6 +306,19 @@ export default function AddEventClient() {
                   />
                 </div>
                 <div>
+                  <Label>Slug (optional)</Label>
+                  <Input
+                    value={form.slug}
+                    onChange={(e) => {
+                      const next = e.target.value;
+                      setSlugEditedManually(next.trim().length > 0);
+                      setForm((f) => ({ ...f, slug: slugify(next) }));
+                    }}
+                    placeholder="Leave empty to auto-generate from title"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
                   <Label>Event category *</Label>
                   <select
                     required
@@ -287,15 +336,6 @@ export default function AddEventClient() {
                     ))}
                   </select>
                 </div>
-                <div>
-                  <Label>Slug (optional)</Label>
-                  <Input
-                    value={form.slug}
-                    onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
-                    placeholder="Leave empty to auto-generate from title"
-                    className="mt-1"
-                  />
-                </div>
                 <div className="grid gap-6 sm:grid-cols-2">
                   <div>
                     <DatePicker
@@ -303,6 +343,7 @@ export default function AddEventClient() {
                       label="Start date & time *"
                       value={form.startDate}
                       onChange={(nextDate) => setForm((f) => ({ ...f, startDate: nextDate }))}
+                      minDate={minDate}
                       enableTime
                       required
                     />
@@ -313,6 +354,7 @@ export default function AddEventClient() {
                       label="End date & time"
                       value={form.endDate}
                       onChange={(nextDate) => setForm((f) => ({ ...f, endDate: nextDate }))}
+                      minDate={form.startDate || minDate}
                       enableTime
                     />
                   </div>
@@ -422,7 +464,6 @@ export default function AddEventClient() {
             <ComponentCard title="About the event" desc="Description, cover image, and three highlight points.">
               <div className="space-y-6">
                 <div>
-                  <Label>Description *</Label>
                   <ResourceDescriptionQuill
                     value={form.description}
                     onChange={(html) => setForm((f) => ({ ...f, description: html }))}

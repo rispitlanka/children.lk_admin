@@ -18,14 +18,16 @@ export default function SwaggerUIViewer() {
     const el = hostRef.current;
     if (!el) return;
 
-    const root = createRoot(el);
+    const root = rootRef.current ?? createRoot(el);
     rootRef.current = root;
     root.render(<SwaggerUI url="/api/docs" docExpansion="list" />);
 
     return () => {
       queueMicrotask(() => {
-        root.unmount();
-        rootRef.current = null;
+        if (rootRef.current === root) {
+          root.unmount();
+          rootRef.current = null;
+        }
       });
     };
   }, []);

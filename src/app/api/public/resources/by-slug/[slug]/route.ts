@@ -18,7 +18,7 @@ export async function GET(
     }
     await connectDB();
     const resource = await Resource.findOne({ slug })
-      .populate("organizationId", "name logo shortDescription")
+      .populate("organizationId")
       .lean();
 
     if (!resource) {

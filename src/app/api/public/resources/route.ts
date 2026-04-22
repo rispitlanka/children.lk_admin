@@ -7,7 +7,7 @@ export async function GET() {
   try {
     await connectDB();
     const list = await Resource.find({})
-      .populate("organizationId", "name")
+      .populate("organizationId")
       .sort({ createdAt: -1 })
       .lean();
     const normalized = list.map((item) => ({

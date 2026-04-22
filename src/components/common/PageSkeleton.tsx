@@ -6,24 +6,29 @@ function SkeletonBlock({ className }: { className: string }) {
 
 export function DashboardPageSkeleton() {
   return (
-    <div className="space-y-6">
-      <div className="space-y-3">
-        <SkeletonBlock className="h-8 w-56" />
-        <SkeletonBlock className="h-4 w-80 max-w-full" />
+    <div className="grid grid-cols-12 gap-4 md:gap-6">
+      <div className="col-span-12">
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div className="space-y-3">
+              <SkeletonBlock className="h-7 w-56" />
+              <SkeletonBlock className="h-4 w-96 max-w-full" />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <SkeletonBlock className="h-10 w-28 rounded-lg" />
+              <SkeletonBlock className="h-10 w-24 rounded-lg" />
+              <SkeletonBlock className="h-10 w-24 rounded-lg" />
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <SkeletonBlock className="h-28 w-full" />
-        <SkeletonBlock className="h-28 w-full" />
-        <SkeletonBlock className="h-28 w-full" />
-        <SkeletonBlock className="h-28 w-full" />
-      </div>
-
-      <SkeletonBlock className="h-80 w-full" />
-
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-        <SkeletonBlock className="h-64 w-full" />
-        <SkeletonBlock className="h-64 w-full" />
+      <div className="col-span-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 md:gap-6">
+        <SkeletonBlock className="h-40 w-full" />
+        <SkeletonBlock className="h-40 w-full" />
+        <SkeletonBlock className="h-40 w-full" />
+        <SkeletonBlock className="h-40 w-full" />
+        <SkeletonBlock className="h-40 w-full" />
       </div>
     </div>
   );

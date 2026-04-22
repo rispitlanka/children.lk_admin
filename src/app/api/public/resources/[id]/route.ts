@@ -17,7 +17,7 @@ export async function GET(
     }
     await connectDB();
     const resource = await Resource.findById(id)
-      .populate("organizationId", "name logo shortDescription")
+      .populate("organizationId")
       .lean();
 
     if (!resource) {

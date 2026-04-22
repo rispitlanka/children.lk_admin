@@ -14,6 +14,7 @@ type DatePickerProps = {
   label?: string;
   placeholder?: string;
   enableTime?: boolean;
+  minDate?: string;
   required?: boolean;
   className?: string;
 };
@@ -25,6 +26,7 @@ export default function DatePicker({
   label,
   placeholder,
   enableTime = false,
+  minDate,
   required = false,
   className = "mt-1",
 }: DatePickerProps) {
@@ -41,6 +43,7 @@ export default function DatePicker({
       time_24hr: true,
       dateFormat: enableTime ? "Y-m-d\\TH:i" : "Y-m-d",
       defaultDate: value || undefined,
+      minDate: minDate || undefined,
       onChange: (dates) => {
         if (!onChange) return;
         const selected = dates[0];
@@ -52,16 +55,17 @@ export default function DatePicker({
       pickerRef.current?.destroy();
       pickerRef.current = null;
     };
-  }, [enableTime, onChange]);
+  }, [enableTime, minDate, onChange, value]);
 
   useEffect(() => {
     const picker = pickerRef.current;
     if (!picker) return;
     const currentValue = inputRef.current?.value ?? "";
+    picker.set("minDate", minDate || undefined);
     if ((value || "") !== currentValue) {
       picker.setDate(value || "", false, enableTime ? "Y-m-d\\TH:i" : "Y-m-d");
     }
-  }, [value, enableTime]);
+  }, [value, enableTime, minDate]);
 
   return (
     <div className={className}>

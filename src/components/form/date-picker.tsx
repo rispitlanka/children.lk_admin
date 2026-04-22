@@ -15,6 +15,7 @@ type DatePickerProps = {
   placeholder?: string;
   enableTime?: boolean;
   minDate?: string;
+  maxDate?: string;
   required?: boolean;
   className?: string;
 };
@@ -27,6 +28,7 @@ export default function DatePicker({
   placeholder,
   enableTime = false,
   minDate,
+  maxDate,
   required = false,
   className = "mt-1",
 }: DatePickerProps) {
@@ -44,6 +46,7 @@ export default function DatePicker({
       dateFormat: enableTime ? "Y-m-d\\TH:i" : "Y-m-d",
       defaultDate: value || undefined,
       minDate: minDate || undefined,
+      maxDate: maxDate || undefined,
       onChange: (dates) => {
         if (!onChange) return;
         const selected = dates[0];
@@ -55,17 +58,18 @@ export default function DatePicker({
       pickerRef.current?.destroy();
       pickerRef.current = null;
     };
-  }, [enableTime, minDate, onChange, value]);
+  }, [enableTime, minDate, maxDate, onChange, value]);
 
   useEffect(() => {
     const picker = pickerRef.current;
     if (!picker) return;
     const currentValue = inputRef.current?.value ?? "";
     picker.set("minDate", minDate || undefined);
+    picker.set("maxDate", maxDate || undefined);
     if ((value || "") !== currentValue) {
       picker.setDate(value || "", false, enableTime ? "Y-m-d\\TH:i" : "Y-m-d");
     }
-  }, [value, enableTime, minDate]);
+  }, [value, enableTime, minDate, maxDate]);
 
   return (
     <div className={className}>

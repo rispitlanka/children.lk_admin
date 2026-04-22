@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { useSession } from "next-auth/react";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { useModal } from "@/hooks/useModal";
 import { Modal } from "@/components/ui/modal";
@@ -25,6 +26,7 @@ type ProfileData = {
 const defaultAvatar = "/images/user/avatar-default.svg";
 
 export default function ProfilePage() {
+  const { update } = useSession();
   const { isOpen, openModal, closeModal } = useModal();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -175,6 +177,10 @@ export default function ProfilePage() {
         setPwForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
       }
 
+      await update({
+        name: form.name.trim(),
+        image: form.avatar?.trim() || defaultAvatar,
+      });
       setProfile((prev) => (prev ? { ...prev, ...form } : null));
       setShowSuccess(true);
       toast.success("Profile updated successfully");

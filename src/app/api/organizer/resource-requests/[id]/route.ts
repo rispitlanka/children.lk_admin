@@ -208,6 +208,32 @@ export async function PATCH(
       : [];
     const pubDate = publicationDate ? new Date(publicationDate) : undefined;
     const contentPub = contentPublishedAt ? new Date(contentPublishedAt) : undefined;
+    const today = new Date();
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    if (!publicationDate || !pubDate || Number.isNaN(pubDate.getTime())) {
+      return NextResponse.json({ error: "Publication date is required" }, { status: 400 });
+    }
+    if (!contentPublishedAt || !contentPub || Number.isNaN(contentPub.getTime())) {
+      return NextResponse.json({ error: "Published date is required" }, { status: 400 });
+    }
+    if (pubDate > todayStart) {
+      return NextResponse.json(
+        { error: "Publication date cannot be in the future" },
+        { status: 400 }
+      );
+    }
+    if (contentPub < todayStart) {
+      return NextResponse.json(
+        { error: "Published date must be today or a future date" },
+        { status: 400 }
+      );
+    }
+    if (contentPub < pubDate) {
+      return NextResponse.json(
+        { error: "Published date must be on or after publication date" },
+        { status: 400 }
+      );
+    }
 
     await ResourceRequest.updateOne(
       { _id: id, organizationId: user.organizationId },
@@ -215,7 +241,7 @@ export async function PATCH(
         name: name.trim(),
         shortDescription: description.trim().slice(0, 500),
         description: description.trim(),
-        publicationDate: pubDate && !Number.isNaN(pubDate.getTime()) ? pubDate : undefined,
+        publicationDate: pubDate,
         picture: picture || undefined,
         picturePublicId: picturePublicId || undefined,
         documents: normalizedDocs,
@@ -235,8 +261,7 @@ export async function PATCH(
         countries: Array.isArray(countries) ? countries.filter((c): c is string => typeof c === "string") : [],
         regions: Array.isArray(regions) ? regions.filter((c): c is string => typeof c === "string") : [],
         visibilityStatus: vis,
-        contentPublishedAt:
-          contentPub && !Number.isNaN(contentPub.getTime()) ? contentPub : undefined,
+        contentPublishedAt: contentPub,
         featured: Boolean(featured),
         slug,
         status: vis === "published" ? "pending" : "approved",

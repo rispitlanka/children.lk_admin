@@ -169,6 +169,10 @@ export default function AddResourceClient() {
   const [submitting, setSubmitting] = useState(false);
   const [loadingExisting, setLoadingExisting] = useState(false);
   const [error, setError] = useState("");
+  const today = new Date();
+  const todayDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(
+    today.getDate()
+  ).padStart(2, "0")}`;
 
   useEffect(() => {
     let cancelled = false;
@@ -394,6 +398,44 @@ export default function AddResourceClient() {
       toast.error("Enter a description.");
       return;
     }
+    if (!form.publicationDate) {
+      setError("Publication date is required.");
+      toast.error("Publication date is required.");
+      return;
+    }
+    if (!form.contentPublishedAt) {
+      setError("Published date is required.");
+      toast.error("Published date is required.");
+      return;
+    }
+    const publicationDate = new Date(form.publicationDate);
+    const publishedDate = new Date(form.contentPublishedAt);
+    const todayStart = new Date(todayDate);
+    if (Number.isNaN(publicationDate.getTime())) {
+      setError("Publication date is invalid.");
+      toast.error("Publication date is invalid.");
+      return;
+    }
+    if (Number.isNaN(publishedDate.getTime())) {
+      setError("Published date is invalid.");
+      toast.error("Published date is invalid.");
+      return;
+    }
+    if (publicationDate > todayStart) {
+      setError("Publication date cannot be in the future.");
+      toast.error("Publication date cannot be in the future.");
+      return;
+    }
+    if (publishedDate < todayStart) {
+      setError("Published date must be today or a future date.");
+      toast.error("Published date must be today or a future date.");
+      return;
+    }
+    if (publishedDate < publicationDate) {
+      setError("Published date must be on or after publication date.");
+      toast.error("Published date must be on or after publication date.");
+      return;
+    }
     const langs = primaryLanguages.length ? primaryLanguages : ["en"];
     setSubmitting(true);
     try {
@@ -412,7 +454,7 @@ export default function AddResourceClient() {
         body: JSON.stringify({
           name: form.name.trim(),
           description: form.description.trim(),
-          publicationDate: form.publicationDate || undefined,
+          publicationDate: form.publicationDate,
           picture: form.picture || undefined,
           picturePublicId: form.picturePublicId || undefined,
           documents,
@@ -429,7 +471,7 @@ export default function AddResourceClient() {
           countries,
           regions,
           visibilityStatus: form.visibilityStatus,
-          contentPublishedAt: form.contentPublishedAt || undefined,
+          contentPublishedAt: form.contentPublishedAt,
           featured,
           slug: form.slug.trim() || undefined,
         }),
@@ -571,9 +613,11 @@ export default function AddResourceClient() {
                 <div>
                   <DatePicker
                     id="resource-publication-date"
-                    label="Publication date"
+                    label="Publication date *"
                     value={form.publicationDate}
                     onChange={(nextDate) => setForm((f) => ({ ...f, publicationDate: nextDate }))}
+                    maxDate={todayDate}
+                    required
                   />
                 </div>
                 <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-800/30">
@@ -1072,9 +1116,11 @@ export default function AddResourceClient() {
                   <div>
                     <DatePicker
                       id="resource-content-published-date"
-                      label="Published date"
+                      label="Published date *"
                       value={form.contentPublishedAt}
                       onChange={(nextDate) => setForm((f) => ({ ...f, contentPublishedAt: nextDate }))}
+                      minDate={todayDate}
+                      required
                     />
                   </div>
                 </div>

@@ -49,6 +49,8 @@ export async function PATCH(
         imagePublicId: request.imagePublicId,
         description: request.description,
         organizationId: request.organizationId,
+        sourceRequestId: request._id,
+        creationSource: "organizer_request",
       });
     }
     await SuperHeroRequest.updateOne(

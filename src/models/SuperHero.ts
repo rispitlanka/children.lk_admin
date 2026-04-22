@@ -9,6 +9,10 @@ export interface ISuperHero {
   imagePublicId?: string;
   description: string;
   organizationId?: mongoose.Types.ObjectId;
+  /** Set when this row was created from an approved organizer request (public visibility follows request status). */
+  sourceRequestId?: mongoose.Types.ObjectId;
+  /** `admin` = created from admin UI/API; `organizer_request` = created when a request was approved. */
+  creationSource?: "admin" | "organizer_request";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -22,6 +26,11 @@ const SuperHeroSchema = new Schema<ISuperHero>(
     imagePublicId: String,
     description: { type: String, required: true },
     organizationId: { type: Schema.Types.ObjectId, ref: "Organization" },
+    sourceRequestId: { type: Schema.Types.ObjectId, ref: "SuperHeroRequest" },
+    creationSource: {
+      type: String,
+      enum: ["admin", "organizer_request"],
+    },
   },
   { timestamps: true }
 );

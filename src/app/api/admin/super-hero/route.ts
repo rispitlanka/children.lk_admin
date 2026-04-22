@@ -7,6 +7,7 @@ import {
   SUPER_HERO_CONTACT_VALIDATION_MESSAGE,
 } from "@/lib/validation";
 import { SuperHero } from "@/models/SuperHero";
+import { listSuperHeroesForCatalog } from "@/lib/super-hero-public";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -15,10 +16,7 @@ export async function GET() {
   }
   try {
     await connectDB();
-    const list = await SuperHero.find({})
-      .populate("organizationId", "name")
-      .sort({ createdAt: -1 })
-      .lean();
+    const list = await listSuperHeroesForCatalog("name", "admin");
     return NextResponse.json(list);
   } catch (e) {
     console.error(e);
@@ -58,6 +56,7 @@ export async function POST(req: Request) {
       imagePublicId: imagePublicId || undefined,
       description,
       organizationId: organizationId || undefined,
+      creationSource: "admin",
     });
     return NextResponse.json({ success: true, id: doc._id });
   } catch (e) {

@@ -18,7 +18,7 @@ import {
 import LoadingLottie from "@/components/common/LoadingLottie";
 import toast from "react-hot-toast";
 import Badge from "@/components/ui/badge/Badge";
-import { EyeIcon } from "@/icons";
+import { CheckCircleIcon, CloseLineIcon, EyeIcon } from "@/icons";
 import {
   formatAgeAudienceGroups,
   labelContentType,
@@ -549,7 +549,7 @@ export default function RequestListWithActions({
                           </Link>
                         </div>
                       ) : (
-                        <>
+                        <div className="flex flex-wrap items-center gap-2">
                           <button
                             type="button"
                             onClick={() => {
@@ -562,7 +562,29 @@ export default function RequestListWithActions({
                           >
                             <EyeIcon className="h-4 w-4" />
                           </button>
-                        </>
+                          {row.status === "pending" && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => openApprove(row)}
+                                className={`${actionIconClass} text-success-600 hover:text-success-700 dark:text-success-500 dark:hover:text-success-400`}
+                                aria-label="Approve request"
+                                title="Approve"
+                              >
+                                <CheckCircleIcon className="h-4 w-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => openDeny(row)}
+                                className={`${actionIconClass} text-error-500 hover:text-error-600 dark:text-error-400 dark:hover:text-error-300`}
+                                aria-label="Deny request"
+                                title="Deny"
+                              >
+                                <CloseLineIcon className="h-4 w-4" />
+                              </button>
+                            </>
+                          )}
+                        </div>
                       )}
                     </TableCell>
                   </TableRow>

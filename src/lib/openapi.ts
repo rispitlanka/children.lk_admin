@@ -335,12 +335,14 @@ const OPERATION_OVERRIDES: Record<string, Partial<Record<Lowercase<HttpMethod>, 
   },
   "/api/public/super-hero": {
     get: {
-      summary: "List public super heroes",
+      summary:
+        "List public super heroes (admin-created and organizer requests after super-admin approval only; pending requests are not included)",
     },
   },
   "/api/public/super-hero/{id}": {
     get: {
-      summary: "Get public super hero by ID",
+      summary:
+        "Get a public super hero by ID (same visibility rules as the list endpoint)",
     },
   },
   "/api/public/resource-categories": {

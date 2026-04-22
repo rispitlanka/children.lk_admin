@@ -1,16 +1,15 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
-import "@/models/Organization";
-import { SuperHero } from "@/models/SuperHero";
+import { listSuperHeroesForCatalog } from "@/lib/super-hero-public";
 
 export async function GET() {
   try {
     await connectDB();
-    const list = await SuperHero.find({})
-      .populate("organizationId", "name logo shortDescription")
-      .sort({ createdAt: -1 })
-      .lean();
-    return NextResponse.json(list);
+    const visible = await listSuperHeroesForCatalog(
+      "name logo shortDescription",
+      "public"
+    );
+    return NextResponse.json(visible);
   } catch (e) {
     console.error(e);
     return NextResponse.json(

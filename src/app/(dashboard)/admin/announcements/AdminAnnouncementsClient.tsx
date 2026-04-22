@@ -98,10 +98,10 @@ export default function AdminAnnouncementsClient() {
       <div className="mb-4 flex justify-end">
         <Link
           href="/admin/announcements/new"
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-4 py-3 text-sm font-medium text-white shadow-theme-xs transition hover:bg-brand-600"
+          className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-3 text-sm font-medium text-white shadow-theme-xs transition hover:bg-brand-600"
         >
-          <PlusIcon className="size-5" />
-          Add Announcement
+          <PlusIcon className="size-5 shrink-0 block" aria-hidden />
+          <span className="leading-none">Add Announcement</span>
         </Link>
       </div>
       <ComponentCard title="Announcements">

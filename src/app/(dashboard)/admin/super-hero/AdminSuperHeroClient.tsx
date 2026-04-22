@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import ComponentCard from "@/components/common/ComponentCard";
+import PlusActionLink from "@/components/common/PlusActionLink";
 import LoadingLottie from "@/components/common/LoadingLottie";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import Button from "@/components/ui/button/Button";
@@ -15,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { PlusIcon, PencilIcon, TrashBinIcon } from "@/icons";
+import { PencilIcon, TrashBinIcon } from "@/icons";
 
 type SuperHeroItem = {
   _id: string;
@@ -74,13 +75,7 @@ export default function AdminSuperHeroClient() {
     <div>
       <PageBreadcrumb pageTitle="Super Hero" />
       <div className="mb-4 flex justify-end">
-        <Link
-          href="/admin/super-hero/new"
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-4 py-3 text-sm font-medium text-white shadow-theme-xs transition hover:bg-brand-600"
-        >
-          <PlusIcon className="size-5" />
-          Add Super Hero
-        </Link>
+        <PlusActionLink href="/admin/super-hero/new" label="Add Super Hero" />
       </div>
       <ComponentCard title="Super Heroes">
         {loading ? (

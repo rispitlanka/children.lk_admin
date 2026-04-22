@@ -47,8 +47,7 @@ export default function AdminOrganizersClient() {
       <PageBreadcrumb pageTitle="Organizers" />
       <div className="mb-4 flex justify-end">
         <Link href="/admin/organizers/new">
-          <Button size="sm">
-            <PlusIcon className="size-5" />
+          <Button size="sm" startIcon={<PlusIcon className="size-5 shrink-0 block" />}>
             Create Organizer
           </Button>
         </Link>

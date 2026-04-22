@@ -48,9 +48,19 @@ const Button: React.FC<ButtonProps> = ({
       onClick={onClick}
       disabled={disabled}
     >
-      {startIcon && <span className="flex items-center">{startIcon}</span>}
-      {children}
-      {endIcon && <span className="flex items-center">{endIcon}</span>}
+      {startIcon && (
+        <span className="inline-flex shrink-0 items-center justify-center leading-none [&_svg]:block">
+          {startIcon}
+        </span>
+      )}
+      {children != null && children !== false && (
+        <span className="inline-flex items-center leading-none">{children}</span>
+      )}
+      {endIcon && (
+        <span className="inline-flex shrink-0 items-center justify-center leading-none [&_svg]:block">
+          {endIcon}
+        </span>
+      )}
     </button>
   );
 };

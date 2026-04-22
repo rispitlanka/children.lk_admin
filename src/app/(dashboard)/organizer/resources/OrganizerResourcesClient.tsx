@@ -13,7 +13,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { EyeIcon, PlusIcon } from "@/icons";
+import PlusActionLink from "@/components/common/PlusActionLink";
+import { EyeIcon } from "@/icons";
 import { labelContentType, labelVisibility, taxonomyLine } from "@/lib/resource-display";
 
 type PopulatedName = { _id?: string; name?: string };
@@ -67,13 +68,7 @@ export default function OrganizerResourcesClient() {
     <div>
       <PageBreadcrumb pageTitle="Resources" />
       <div className="mb-4 flex justify-end">
-        <Link
-          href="/organizer/resources/new"
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-4 py-3 text-sm font-medium text-white shadow-theme-xs transition hover:bg-brand-600"
-        >
-          <PlusIcon className="size-5" />
-          Add Resource
-        </Link>
+        <PlusActionLink href="/organizer/resources/new" label="Add Resource" />
       </div>
       <ComponentCard title="My resource requests">
         {loading ? (

@@ -1,13 +1,12 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
 import ComponentCard from "@/components/common/ComponentCard";
 import LoadingLottie from "@/components/common/LoadingLottie";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import Badge from "@/components/ui/badge/Badge";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
-import { PlusIcon } from "@/icons";
+import PlusActionLink from "@/components/common/PlusActionLink";
 
 type Item = {
   _id: string;
@@ -47,12 +46,7 @@ export default function OrganizerSuperHeroClient() {
     <div>
       <PageBreadcrumb pageTitle="Super Hero" />
       <div className="mb-4 flex justify-end">
-        <Link
-          href="/organizer/super-hero/new"
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-4 py-3 text-sm font-medium text-white shadow-theme-xs transition hover:bg-brand-600"
-        >
-          <PlusIcon className="size-5" /> Request Super Hero
-        </Link>
+        <PlusActionLink href="/organizer/super-hero/new" label="Request Super Hero" />
       </div>
       <ComponentCard title="My super hero requests">
         {loading ? <LoadingLottie variant="block" /> : (

@@ -7,7 +7,7 @@ import LoadingLottie from "@/components/common/LoadingLottie";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import Badge from "@/components/ui/badge/Badge";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
-import { PlusIcon } from "@/icons";
+import PlusActionLink from "@/components/common/PlusActionLink";
 
 type Item = { _id: string; name: string; description: string; status: string; adminReason?: string; createdAt: string };
 
@@ -40,12 +40,7 @@ export default function OrganizerMediaClient() {
     <div>
       <PageBreadcrumb pageTitle="Media" />
       <div className="mb-4 flex justify-end">
-        <Link
-          href="/organizer/media/new"
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-4 py-3 text-sm font-medium text-white shadow-theme-xs transition hover:bg-brand-600"
-        >
-          <PlusIcon className="size-5" /> Add Media
-        </Link>
+        <PlusActionLink href="/organizer/media/new" label="Add Media" />
       </div>
       <ComponentCard title="My media requests">
         {loading ? (

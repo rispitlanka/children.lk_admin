@@ -14,7 +14,7 @@ import ResourceDescriptionQuill from "@/components/form/ResourceDescriptionQuill
 import TagsSelect from "@/components/form/TagsSelect";
 import Checkbox from "@/components/form/input/Checkbox";
 import Badge from "@/components/ui/badge/Badge";
-import { TrashBinIcon, VideoIcon, AudioIcon, FileIcon, DocsIcon } from "@/icons";
+import { TrashBinIcon } from "@/icons";
 import {
   AGE_AUDIENCE_LABELS,
   AGE_AUDIENCE_VALUES,
@@ -27,14 +27,14 @@ import {
   REGION_OPTIONS,
   VISIBILITY_STATUS_LABELS,
   VISIBILITY_STATUS_VALUES,
-  type AgeAudienceValue,
   type ContentTypeValue,
   type FileFormatValue,
   type VisibilityStatusValue,
 } from "@/lib/resource-form-constants";
 import { isRichTextEmpty } from "@/lib/rich-text";
+import { slugify } from "@/lib/slugify";
 
-type DocType = "pdf" | "video" | "audio" | "docx" | "ppt" | "image";
+type DocType = "pdf" | "video" | "audio" | "docx" | "ppt" | "image" | "other";
 type DocumentFile = {
   url: string;
   publicId: string;
@@ -52,32 +52,33 @@ type TaxCat = {
   subcategories: { _id: string; name: string }[];
 };
 
-const DOC_TYPE_OPTIONS: {
-  value: DocType;
-  label: string;
-  emoji: string;
-  icon: React.ComponentType<{ className?: string }>;
-  accept: string;
-}[] = [
-  { value: "pdf", label: "PDF", emoji: "📄", icon: DocsIcon, accept: ".pdf,application/pdf" },
-  {
-    value: "docx",
-    label: "Word",
-    emoji: "📝",
-    icon: FileIcon,
-    accept: ".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  },
-  {
-    value: "ppt",
-    label: "PowerPoint",
-    emoji: "📊",
-    icon: FileIcon,
-    accept: ".ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation",
-  },
-  { value: "audio", label: "Audio", emoji: "🎵", icon: AudioIcon, accept: "audio/*" },
-  { value: "video", label: "Video", emoji: "🎬", icon: VideoIcon, accept: "video/*" },
-  { value: "image", label: "Image", emoji: "🖼", icon: FileIcon, accept: "image/*" },
-];
+function getDocTypeFromFileFormat(fileFormat: FileFormatValue): DocType {
+  if (fileFormat === "pdf") return "pdf";
+  if (fileFormat === "docx") return "docx";
+  if (fileFormat === "pptx") return "ppt";
+  if (fileFormat === "image") return "image";
+  if (fileFormat === "audio") return "audio";
+  if (fileFormat === "video") return "video";
+  return "other";
+}
+
+function getAcceptFromFileFormat(fileFormat: FileFormatValue): string {
+  if (fileFormat === "pdf") return ".pdf,application/pdf";
+  if (fileFormat === "docx") {
+    return ".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+  }
+  if (fileFormat === "pptx") {
+    return ".ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation";
+  }
+  if (fileFormat === "xlsx") {
+    return ".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+  }
+  if (fileFormat === "html") return ".htm,.html,text/html";
+  if (fileFormat === "image") return "image/*";
+  if (fileFormat === "audio") return "audio/*";
+  if (fileFormat === "video") return "video/*";
+  return "";
+}
 
 function getCloudinaryResourceType(docType: DocType): "image" | "video" | "raw" {
   if (docType === "video" || docType === "audio") return "video";
@@ -132,7 +133,7 @@ export default function AddResourceClient() {
     picturePublicId: "",
     categoryId: "",
     subCategoryId: "",
-    contentType: "" as ContentTypeValue | "",
+    contentType: "",
     mainPublisherName: "",
     rightsNotice: "",
     externalDownloadUrl: "",
@@ -141,18 +142,23 @@ export default function AddResourceClient() {
     slug: "",
   });
   const [tags, setTags] = useState<string[]>([]);
-  const [ageAudienceGroups, setAgeAudienceGroups] = useState<AgeAudienceValue[]>([]);
+  const [ageAudienceGroups, setAgeAudienceGroups] = useState<string[]>([]);
   const [countries, setCountries] = useState<string[]>([]);
   const [regions, setRegions] = useState<string[]>([]);
+  const [customAgeAudience, setCustomAgeAudience] = useState("");
+  const [customContentType, setCustomContentType] = useState("");
+  const [customContentTypes, setCustomContentTypes] = useState<string[]>([]);
+  const [customCountry, setCustomCountry] = useState("");
+  const [customRegion, setCustomRegion] = useState("");
   const [hasCoPublishers, setHasCoPublishers] = useState(false);
   const [coPublisherIds, setCoPublisherIds] = useState<string[]>([]);
   const [featured, setFeatured] = useState(false);
 
   const [picturePreview, setPicturePreview] = useState<{ url: string; publicId: string } | null>(null);
   const [primaryDoc, setPrimaryDoc] = useState<DocumentFile | null>(null);
-  const [documentType, setDocumentType] = useState<DocType>("pdf");
   const [primaryFileFormat, setPrimaryFileFormat] = useState<FileFormatValue>("pdf");
   const [primaryLanguages, setPrimaryLanguages] = useState<string[]>(["en"]);
+  const [slugEditedManually, setSlugEditedManually] = useState(false);
 
   const [uploadingPicture, setUploadingPicture] = useState(false);
   const [uploadingDoc, setUploadingDoc] = useState(false);
@@ -209,6 +215,11 @@ export default function AddResourceClient() {
     }
   }, [form.categoryId, form.subCategoryId, subOptions]);
 
+  useEffect(() => {
+    if (slugEditedManually) return;
+    setForm((f) => ({ ...f, slug: slugify(f.name) }));
+  }, [form.name, slugEditedManually]);
+
   const handlePictureChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -233,12 +244,13 @@ export default function AddResourceClient() {
     if (!file) return;
     setUploadingDoc(true);
     try {
-      const resourceType = getCloudinaryResourceType(documentType);
+      const docType = getDocTypeFromFileFormat(primaryFileFormat);
+      const resourceType = getCloudinaryResourceType(docType);
       const result = await uploadFile(file, "childrenlk/resources/documents", resourceType);
       setPrimaryDoc({
         url: result.url,
         publicId: result.publicId,
-        type: documentType,
+        type: docType,
         name: file.name,
         fileFormat: primaryFileFormat,
         languages: [...primaryLanguages],
@@ -331,7 +343,7 @@ export default function AddResourceClient() {
     setSubmitting(false);
   };
 
-  const docAccept = DOC_TYPE_OPTIONS.find((o) => o.value === documentType)?.accept ?? "";
+  const docAccept = getAcceptFromFileFormat(primaryFileFormat);
 
   const selectClass =
     "mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800";
@@ -347,6 +359,32 @@ export default function AddResourceClient() {
     "[&_.ql-stroke]:stroke-gray-600 dark:[&_.ql-stroke]:stroke-gray-400",
     "[&_.ql-fill]:fill-gray-600 dark:[&_.ql-fill]:fill-gray-400",
   ].join(" ");
+
+  const addCustomMultiValue = (
+    rawValue: string,
+    selectedValues: string[],
+    setSelectedValues: React.Dispatch<React.SetStateAction<string[]>>,
+    clearInput: () => void
+  ) => {
+    const value = rawValue.trim();
+    if (!value) return;
+    if (selectedValues.some((v) => v.toLowerCase() === value.toLowerCase())) {
+      clearInput();
+      return;
+    }
+    setSelectedValues((prev) => [...prev, value]);
+    clearInput();
+  };
+
+  const customAgeAudienceSelected = ageAudienceGroups.filter(
+    (v) => !AGE_AUDIENCE_VALUES.includes(v as (typeof AGE_AUDIENCE_VALUES)[number])
+  );
+  const customCountriesSelected = countries.filter(
+    (v) => !COUNTRY_OPTIONS.some((opt) => opt.value === v)
+  );
+  const customRegionsSelected = regions.filter(
+    (v) => !REGION_OPTIONS.some((opt) => opt.value === v)
+  );
 
   return (
     <div className="w-full space-y-6">
@@ -378,6 +416,19 @@ export default function AddResourceClient() {
                     onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                     placeholder="Resource title"
                     required
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label>URL slug (optional)</Label>
+                  <Input
+                    value={form.slug}
+                    onChange={(e) => {
+                      const next = e.target.value;
+                      setSlugEditedManually(next.trim().length > 0);
+                      setForm((f) => ({ ...f, slug: slugify(next) }));
+                    }}
+                    placeholder="Leave blank to auto-generate from title"
                     className="mt-1"
                   />
                 </div>
@@ -464,9 +515,7 @@ export default function AddResourceClient() {
                   <select
                     required
                     value={form.contentType}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, contentType: e.target.value as ContentTypeValue }))
-                    }
+                    onChange={(e) => setForm((f) => ({ ...f, contentType: e.target.value }))}
                     className={selectClass}
                   >
                     <option value="">Select category</option>
@@ -475,7 +524,60 @@ export default function AddResourceClient() {
                         {CONTENT_TYPE_LABELS[v]}
                       </option>
                     ))}
+                    {customContentTypes
+                      .filter((v) => !CONTENT_TYPE_VALUES.includes(v as ContentTypeValue))
+                      .map((v) => (
+                        <option key={`custom-content-type-${v}`} value={v}>
+                          {v}
+                        </option>
+                      ))}
                   </select>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <Input
+                      value={customContentType}
+                      onChange={(e) => setCustomContentType(e.target.value)}
+                      placeholder="Add custom content type"
+                      className="w-full sm:w-72"
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        const value = customContentType.trim();
+                        if (!value) return;
+                        if (!customContentTypes.some((v) => v.toLowerCase() === value.toLowerCase())) {
+                          setCustomContentTypes((prev) => [...prev, value]);
+                        }
+                        setForm((f) => ({ ...f, contentType: value }));
+                        setCustomContentType("");
+                      }}
+                    >
+                      Add
+                    </Button>
+                  </div>
+                  {customContentTypes.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {customContentTypes.map((value) => {
+                        const isSelected = form.contentType === value;
+                        return (
+                          <button
+                            key={`custom-content-chip-${value}`}
+                            type="button"
+                            onClick={() => setForm((f) => ({ ...f, contentType: value }))}
+                            className={`rounded-full border px-3 py-1.5 text-sm ${
+                              isSelected
+                                ? "border-brand-500 bg-brand-50 text-brand-800 dark:border-brand-400 dark:bg-brand-500/15 dark:text-brand-100"
+                                : "border-gray-200 bg-white text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                            }`}
+                            title="Click to select"
+                          >
+                            {value}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <Label className="mb-2 block">Age group / audience * (multi)</Label>
@@ -494,6 +596,46 @@ export default function AddResourceClient() {
                         {AGE_AUDIENCE_LABELS[v]}
                       </button>
                     ))}
+                  </div>
+                  {customAgeAudienceSelected.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {customAgeAudienceSelected.map((value) => (
+                        <button
+                          key={`custom-age-${value}`}
+                          type="button"
+                          onClick={() =>
+                            setAgeAudienceGroups((prev) => prev.filter((v) => v !== value))
+                          }
+                          className="rounded-full border border-brand-500 bg-brand-50 px-3 py-1.5 text-sm text-brand-800 dark:border-brand-400 dark:bg-brand-500/15 dark:text-brand-100"
+                          title="Click to remove"
+                        >
+                          {value} ×
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <Input
+                      value={customAgeAudience}
+                      onChange={(e) => setCustomAgeAudience(e.target.value)}
+                      placeholder="Add custom age group / audience"
+                      className="w-full sm:w-72"
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        addCustomMultiValue(
+                          customAgeAudience,
+                          ageAudienceGroups,
+                          setAgeAudienceGroups,
+                          () => setCustomAgeAudience("")
+                        )
+                      }
+                    >
+                      Add
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -519,6 +661,41 @@ export default function AddResourceClient() {
                       </button>
                     ))}
                   </div>
+                  {customCountriesSelected.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {customCountriesSelected.map((value) => (
+                        <button
+                          key={`custom-country-${value}`}
+                          type="button"
+                          onClick={() => setCountries((prev) => prev.filter((v) => v !== value))}
+                          className="rounded-full border border-brand-500 bg-brand-50 px-3 py-1.5 text-sm text-brand-800 dark:border-brand-400 dark:bg-brand-500/15"
+                          title="Click to remove"
+                        >
+                          {value} ×
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <Input
+                      value={customCountry}
+                      onChange={(e) => setCustomCountry(e.target.value)}
+                      placeholder="Add custom country"
+                      className="w-full sm:w-72"
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        addCustomMultiValue(customCountry, countries, setCountries, () =>
+                          setCustomCountry("")
+                        )
+                      }
+                    >
+                      Add
+                    </Button>
+                  </div>
                 </div>
                 <div>
                   <Label className="mb-2 block">Region (multi)</Label>
@@ -538,6 +715,41 @@ export default function AddResourceClient() {
                       </button>
                     ))}
                   </div>
+                  {customRegionsSelected.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {customRegionsSelected.map((value) => (
+                        <button
+                          key={`custom-region-${value}`}
+                          type="button"
+                          onClick={() => setRegions((prev) => prev.filter((v) => v !== value))}
+                          className="rounded-full border border-brand-500 bg-brand-50 px-3 py-1.5 text-sm text-brand-800 dark:border-brand-400 dark:bg-brand-500/15"
+                          title="Click to remove"
+                        >
+                          {value} ×
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <Input
+                      value={customRegion}
+                      onChange={(e) => setCustomRegion(e.target.value)}
+                      placeholder="Add custom region"
+                      className="w-full sm:w-72"
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        addCustomMultiValue(customRegion, regions, setRegions, () =>
+                          setCustomRegion("")
+                        )
+                      }
+                    >
+                      Add
+                    </Button>
+                  </div>
                 </div>
               </div>
             </ComponentCard>
@@ -549,7 +761,6 @@ export default function AddResourceClient() {
               desc="Rich text with headings, lists, links, and basic formatting."
             >
               <div>
-                <Label>Description *</Label>
                 <ResourceDescriptionQuill
                   value={form.description}
                   onChange={(html) => setForm((f) => ({ ...f, description: html }))}
@@ -617,7 +828,7 @@ export default function AddResourceClient() {
               </div>
             </ComponentCard>
 
-            <ComponentCard title="Document / file" desc="Upload the primary file for this resource.">
+            <ComponentCard title="Primary file" desc="Upload the file and set its metadata.">
               <div className="space-y-6">
                 <div className="grid gap-6 sm:grid-cols-2">
                   <div>
@@ -655,32 +866,9 @@ export default function AddResourceClient() {
                   </div>
                 </div>
                 <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-800/30">
-                  <Label>Primary file *</Label>
                   <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
                     Choose how the file is stored, then upload. File size is detected automatically.
                   </p>
-                  <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                    {DOC_TYPE_OPTIONS.map((option) => {
-                      const Icon = option.icon;
-                      const isSelected = documentType === option.value;
-                      return (
-                        <button
-                          key={option.value}
-                          type="button"
-                          onClick={() => setDocumentType(option.value)}
-                          className={`relative rounded-lg border-2 p-3 text-left text-sm ${
-                            isSelected
-                              ? "border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-500/10"
-                              : "border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800"
-                          }`}
-                        >
-                          <span className="mr-2">{option.emoji}</span>
-                          {option.label}
-                          <Icon className="ml-1 inline size-4 align-middle opacity-60" />
-                        </button>
-                      );
-                    })}
-                  </div>
                   <input
                     type="file"
                     accept={docAccept}
@@ -751,15 +939,6 @@ export default function AddResourceClient() {
                       label="Published date"
                       value={form.contentPublishedAt}
                       onChange={(nextDate) => setForm((f) => ({ ...f, contentPublishedAt: nextDate }))}
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <Label>URL slug (optional)</Label>
-                    <Input
-                      value={form.slug}
-                      onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
-                      placeholder="Leave blank to auto-generate from title"
-                      className="mt-1"
                     />
                   </div>
                 </div>

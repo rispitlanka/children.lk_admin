@@ -7,7 +7,6 @@ import { ensureTags } from "@/lib/tags";
 import { slugify } from "@/lib/slugify";
 import {
   AGE_AUDIENCE_VALUES,
-  CONTENT_TYPE_VALUES,
   FILE_FORMAT_VALUES,
   VISIBILITY_STATUS_VALUES,
 } from "@/lib/resource-form-constants";
@@ -130,9 +129,10 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!contentType || !CONTENT_TYPE_VALUES.includes(contentType)) {
-      return NextResponse.json({ error: "Valid content type is required" }, { status: 400 });
+    if (!contentType || typeof contentType !== "string" || !contentType.trim()) {
+      return NextResponse.json({ error: "Content type is required" }, { status: 400 });
     }
+    const normalizedContentType = contentType.trim();
 
     const ageGroups = Array.isArray(ageAudienceGroups) ? ageAudienceGroups : [];
     const ageOk = ageGroups.every((a: unknown) => typeof a === "string" && AGE_AUDIENCE_VALUES.includes(a as (typeof AGE_AUDIENCE_VALUES)[number]));
@@ -223,7 +223,7 @@ export async function POST(req: Request) {
       tags: tagList,
       categoryId,
       subCategoryId,
-      contentType,
+      contentType: normalizedContentType,
       ageAudienceGroups: ageGroups,
       targetAudience: targetAudience === "people_work_for_children" ? "people_work_for_children" : "children",
       ageGroup:

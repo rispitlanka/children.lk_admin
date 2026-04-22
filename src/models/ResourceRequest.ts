@@ -2,12 +2,7 @@ import mongoose, { Schema, Model } from "mongoose";
 
 export type RequestStatus = "pending" | "approved" | "denied";
 
-export type ResourceContentType =
-  | "briefs"
-  | "fact_sheets"
-  | "brochures"
-  | "toolkit"
-  | "campaign";
+export type ResourceContentType = string;
 
 export type ResourceVisibilityStatus = "draft" | "published" | "archived";
 
@@ -91,10 +86,7 @@ const ResourceRequestSchema = new Schema<IResourceRequest>(
     tags: [String],
     categoryId: { type: Schema.Types.ObjectId, ref: "ResourceCategory" },
     subCategoryId: { type: Schema.Types.ObjectId, ref: "ResourceSubCategory" },
-    contentType: {
-      type: String,
-      enum: ["briefs", "fact_sheets", "brochures", "toolkit", "campaign"],
-    },
+    contentType: { type: String },
     ageAudienceGroups: [String],
     targetAudience: {
       type: String,

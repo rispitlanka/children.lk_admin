@@ -7,7 +7,9 @@ export async function GET() {
     await connectDB();
     const list = await Media.find({})
       .sort({ createdAt: -1 })
-      .select("name description files createdAt")
+      .select(
+        "name description contentType visibilityStatus tags childInfo artwork storyPoem video files organizationId createdAt updatedAt"
+      )
       .lean();
     return NextResponse.json(list);
   } catch (e) {

@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "backfill:media-details": "npx tsx --env-file=.env scripts/backfill-media-details.ts"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.19",

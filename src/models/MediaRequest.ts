@@ -1,6 +1,7 @@
 import mongoose, { Schema, Model } from "mongoose";
 
 export type RequestStatus = "pending" | "approved" | "denied";
+export type MediaVisibilityStatus = "draft" | "published" | "archived";
 
 export interface IMediaFile {
   url: string;
@@ -9,15 +10,62 @@ export interface IMediaFile {
   name?: string;
 }
 
+export interface IChildInfo {
+  fullName: string;
+  age: string;
+  gender: string;
+  city: string;
+  country: string;
+}
+
+export interface IGuardianContact {
+  guardianName: string;
+  phone: string;
+  relationshipToChild: string;
+}
+
 export interface IMediaRequest {
   _id: mongoose.Types.ObjectId;
   name: string;
   description: string;
-  contentType: "article" | "poem" | "video" | "audio" | "pictures" | "picture_story";
-  textContent?: string;
+  contentType: "artwork" | "story_poem" | "video";
+  tags?: string[];
+  visibilityStatus?: MediaVisibilityStatus;
+  childInfo: IChildInfo;
+  guardianContact: IGuardianContact;
+  artwork?: {
+    title: string;
+    description: string;
+    medium: string;
+    dateCreated?: Date;
+    theme: string;
+    tags?: string[];
+    artwork: IMediaFile;
+  };
+  storyPoem?: {
+    title: string;
+    writtenWorkType: string;
+    language: string;
+    dateWritten?: Date;
+    article: string;
+    theme: string;
+    tags?: string[];
+    coverImage?: IMediaFile;
+  };
+  video?: {
+    title: string;
+    videoType: string;
+    duration: string;
+    releasedDate?: Date;
+    language: string;
+    aspectRatio: string;
+    synopsis?: string;
+    youtubeLink: string;
+    thumbnail: IMediaFile;
+    theme: string;
+    tags?: string[];
+  };
   files: IMediaFile[];
-  targetAudience: "children" | "people_work_for_children";
-  ageGroup?: "1-5" | "5-10" | "11-15" | "15-18" | "above-18";
   organizationId: mongoose.Types.ObjectId;
   status: RequestStatus;
   adminReason?: string;
@@ -37,28 +85,72 @@ const MediaFileSchema = new Schema<IMediaFile>(
   { _id: false }
 );
 
+const ChildInfoSchema = new Schema<IChildInfo>(
+  {
+    fullName: { type: String, required: true },
+    age: { type: String, required: true },
+    gender: { type: String, required: true },
+    city: { type: String, required: true },
+    country: { type: String, required: true },
+  },
+  { _id: false }
+);
+
+const GuardianContactSchema = new Schema<IGuardianContact>(
+  {
+    guardianName: { type: String, required: true },
+    phone: { type: String, required: true },
+    relationshipToChild: { type: String, required: true },
+  },
+  { _id: false }
+);
+
 const MediaRequestSchema = new Schema<IMediaRequest>(
   {
     name: { type: String, required: true },
     description: { type: String, required: true },
-    contentType: { 
-      type: String, 
-      enum: ["article", "poem", "video", "audio", "pictures", "picture_story"], 
+    contentType: {
+      type: String,
+      enum: ["artwork", "story_poem", "video"],
       required: true,
-      default: "pictures"
     },
-    textContent: { type: String },
+    tags: [String],
+    visibilityStatus: { type: String, enum: ["draft", "published", "archived"], default: "draft" },
+    childInfo: { type: ChildInfoSchema, required: true },
+    guardianContact: { type: GuardianContactSchema, required: true },
+    artwork: {
+      title: { type: String },
+      description: { type: String },
+      medium: { type: String },
+      dateCreated: { type: Date },
+      theme: { type: String },
+      tags: [String],
+      artwork: { type: MediaFileSchema },
+    },
+    storyPoem: {
+      title: { type: String },
+      writtenWorkType: { type: String },
+      language: { type: String },
+      dateWritten: { type: Date },
+      article: { type: String },
+      theme: { type: String },
+      tags: [String],
+      coverImage: { type: MediaFileSchema },
+    },
+    video: {
+      title: { type: String },
+      videoType: { type: String },
+      duration: { type: String },
+      releasedDate: { type: Date },
+      language: { type: String },
+      aspectRatio: { type: String },
+      synopsis: { type: String },
+      youtubeLink: { type: String },
+      thumbnail: { type: MediaFileSchema },
+      theme: { type: String },
+      tags: [String],
+    },
     files: [MediaFileSchema],
-    targetAudience: { 
-      type: String, 
-      enum: ["children", "people_work_for_children"], 
-      required: true,
-      default: "children"
-    },
-    ageGroup: { 
-      type: String, 
-      enum: ["1-5", "5-10", "11-15", "15-18", "above-18"]
-    },
     organizationId: { type: Schema.Types.ObjectId, ref: "Organization", required: true },
     status: { type: String, enum: ["pending", "approved", "denied"], default: "pending" },
     adminReason: String,

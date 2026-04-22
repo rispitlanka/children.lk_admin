@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import ComponentCard from "@/components/common/ComponentCard";
@@ -9,125 +9,36 @@ import Button from "@/components/ui/button/Button";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
 import TextArea from "@/components/form/input/TextArea";
-import Badge from "@/components/ui/badge/Badge";
-import { TrashBinIcon, VideoIcon, AudioIcon, FileIcon, DocsIcon, UserIcon, GroupIcon } from "@/icons";
+import DatePicker from "@/components/form/date-picker";
+import TagsSelect from "@/components/form/TagsSelect";
+import ResourceDescriptionQuill from "@/components/form/ResourceDescriptionQuill";
 
-type ContentType = "article" | "poem" | "video" | "audio" | "pictures" | "picture_story";
-type MediaFile = { url: string; publicId: string; type: string; name?: string };
-type TargetAudience = "children" | "people_work_for_children";
-type AgeGroup = "1-5" | "5-10" | "11-15" | "15-18" | "above-18";
+type ContentType = "artwork" | "story_poem" | "video";
+type VisibilityStatus = "draft" | "published" | "archived";
+type MediaFile = { url: string; publicId: string; type: "image"; name?: string };
 
-const CONTENT_TYPE_OPTIONS: { 
-  value: ContentType; 
-  label: string; 
-  emoji: string;
-  icon: React.ComponentType<{ className?: string }>;
-  accept?: string;
-  allowMultiple?: boolean;
-  isText?: boolean;
-  description: string;
-}[] = [
-  { 
-    value: "article", 
-    label: "Article", 
-    emoji: "📝", 
-    icon: DocsIcon,
-    isText: true,
-    description: "Written content like blog posts, news articles, or informative pieces"
-  },
-  { 
-    value: "poem", 
-    label: "Poem", 
-    emoji: "📖", 
-    icon: FileIcon,
-    isText: true,
-    description: "Poetry, verses, and creative written expressions"
-  },
-  { 
-    value: "video", 
-    label: "Video", 
-    emoji: "🎬", 
-    icon: VideoIcon,
-    accept: "video/*", 
-    allowMultiple: false,
-    description: "Video content like tutorials, documentaries, or entertainment"
-  },
-  { 
-    value: "audio", 
-    label: "Audio", 
-    emoji: "🎵", 
-    icon: AudioIcon,
-    accept: "audio/*", 
-    allowMultiple: false,
-    description: "Audio content like podcasts, music, or voice recordings"
-  },
-  { 
-    value: "pictures", 
-    label: "Pictures", 
-    emoji: "🖼️", 
-    icon: FileIcon,
-    accept: "image/*", 
-    allowMultiple: true,
-    description: "Individual images or photo collections"
-  },
-  { 
-    value: "picture_story", 
-    label: "Picture Story", 
-    emoji: "📚", 
-    icon: FileIcon,
-    accept: "image/*", 
-    allowMultiple: true,
-    description: "Sequential images that tell a story (minimum 2 images)"
-  },
+const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
+  artwork: "Artwork",
+  story_poem: "Story / Poem",
+  video: "Video",
+};
+
+const THEMES = [
+  "Nature & Environment",
+  "Family & Community",
+  "Dreams & Future",
+  "Identity & Culture",
+  "Peace & Hope",
+  "Fantasy & Imagination",
+  "Everyday Life",
 ];
 
-const AUDIENCE_OPTIONS = [
-  {
-    value: "children" as TargetAudience,
-    label: "Children",
-    emoji: "👶",
-    icon: UserIcon,
-    description: "Content designed for children"
-  },
-  {
-    value: "people_work_for_children" as TargetAudience,
-    label: "Professionals",
-    emoji: "👨‍💼",
-    icon: GroupIcon,
-    description: "Content for people who work with children"
-  }
-];
-
-const AGE_GROUP_OPTIONS = [
-  { value: "1-5" as AgeGroup, label: "1-5 years", emoji: "🍼", description: "Toddlers and early childhood" },
-  { value: "5-10" as AgeGroup, label: "5-10 years", emoji: "🎒", description: "Elementary school age" },
-  { value: "11-15" as AgeGroup, label: "11-15 years", emoji: "📚", description: "Middle school and early teens" },
-  { value: "15-18" as AgeGroup, label: "15-18 years", emoji: "🎓", description: "High school teenagers" },
-  { value: "above-18" as AgeGroup, label: "Above 18 years", emoji: "🎯", description: "Young adults and above" },
-];
-
-function getCloudinaryResourceType(contentType: ContentType): "image" | "video" | "raw" {
-  if (contentType === "video") return "video";
-  if (contentType === "audio") return "video"; // Cloudinary uses 'video' for audio files
-  if (contentType === "pictures" || contentType === "picture_story") return "image";
-  return "raw"; // For text content like articles and poems
-}
-
-function getFileTypeFromContentType(contentType: ContentType, fileName?: string): "image" | "video" | "audio" {
-  if (contentType === "video") return "video";
-  if (contentType === "audio") return "audio";
-  if (contentType === "pictures" || contentType === "picture_story") return "image";
-  
-  // Fallback: determine by file extension if needed
-  if (fileName) {
-    const ext = fileName.toLowerCase().split('.').pop();
-    if (ext && ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return "image";
-    if (ext && ['mp4', 'avi', 'mov', 'wmv', 'flv'].includes(ext)) return "video";
-    if (ext && ['mp3', 'wav', 'ogg', 'aac'].includes(ext)) return "audio";
-  }
-  
-  return "image"; // Default fallback
-}
+const MEDIUMS = ["Pen and Paper", "Watercolor", "Digital", "Sketch"];
+const WRITTEN_WORK_TYPES = ["Story", "Poem", "Novel", "Essay", "Journal"];
+const VIDEO_TYPES = ["Short Film", "Animation", "Interview", "Documentary"];
+const LANGUAGES = ["Tamil", "Sinhala", "English"];
+const ASPECT_RATIOS = ["Vertical", "Horizontal"];
+const GENDERS = ["Male", "Female", "Other"];
 
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -138,16 +49,12 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
-async function uploadFile(
-  file: File,
-  folder: string,
-  resourceType: "image" | "video" | "raw"
-): Promise<{ url: string; publicId: string }> {
+async function uploadImage(file: File, folder = "childrenlk/media"): Promise<{ url: string; publicId: string }> {
   const base64 = await fileToBase64(file);
   const res = await fetch("/api/upload", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ file: base64, folder, resource_type: resourceType }),
+    body: JSON.stringify({ file: base64, folder, resource_type: "image" }),
   });
   const data = await res.json();
   if (!res.ok || !data.url) throw new Error(data.error ?? "Upload failed");
@@ -155,105 +62,288 @@ async function uploadFile(
 }
 
 export default function AddMediaClient() {
+  const richTextEditorClass = [
+    "resource-description-editor mt-1 rounded-lg border border-gray-300 shadow-theme-xs overflow-hidden",
+    "dark:border-gray-700",
+    "[&_.ql-toolbar]:rounded-t-lg [&_.ql-toolbar]:border-0 [&_.ql-toolbar]:border-b [&_.ql-toolbar]:border-gray-200 [&_.ql-toolbar]:bg-gray-50",
+    "dark:[&_.ql-toolbar]:border-gray-700 dark:[&_.ql-toolbar]:bg-gray-800/80",
+    "[&_.ql-container]:rounded-b-lg [&_.ql-container]:border-0 [&_.ql-container]:bg-transparent dark:[&_.ql-container]:bg-gray-900",
+    "[&_.ql-editor]:min-h-[180px] [&_.ql-editor]:px-3 [&_.ql-editor]:py-2.5 [&_.ql-editor]:text-sm",
+    "text-gray-800 dark:[&_.ql-editor]:text-white/90",
+    "[&_.ql-stroke]:stroke-gray-600 dark:[&_.ql-stroke]:stroke-gray-400",
+    "[&_.ql-fill]:fill-gray-600 dark:[&_.ql-fill]:fill-gray-400",
+  ].join(" ");
+
   const router = useRouter();
-  const [form, setForm] = useState({ name: "", description: "", textContent: "" });
-  const [files, setFiles] = useState<MediaFile[]>([]);
-  const [contentType, setContentType] = useState<ContentType>("article");
-  const [targetAudience, setTargetAudience] = useState<TargetAudience>("children");
-  const [ageGroup, setAgeGroup] = useState<AgeGroup>("1-5");
+  const searchParams = useSearchParams();
+  const editId = searchParams.get("edit");
+  const isEditMode = Boolean(editId);
+  const [contentType, setContentType] = useState<ContentType>("artwork");
+  const [visibilityStatus, setVisibilityStatus] = useState<VisibilityStatus>("draft");
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [loadingExisting, setLoadingExisting] = useState(false);
   const [error, setError] = useState("");
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = Array.from(e.target.files || []);
-    if (selectedFiles.length === 0) return;
-    
-    const currentOption = CONTENT_TYPE_OPTIONS.find(opt => opt.value === contentType);
-    if (!currentOption?.allowMultiple && selectedFiles.length > 1) {
-      setError("Only one file is allowed for this content type");
-      toast.error("Only one file is allowed for this content type");
+  const [childInfo, setChildInfo] = useState({
+    fullName: "",
+    age: "",
+    gender: "",
+    city: "",
+    country: "",
+  });
+  const [guardianContact, setGuardianContact] = useState({
+    guardianName: "",
+    phone: "",
+    relationshipToChild: "",
+  });
+
+  const [artwork, setArtwork] = useState({
+    title: "",
+    description: "",
+    medium: MEDIUMS[0],
+    dateCreated: "",
+    theme: THEMES[0],
+  });
+  const [storyPoem, setStoryPoem] = useState({
+    title: "",
+    writtenWorkType: WRITTEN_WORK_TYPES[0],
+    language: LANGUAGES[0],
+    dateWritten: "",
+    article: "",
+    theme: THEMES[0],
+  });
+  const [video, setVideo] = useState({
+    title: "",
+    videoType: VIDEO_TYPES[0],
+    duration: "",
+    releasedDate: "",
+    language: LANGUAGES[0],
+    aspectRatio: ASPECT_RATIOS[0],
+    synopsis: "",
+    youtubeLink: "",
+    theme: THEMES[0],
+  });
+
+  const [commonTags, setCommonTags] = useState<string[]>([]);
+  const [artworkTags, setArtworkTags] = useState<string[]>([]);
+  const [storyPoemTags, setStoryPoemTags] = useState<string[]>([]);
+  const [videoTags, setVideoTags] = useState<string[]>([]);
+  const [artworkFile, setArtworkFile] = useState<MediaFile | null>(null);
+  const [storyCoverImage, setStoryCoverImage] = useState<MediaFile | null>(null);
+  const [videoThumbnail, setVideoThumbnail] = useState<MediaFile | null>(null);
+
+  const primaryActionLabel =
+    visibilityStatus === "published"
+      ? isEditMode
+        ? "Update and submit for review"
+        : "Submit request"
+      : visibilityStatus === "archived"
+        ? isEditMode
+          ? "Update archived"
+          : "Save as archived"
+        : isEditMode
+          ? "Update draft"
+          : "Save as draft";
+
+  const selectedTypeLabel = useMemo(() => CONTENT_TYPE_LABELS[contentType], [contentType]);
+
+  useEffect(() => {
+    if (!editId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        setLoadingExisting(true);
+        const res = await fetch(`/api/organizer/media-requests/${editId}`);
+        const data = await res.json();
+        if (!res.ok || data.error) throw new Error(data.error ?? "Failed to load media");
+        if (cancelled) return;
+        setContentType((data.contentType as ContentType) || "artwork");
+        setVisibilityStatus((data.visibilityStatus as VisibilityStatus) || "draft");
+        setChildInfo({
+          fullName: data.childInfo?.fullName ?? "",
+          age: data.childInfo?.age ?? "",
+          gender: data.childInfo?.gender ?? "",
+          city: data.childInfo?.city ?? "",
+          country: data.childInfo?.country ?? "",
+        });
+        setGuardianContact({
+          guardianName: data.guardianContact?.guardianName ?? "",
+          phone: data.guardianContact?.phone ?? "",
+          relationshipToChild: data.guardianContact?.relationshipToChild ?? "",
+        });
+        setCommonTags(Array.isArray(data.tags) ? data.tags : []);
+        if (data.artwork) {
+          setArtwork({
+            title: data.artwork.title ?? "",
+            description: data.artwork.description ?? "",
+            medium: data.artwork.medium ?? MEDIUMS[0],
+            dateCreated: data.artwork.dateCreated ? String(data.artwork.dateCreated).slice(0, 10) : "",
+            theme: data.artwork.theme ?? THEMES[0],
+          });
+          setArtworkTags(Array.isArray(data.artwork.tags) ? data.artwork.tags : []);
+          if (data.artwork.artwork?.url && data.artwork.artwork?.publicId) {
+            setArtworkFile({
+              url: data.artwork.artwork.url,
+              publicId: data.artwork.artwork.publicId,
+              type: "image",
+              name: data.artwork.artwork.name,
+            });
+          }
+        }
+        if (data.storyPoem) {
+          setStoryPoem({
+            title: data.storyPoem.title ?? "",
+            writtenWorkType: data.storyPoem.writtenWorkType ?? WRITTEN_WORK_TYPES[0],
+            language: data.storyPoem.language ?? LANGUAGES[0],
+            dateWritten: data.storyPoem.dateWritten ? String(data.storyPoem.dateWritten).slice(0, 10) : "",
+            article: data.storyPoem.article ?? "",
+            theme: data.storyPoem.theme ?? THEMES[0],
+          });
+          setStoryPoemTags(Array.isArray(data.storyPoem.tags) ? data.storyPoem.tags : []);
+          if (data.storyPoem.coverImage?.url && data.storyPoem.coverImage?.publicId) {
+            setStoryCoverImage({
+              url: data.storyPoem.coverImage.url,
+              publicId: data.storyPoem.coverImage.publicId,
+              type: "image",
+              name: data.storyPoem.coverImage.name,
+            });
+          }
+        }
+        if (data.video) {
+          setVideo({
+            title: data.video.title ?? "",
+            videoType: data.video.videoType ?? VIDEO_TYPES[0],
+            duration: data.video.duration ?? "",
+            releasedDate: data.video.releasedDate ? String(data.video.releasedDate).slice(0, 10) : "",
+            language: data.video.language ?? LANGUAGES[0],
+            aspectRatio: data.video.aspectRatio ?? ASPECT_RATIOS[0],
+            synopsis: data.video.synopsis ?? "",
+            youtubeLink: data.video.youtubeLink ?? "",
+            theme: data.video.theme ?? THEMES[0],
+          });
+          setVideoTags(Array.isArray(data.video.tags) ? data.video.tags : []);
+          if (data.video.thumbnail?.url && data.video.thumbnail?.publicId) {
+            setVideoThumbnail({
+              url: data.video.thumbnail.url,
+              publicId: data.video.thumbnail.publicId,
+              type: "image",
+              name: data.video.thumbnail.name,
+            });
+          }
+        }
+      } catch (e) {
+        if (!cancelled) {
+          const msg = e instanceof Error ? e.message : "Failed to load media";
+          setError(msg);
+          toast.error(msg);
+        }
+      } finally {
+        if (!cancelled) setLoadingExisting(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [editId]);
+
+  const uploadOneImage = async (
+    file: File | undefined,
+    setter: React.Dispatch<React.SetStateAction<MediaFile | null>>
+  ) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Please select an image file");
+      toast.error("Please select an image file");
       return;
     }
-
-    setError("");
     setUploading(true);
-    
     try {
-      const resourceType = getCloudinaryResourceType(contentType);
-      const uploadPromises = selectedFiles.map(async (file) => {
-        const result = await uploadFile(file, "childrenlk/media", resourceType);
-        return { 
-          url: result.url, 
-          publicId: result.publicId, 
-          type: getFileTypeFromContentType(contentType, file.name), 
-          name: file.name 
-        };
-      });
-      
-      const uploadedFiles = await Promise.all(uploadPromises);
-      
-      if (currentOption?.allowMultiple) {
-        setFiles((prev) => [...prev, ...uploadedFiles]);
-      } else {
-        setFiles(uploadedFiles);
-      }
-      
-      toast.success(`${uploadedFiles.length} file(s) uploaded successfully`);
+      const result = await uploadImage(file);
+      setter({ url: result.url, publicId: result.publicId, type: "image", name: file.name });
+      toast.success("Image uploaded");
     } catch {
-      setError("Failed to upload file(s)");
-      toast.error("Failed to upload file(s)");
+      setError("Failed to upload image");
+      toast.error("Failed to upload image");
     }
     setUploading(false);
-    e.target.value = "";
   };
-
-  const removeFile = (index: number) => setFiles((prev) => prev.filter((_, i) => i !== index));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    
-    // Validate based on content type
-    const currentOption = CONTENT_TYPE_OPTIONS.find(opt => opt.value === contentType);
-    
-    if (currentOption?.isText) {
-      // For text content (articles, poems), require text content
-      if (!form.textContent.trim()) {
-        setError(`Please enter the ${contentType} content.`);
-        toast.error(`Please enter the ${contentType} content.`);
-        return;
-      }
-    } else {
-      // For file-based content, require files
-      if (files.length === 0) {
-        setError(`Please upload at least one file for ${contentType}.`);
-        toast.error(`Please upload at least one file for ${contentType}.`);
-        return;
-      }
-      
-      // For picture story, require multiple images
-      if (contentType === "picture_story" && files.length < 2) {
-        setError("Picture story requires at least 2 images.");
-        toast.error("Picture story requires at least 2 images.");
-        return;
-      }
+
+    if (
+      !childInfo.fullName.trim() ||
+      !childInfo.age.trim() ||
+      !childInfo.gender.trim() ||
+      !childInfo.city.trim() ||
+      !childInfo.country.trim()
+    ) {
+      setError("Complete all child information fields");
+      return;
     }
-    
+    if (
+      !guardianContact.guardianName.trim() ||
+      !guardianContact.phone.trim() ||
+      !guardianContact.relationshipToChild.trim()
+    ) {
+      setError("Complete all guardian contact fields");
+      return;
+    }
+
+    const payload: Record<string, unknown> = {
+      contentType,
+      visibilityStatus,
+      childInfo,
+      guardianContact,
+      tags: commonTags,
+    };
+
+    if (contentType === "artwork") {
+      if (!artwork.title.trim() || !artwork.description.trim() || !artworkFile) {
+        setError("Artwork title, description, and artwork image are required");
+        return;
+      }
+      payload.artwork = {
+        ...artwork,
+        dateCreated: artwork.dateCreated || undefined,
+        tags: artworkTags,
+        artwork: artworkFile,
+      };
+    } else if (contentType === "story_poem") {
+      if (!storyPoem.title.trim() || !storyPoem.article.trim()) {
+        setError("Story/Poem title and article are required");
+        return;
+      }
+      payload.storyPoem = {
+        ...storyPoem,
+        dateWritten: storyPoem.dateWritten || undefined,
+        tags: storyPoemTags,
+        coverImage: storyCoverImage || undefined,
+      };
+    } else {
+      if (!video.title.trim() || !video.youtubeLink.trim() || !videoThumbnail) {
+        setError("Video title, YouTube link, and thumbnail are required");
+        return;
+      }
+      payload.video = {
+        ...video,
+        releasedDate: video.releasedDate || undefined,
+        synopsis: video.synopsis.trim() || undefined,
+        tags: videoTags,
+        thumbnail: videoThumbnail,
+      };
+    }
+
     setSubmitting(true);
     try {
-      const res = await fetch("/api/organizer/media-requests", {
-        method: "POST",
+      const res = await fetch(
+        editId ? `/api/organizer/media-requests/${editId}` : "/api/organizer/media-requests",
+        {
+        method: editId ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          name: form.name, 
-          description: form.description, 
-          contentType,
-          textContent: form.textContent || undefined,
-          files,
-          targetAudience,
-          ageGroup: targetAudience === "children" ? ageGroup : undefined,
-        }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -263,7 +353,19 @@ export default function AddMediaClient() {
         setSubmitting(false);
         return;
       }
-      toast.success("Media request submitted successfully");
+      toast.success(
+        visibilityStatus === "published"
+          ? editId
+            ? "Media updated and submitted for review"
+            : "Media request submitted"
+          : visibilityStatus === "archived"
+            ? editId
+              ? "Media updated as archived"
+              : "Media saved as archived"
+            : editId
+              ? "Media updated as draft"
+              : "Media saved as draft"
+      );
       router.push("/organizer/media");
     } catch {
       setError("Something went wrong");
@@ -272,354 +374,195 @@ export default function AddMediaClient() {
     setSubmitting(false);
   };
 
-
   return (
-    <div className="w-full">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <PageBreadcrumb pageTitle="Add Media" />
+    <div className="w-full space-y-6">
+      <div className="mb-2 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <PageBreadcrumb pageTitle={isEditMode ? "Edit Media" : "Add Media"} />
         <Button size="sm" variant="outline" onClick={() => router.push("/organizer/media")}>
           Back to Media
         </Button>
       </div>
 
-      <ComponentCard
-        title="Submit media request"
-        desc="Add a new media item for review. Choose from articles, poems, videos, audio, pictures, or picture stories."
-      >
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {error && <p className="rounded-lg bg-error-50 px-4 py-2 text-sm text-error-600 dark:bg-error-500/10 dark:text-error-400">{error}</p>}
+      {loadingExisting && (
+        <ComponentCard title="Loading media">
+          <p className="py-6 text-center text-sm text-gray-500 dark:text-gray-400">Loading...</p>
+        </ComponentCard>
+      )}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {error && (
+          <p className="rounded-lg bg-error-50 px-4 py-2 text-sm text-error-600 dark:bg-error-500/10 dark:text-error-400">
+            {error}
+          </p>
+        )}
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+          <div className="space-y-6">
+            <ComponentCard title="Children Information">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div><Label>Full Name *</Label><Input className="mt-1" value={childInfo.fullName} onChange={(e)=>setChildInfo((p)=>({...p,fullName:e.target.value}))} /></div>
+                <div><Label>Age *</Label><Input className="mt-1" value={childInfo.age} onChange={(e)=>setChildInfo((p)=>({...p,age:e.target.value}))} /></div>
+                <div>
+                  <Label>Gender *</Label>
+                  <select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={childInfo.gender} onChange={(e)=>setChildInfo((p)=>({...p,gender:e.target.value}))}>
+                    <option value="">Select</option>{GENDERS.map((g)=><option key={g} value={g}>{g}</option>)}
+                  </select>
+                </div>
+                <div><Label>City *</Label><Input className="mt-1" value={childInfo.city} onChange={(e)=>setChildInfo((p)=>({...p,city:e.target.value}))} /></div>
+                <div><Label>Country *</Label><Input className="mt-1" value={childInfo.country} onChange={(e)=>setChildInfo((p)=>({...p,country:e.target.value}))} /></div>
+              </div>
+            </ComponentCard>
 
-          <div className="grid gap-6 sm:grid-cols-1">
-            <div>
-              <Label>Name *</Label>
-              <Input
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                placeholder="Media title"
-                required
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label>Description *</Label>
-              <TextArea
-                value={form.description}
-                onChange={(v) => setForm((f) => ({ ...f, description: v }))}
-                rows={4}
-                placeholder="Describe your media content"
-                className="mt-1"
-              />
-            </div>
+            <ComponentCard title="Guardian Contact" desc="This will not be shown in frontend">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div><Label>Guardian Name *</Label><Input className="mt-1" value={guardianContact.guardianName} onChange={(e)=>setGuardianContact((p)=>({...p,guardianName:e.target.value}))} /></div>
+                <div><Label>Phone *</Label><Input className="mt-1" value={guardianContact.phone} onChange={(e)=>setGuardianContact((p)=>({...p,phone:e.target.value}))} /></div>
+                <div><Label>Relationship to Child *</Label><Input className="mt-1" value={guardianContact.relationshipToChild} onChange={(e)=>setGuardianContact((p)=>({...p,relationshipToChild:e.target.value}))} /></div>
+              </div>
+            </ComponentCard>
+
+            <ComponentCard title="Publishing & visibility">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <Label>Status</Label>
+                  <select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={visibilityStatus} onChange={(e)=>setVisibilityStatus(e.target.value as VisibilityStatus)}>
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                    <option value="archived">Archived</option>
+                  </select>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    {visibilityStatus === "published"
+                      ? `${selectedTypeLabel} will be sent for admin review.`
+                      : `${selectedTypeLabel} will be saved without admin review.`}
+                  </p>
+                </div>
+              </div>
+            </ComponentCard>
           </div>
 
-          {/* Content Type Selection */}
-          <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-5 dark:border-gray-800 dark:bg-gray-800/30">
-            <h4 className="text-sm font-medium text-gray-800 dark:text-white/90">Content Type</h4>
-            <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">What type of content are you submitting?</p>
-            
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {CONTENT_TYPE_OPTIONS.map((option) => {
-                const Icon = option.icon;
-                const isSelected = contentType === option.value;
-                return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => {
-                      setContentType(option.value);
-                      setFiles([]); // Clear files when content type changes
-                      setForm(f => ({ ...f, textContent: "" })); // Clear text content
-                    }}
-                    className={`group relative rounded-lg border-2 p-4 text-left transition-all hover:shadow-md ${
-                      isSelected
-                        ? "border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-500/10"
-                        : "border-gray-200 bg-white hover:border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600"
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${
-                        isSelected 
-                          ? "bg-brand-100 text-brand-600 dark:bg-brand-500/20 dark:text-brand-400" 
-                          : "bg-gray-100 text-gray-600 group-hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-400"
-                      }`}>
-                        <span className="text-lg">{option.emoji}</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h5 className={`font-medium ${
-                            isSelected 
-                              ? "text-brand-900 dark:text-brand-100" 
-                              : "text-gray-900 dark:text-white"
-                          }`}>
-                            {option.label}
-                          </h5>
-                          <Icon className={`h-4 w-4 ${
-                            isSelected 
-                              ? "text-brand-600 dark:text-brand-400" 
-                              : "text-gray-500 dark:text-gray-400"
-                          }`} />
-                        </div>
-                        <p className={`mt-1 text-xs ${
-                          isSelected 
-                            ? "text-brand-700 dark:text-brand-300" 
-                            : "text-gray-500 dark:text-gray-400"
-                        }`}>
-                          {option.description}
-                        </p>
-                      </div>
+          <div className="space-y-6">
+            <ComponentCard title="Content">
+              <div className="space-y-5">
+                <div>
+                  <Label>Content Type *</Label>
+                  <select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={contentType} onChange={(e)=>setContentType(e.target.value as ContentType)}>
+                    {Object.entries(CONTENT_TYPE_LABELS).map(([value,label])=><option key={value} value={value}>{label}</option>)}
+                  </select>
+                </div>
+
+                {contentType === "artwork" && (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div><Label>Title of the Artwork *</Label><Input className="mt-1" value={artwork.title} onChange={(e)=>setArtwork((p)=>({...p,title:e.target.value}))} /></div>
+                    <div>
+                      <DatePicker
+                        id="media-artwork-date-created"
+                        label="Date Created"
+                        value={artwork.dateCreated}
+                        onChange={(nextDate) => setArtwork((p) => ({ ...p, dateCreated: nextDate }))}
+                      />
                     </div>
-                    {isSelected && (
-                      <div className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand-500 text-white dark:bg-brand-400">
-                        <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Text Content Section (for articles and poems) */}
-          {CONTENT_TYPE_OPTIONS.find(opt => opt.value === contentType)?.isText && (
-            <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-5 dark:border-gray-800 dark:bg-gray-800/30">
-              <h4 className="text-sm font-medium text-gray-800 dark:text-white/90">
-                {contentType === "article" ? "Article Content" : "Poem Content"}
-              </h4>
-              <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-                Enter the full {contentType} content below.
-              </p>
-              
-              <div className="mt-4">
-                <TextArea
-                  value={form.textContent}
-                  onChange={(v) => setForm((f) => ({ ...f, textContent: v }))}
-                  rows={10}
-                  placeholder={`Enter your ${contentType} content here...`}
-                  required
-                  className="mt-1"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Target Audience Section */}
-          <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-5 dark:border-gray-800 dark:bg-gray-800/30">
-            <h4 className="text-sm font-medium text-gray-800 dark:text-white/90">Target Audience</h4>
-            <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">Who is this media for?</p>
-            
-            <div className="mt-4 space-y-4">
-              {/* Audience Type Selection */}
-              <div>
-                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block">Audience Type *</Label>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {AUDIENCE_OPTIONS.map((option) => {
-                    const Icon = option.icon;
-                    const isSelected = targetAudience === option.value;
-                    return (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => setTargetAudience(option.value)}
-                        className={`group relative rounded-lg border-2 p-4 text-left transition-all hover:shadow-md ${
-                          isSelected
-                            ? "border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-500/10"
-                            : "border-gray-200 bg-white hover:border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${
-                            isSelected 
-                              ? "bg-brand-100 text-brand-600 dark:bg-brand-500/20 dark:text-brand-400" 
-                              : "bg-gray-100 text-gray-600 group-hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-400"
-                          }`}>
-                            <span className="text-lg">{option.emoji}</span>
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <h5 className={`font-medium ${
-                                isSelected 
-                                  ? "text-brand-900 dark:text-brand-100" 
-                                  : "text-gray-900 dark:text-white"
-                              }`}>
-                                {option.label}
-                              </h5>
-                              <Icon className={`h-4 w-4 ${
-                                isSelected 
-                                  ? "text-brand-600 dark:text-brand-400" 
-                                  : "text-gray-500 dark:text-gray-400"
-                              }`} />
-                            </div>
-                            <p className={`mt-1 text-xs ${
-                              isSelected 
-                                ? "text-brand-700 dark:text-brand-300" 
-                                : "text-gray-500 dark:text-gray-400"
-                            }`}>
-                              {option.description}
-                            </p>
-                          </div>
-                        </div>
-                        {isSelected && (
-                          <div className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand-500 text-white dark:bg-brand-400">
-                            <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
-                          </div>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Age Group Selection */}
-              {targetAudience === "children" && (
-                <div className="animate-in slide-in-from-top-2 duration-200">
-                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block">Age Group *</Label>
-                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                    {AGE_GROUP_OPTIONS.map((option) => {
-                      const isSelected = ageGroup === option.value;
-                      return (
-                        <button
-                          key={option.value}
-                          type="button"
-                          onClick={() => setAgeGroup(option.value)}
-                          className={`group relative rounded-lg border-2 p-3 text-left transition-all hover:shadow-sm ${
-                            isSelected
-                              ? "border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-500/10"
-                              : "border-gray-200 bg-white hover:border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600"
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-                              isSelected 
-                                ? "bg-brand-100 text-brand-600 dark:bg-brand-500/20 dark:text-brand-400" 
-                                : "bg-gray-100 text-gray-600 group-hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-400"
-                            }`}>
-                              <span className="text-sm">{option.emoji}</span>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h5 className={`text-sm font-medium ${
-                                isSelected 
-                                  ? "text-brand-900 dark:text-brand-100" 
-                                  : "text-gray-900 dark:text-white"
-                              }`}>
-                                {option.label}
-                              </h5>
-                              <p className={`text-xs ${
-                                isSelected 
-                                  ? "text-brand-700 dark:text-brand-300" 
-                                  : "text-gray-500 dark:text-gray-400"
-                              }`}>
-                                {option.description}
-                              </p>
-                            </div>
-                          </div>
-                          {isSelected && (
-                            <div className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-brand-500 text-white dark:bg-brand-400">
-                              <svg className="h-2.5 w-2.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                              </svg>
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
+                    <div className="sm:col-span-2">
+                      <Label>Description *</Label>
+                      <ResourceDescriptionQuill
+                        value={artwork.description}
+                        onChange={(html) => setArtwork((p) => ({ ...p, description: html }))}
+                        placeholder="Describe the artwork"
+                        className={richTextEditorClass}
+                      />
+                    </div>
+                    <div><Label>Medium *</Label><select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={artwork.medium} onChange={(e)=>setArtwork((p)=>({...p,medium:e.target.value}))}>{MEDIUMS.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
+                    <div><Label>Theme *</Label><select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={artwork.theme} onChange={(e)=>setArtwork((p)=>({...p,theme:e.target.value}))}>{THEMES.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
+                    <div className="sm:col-span-2"><TagsSelect label="Tags" value={artworkTags} onChange={setArtworkTags} placeholder="Add tags" /></div>
+                    <div className="sm:col-span-2">
+                      <Label>Artwork *</Label>
+                      <input type="file" accept="image/*" disabled={uploading} onChange={(e)=>uploadOneImage(e.target.files?.[0], setArtworkFile)} className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-700" />
+                      {artworkFile && <p className="mt-2 text-xs text-gray-500">{artworkFile.name ?? "Artwork uploaded"}</p>}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          </div>
+                )}
 
-          {/* File Upload Section (for non-text content) */}
-          {!CONTENT_TYPE_OPTIONS.find(opt => opt.value === contentType)?.isText && (
-            <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-5 dark:border-gray-800 dark:bg-gray-800/30">
-              <h4 className="text-sm font-medium text-gray-800 dark:text-white/90">
-                Upload {contentType === "picture_story" ? "Images for Story" : 
-                       contentType === "pictures" ? "Images" : 
-                       contentType.charAt(0).toUpperCase() + contentType.slice(1)}
-              </h4>
-              <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-                {CONTENT_TYPE_OPTIONS.find(opt => opt.value === contentType)?.allowMultiple 
-                  ? "You can upload multiple files." 
-                  : "Upload a single file."}
-              </p>
-              
-              <div className="mt-4">
-                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {contentType === "picture_story" ? "Story Images" : "File(s)"}
-                </Label>
-                <input
-                  type="file"
-                  accept={CONTENT_TYPE_OPTIONS.find(opt => opt.value === contentType)?.accept}
-                  multiple={CONTENT_TYPE_OPTIONS.find(opt => opt.value === contentType)?.allowMultiple}
-                  onChange={handleFileUpload}
-                  disabled={uploading}
-                  className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100 dark:file:bg-brand-500/10 dark:file:text-brand-400"
-                />
+                {contentType === "story_poem" && (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div><Label>Title *</Label><Input className="mt-1" value={storyPoem.title} onChange={(e)=>setStoryPoem((p)=>({...p,title:e.target.value}))} /></div>
+                    <div>
+                      <DatePicker
+                        id="media-story-date-written"
+                        label="Date Written"
+                        value={storyPoem.dateWritten}
+                        onChange={(nextDate) => setStoryPoem((p) => ({ ...p, dateWritten: nextDate }))}
+                      />
+                    </div>
+                    <div><Label>Written Work Type *</Label><select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={storyPoem.writtenWorkType} onChange={(e)=>setStoryPoem((p)=>({...p,writtenWorkType:e.target.value}))}>{WRITTEN_WORK_TYPES.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
+                    <div><Label>Language *</Label><select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={storyPoem.language} onChange={(e)=>setStoryPoem((p)=>({...p,language:e.target.value}))}>{LANGUAGES.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
+                    <div className="sm:col-span-2">
+                      <Label>Article (Rich Text) *</Label>
+                      <ResourceDescriptionQuill
+                        value={storyPoem.article}
+                        onChange={(html) => setStoryPoem((p) => ({ ...p, article: html }))}
+                        placeholder="Write story/poem content"
+                        className={richTextEditorClass}
+                      />
+                    </div>
+                    <div><Label>Theme *</Label><select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={storyPoem.theme} onChange={(e)=>setStoryPoem((p)=>({...p,theme:e.target.value}))}>{THEMES.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
+                    <div className="sm:col-span-2"><TagsSelect label="Tags" value={storyPoemTags} onChange={setStoryPoemTags} placeholder="Add tags" /></div>
+                    <div className="sm:col-span-2">
+                      <Label>Cover Image (optional)</Label>
+                      <input type="file" accept="image/*" disabled={uploading} onChange={(e)=>uploadOneImage(e.target.files?.[0], setStoryCoverImage)} className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-700" />
+                      {storyCoverImage && <p className="mt-2 text-xs text-gray-500">{storyCoverImage.name ?? "Cover image uploaded"}</p>}
+                    </div>
+                  </div>
+                )}
+
+                {contentType === "video" && (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div><Label>Video Title *</Label><Input className="mt-1" value={video.title} onChange={(e)=>setVideo((p)=>({...p,title:e.target.value}))} /></div>
+                    <div><Label>Duration *</Label><Input className="mt-1" placeholder="e.g. 3m 20s" value={video.duration} onChange={(e)=>setVideo((p)=>({...p,duration:e.target.value}))} /></div>
+                    <div><Label>Video Type *</Label><select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={video.videoType} onChange={(e)=>setVideo((p)=>({...p,videoType:e.target.value}))}>{VIDEO_TYPES.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
+                    <div>
+                      <DatePicker
+                        id="media-video-released-date"
+                        label="Released Date"
+                        value={video.releasedDate}
+                        onChange={(nextDate) => setVideo((p) => ({ ...p, releasedDate: nextDate }))}
+                      />
+                    </div>
+                    <div><Label>Language *</Label><select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={video.language} onChange={(e)=>setVideo((p)=>({...p,language:e.target.value}))}>{LANGUAGES.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
+                    <div><Label>Aspect Ratio *</Label><select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={video.aspectRatio} onChange={(e)=>setVideo((p)=>({...p,aspectRatio:e.target.value}))}>{ASPECT_RATIOS.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
+                    <div className="sm:col-span-2"><Label>YouTube Link *</Label><Input className="mt-1" value={video.youtubeLink} onChange={(e)=>setVideo((p)=>({...p,youtubeLink:e.target.value}))} placeholder="https://youtube.com/..." /></div>
+                    <div className="sm:col-span-2">
+                      <Label>Synopsis (optional)</Label>
+                      <ResourceDescriptionQuill
+                        value={video.synopsis}
+                        onChange={(html) => setVideo((p) => ({ ...p, synopsis: html }))}
+                        placeholder="Enter synopsis"
+                        className={richTextEditorClass}
+                      />
+                    </div>
+                    <div><Label>Theme *</Label><select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={video.theme} onChange={(e)=>setVideo((p)=>({...p,theme:e.target.value}))}>{THEMES.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
+                    <div className="sm:col-span-2"><TagsSelect label="Tags" value={videoTags} onChange={setVideoTags} placeholder="Add tags" /></div>
+                    <div className="sm:col-span-2">
+                      <Label>Thumbnail *</Label>
+                      <input type="file" accept="image/*" disabled={uploading} onChange={(e)=>uploadOneImage(e.target.files?.[0], setVideoThumbnail)} className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-700" />
+                      {videoThumbnail && <p className="mt-2 text-xs text-gray-500">{videoThumbnail.name ?? "Thumbnail uploaded"}</p>}
+                    </div>
+                  </div>
+                )}
+
+                <div className="border-t border-gray-200 pt-4 dark:border-gray-700">
+                  <TagsSelect label="Common tags (optional)" value={commonTags} onChange={setCommonTags} placeholder="Add tags for all media types" />
+                </div>
               </div>
-              
-              {uploading && <p className="mt-2 text-xs text-gray-500">Uploading files...</p>}
-              
-              {files.length > 0 && (
-                <div className="mt-4">
-                  <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Uploaded Files ({files.length})
-                  </h5>
-                  <ul className="space-y-2">
-                    {files.map((f, i) => (
-                      <li
-                        key={i}
-                        className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800/50"
-                      >
-                        <span className="flex min-w-0 flex-1 items-center gap-3">
-                          {(contentType === "pictures" || contentType === "picture_story") && (
-                            <img src={f.url} alt="" className="h-10 w-10 shrink-0 rounded object-cover" />
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <a 
-                              href={f.url} 
-                              target="_blank" 
-                              rel="noopener noreferrer" 
-                              className="truncate text-sm font-medium text-brand-500 hover:text-brand-600 block"
-                            >
-                              {f.name ?? `${contentType} file`}
-                            </a>
-                            {contentType === "picture_story" && (
-                              <p className="text-xs text-gray-500">Image {i + 1}</p>
-                            )}
-                          </div>
-                          <Badge color="info" size="sm">
-                            {contentType === "pictures" || contentType === "picture_story" ? "Image" : contentType}
-                          </Badge>
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => removeFile(i)}
-                          className="shrink-0 rounded p-1.5 text-gray-500 hover:bg-gray-100 hover:text-error-500 dark:hover:bg-gray-700"
-                          aria-label="Remove"
-                        >
-                          <TrashBinIcon className="size-4" />
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
-
-          <div className="flex flex-wrap gap-3 border-t border-gray-200 pt-6 dark:border-gray-800">
-            <Button type="submit" size="sm" disabled={submitting || uploading}>
-              {submitting ? "Submitting..." : "Submit request"}
-            </Button>
-            <Button type="button" variant="outline" size="sm" onClick={() => router.push("/organizer/media")}>
-              Cancel
-            </Button>
+            </ComponentCard>
           </div>
-        </form>
-      </ComponentCard>
+        </div>
+
+        <div className="flex flex-wrap gap-3 rounded-2xl border border-gray-200 bg-white px-6 py-5 dark:border-gray-800 dark:bg-white/[0.03]">
+          <Button type="submit" size="sm" disabled={loadingExisting || submitting || uploading}>
+            {submitting ? "Submitting..." : primaryActionLabel}
+          </Button>
+          <Button type="button" variant="outline" size="sm" onClick={() => router.push("/organizer/media")}>
+            Cancel
+          </Button>
+        </div>
+      </form>
     </div>
   );
 }

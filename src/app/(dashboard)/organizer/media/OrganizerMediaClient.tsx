@@ -9,7 +9,16 @@ import Badge from "@/components/ui/badge/Badge";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 import PlusActionLink from "@/components/common/PlusActionLink";
 
-type Item = { _id: string; name: string; description: string; status: string; adminReason?: string; createdAt: string };
+type Item = {
+  _id: string;
+  name: string;
+  description: string;
+  status: string;
+  visibilityStatus?: "draft" | "published" | "archived";
+  contentType?: "artwork" | "story_poem" | "video" | string;
+  adminReason?: string;
+  createdAt: string;
+};
 
 export default function OrganizerMediaClient() {
   const [list, setList] = useState<Item[]>([]);
@@ -30,10 +39,19 @@ export default function OrganizerMediaClient() {
     load();
   }, []);
 
-  const statusBadge = (s: string) => {
-    if (s === "pending") return <Badge color="warning">Pending</Badge>;
-    if (s === "approved") return <Badge color="success">Approved</Badge>;
+  const statusBadge = (row: Item) => {
+    if (row.visibilityStatus === "draft") return <Badge color="info">Draft</Badge>;
+    if (row.visibilityStatus === "archived") return <Badge color="warning">Archived</Badge>;
+    if (row.status === "pending") return <Badge color="warning">Pending</Badge>;
+    if (row.status === "approved") return <Badge color="success">Approved</Badge>;
     return <Badge color="error">Denied</Badge>;
+  };
+
+  const contentTypeLabel = (row: Item) => {
+    if (row.contentType === "artwork") return "Artwork";
+    if (row.contentType === "story_poem") return "Story / Poem";
+    if (row.contentType === "video") return "Video";
+    return "Media";
   };
 
   return (
@@ -55,6 +73,7 @@ export default function OrganizerMediaClient() {
                   <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Status</TableCell>
                   <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Admin message</TableCell>
                   <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Date</TableCell>
+                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Actions</TableCell>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -69,23 +88,11 @@ export default function OrganizerMediaClient() {
                       </Link>
                     </TableCell>
                     <TableCell className="py-4">
-                      <Badge 
-                        color={
-                          (row as any).contentType === "article" || (row as any).contentType === "poem" ? "info" :
-                          (row as any).contentType === "video" ? "success" :
-                          (row as any).contentType === "audio" ? "warning" :
-                          "info"
-                        }
-                        size="sm"
-                      >
-                        {(row as any).contentType ? 
-                          ((row as any).contentType === "picture_story" ? "Picture Story" : 
-                           (row as any).contentType.charAt(0).toUpperCase() + (row as any).contentType.slice(1)) :
-                          "Media"
-                        }
+                      <Badge color={row.contentType === "video" ? "success" : "info"} size="sm">
+                        {contentTypeLabel(row)}
                       </Badge>
                     </TableCell>
-                    <TableCell className="py-4">{statusBadge(row.status)}</TableCell>
+                    <TableCell className="py-4">{statusBadge(row)}</TableCell>
                     <TableCell className="py-4 max-w-[280px] text-sm text-gray-600 dark:text-gray-400">
                       {row.status === "denied" && row.adminReason ? (
                         <span className="block" title={row.adminReason}>{row.adminReason}</span>
@@ -95,6 +102,16 @@ export default function OrganizerMediaClient() {
                     </TableCell>
                     <TableCell className="py-4 text-gray-600 dark:text-gray-400">
                       {new Date(row.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="py-4">
+                      {row.visibilityStatus === "draft" && (
+                        <Link
+                          href={`/organizer/media/new?edit=${row._id}`}
+                          className="inline-flex rounded-md border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50 hover:text-brand-600 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700"
+                        >
+                          Edit
+                        </Link>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

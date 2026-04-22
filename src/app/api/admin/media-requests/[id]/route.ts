@@ -71,6 +71,13 @@ export async function PATCH(
       await Media.create({
         name: request.name,
         description: request.description,
+        contentType: request.contentType,
+        visibilityStatus: request.visibilityStatus ?? "published",
+        tags: request.tags ?? [],
+        childInfo: request.childInfo,
+        artwork: request.artwork,
+        storyPoem: request.storyPoem,
+        video: request.video,
         files: request.files ?? [],
         organizationId: request.organizationId,
       });

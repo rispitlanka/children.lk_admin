@@ -284,6 +284,193 @@ const OPERATION_OVERRIDES: Record<string, Partial<Record<Lowercase<HttpMethod>, 
       ),
     },
   },
+  "/api/organizer/resource-requests/{id}": {
+    patch: {
+      summary: "Update organizer resource request (draft/archived)",
+      requestBody: buildRequestBody(
+        {
+          name: { type: "string" },
+          description: { type: "string", description: "HTML rich text" },
+          publicationDate: { type: "string", format: "date" },
+          picture: { type: "string", format: "uri" },
+          picturePublicId: { type: "string" },
+          documents: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                url: { type: "string", format: "uri" },
+                publicId: { type: "string" },
+                type: { type: "string" },
+                name: { type: "string" },
+                fileFormat: { type: "string" },
+                languages: { type: "array", items: { type: "string" } },
+                fileSizeBytes: { type: "number" },
+                isPrimary: { type: "boolean" },
+              },
+            },
+          },
+          tags: { type: "array", items: { type: "string" } },
+          categoryId: { type: "string" },
+          subCategoryId: { type: "string" },
+          contentType: { type: "string" },
+          ageAudienceGroups: { type: "array", items: { type: "string" } },
+          mainPublisherName: { type: "string" },
+          hasCoPublishers: { type: "boolean" },
+          coPublisherOrganizationIds: { type: "array", items: { type: "string" } },
+          rightsNotice: { type: "string" },
+          externalDownloadUrl: { type: "string", format: "uri" },
+          countries: { type: "array", items: { type: "string" } },
+          regions: { type: "array", items: { type: "string" } },
+          visibilityStatus: { type: "string", enum: ["draft", "published", "archived"] },
+          contentPublishedAt: { type: "string", format: "date" },
+          featured: { type: "boolean" },
+          slug: { type: "string" },
+        },
+        ["name", "description", "categoryId", "subCategoryId", "contentType", "ageAudienceGroups", "mainPublisherName", "documents"],
+      ),
+    },
+  },
+  "/api/organizer/media-requests": {
+    get: {
+      summary: "List organizer media requests",
+    },
+    post: {
+      summary: "Create organizer media request",
+      requestBody: buildRequestBody(
+        {
+          contentType: { type: "string", enum: ["artwork", "story_poem", "video"] },
+          visibilityStatus: { type: "string", enum: ["draft", "published", "archived"] },
+          childInfo: {
+            type: "object",
+            properties: {
+              fullName: { type: "string" },
+              age: { type: "string" },
+              gender: { type: "string" },
+              city: { type: "string" },
+              country: { type: "string" },
+            },
+          },
+          guardianContact: {
+            type: "object",
+            properties: {
+              guardianName: { type: "string" },
+              phone: { type: "string" },
+              relationshipToChild: { type: "string" },
+            },
+          },
+          tags: { type: "array", items: { type: "string" } },
+          artwork: {
+            type: "object",
+            properties: {
+              title: { type: "string" },
+              description: { type: "string", description: "HTML rich text" },
+              medium: { type: "string" },
+              dateCreated: { type: "string", format: "date" },
+              theme: { type: "string" },
+              tags: { type: "array", items: { type: "string" } },
+              artwork: {
+                type: "object",
+                properties: {
+                  url: { type: "string", format: "uri" },
+                  publicId: { type: "string" },
+                  type: { type: "string", enum: ["image"] },
+                  name: { type: "string" },
+                },
+              },
+            },
+          },
+          storyPoem: {
+            type: "object",
+            properties: {
+              title: { type: "string" },
+              writtenWorkType: { type: "string" },
+              language: { type: "string" },
+              dateWritten: { type: "string", format: "date" },
+              article: { type: "string", description: "HTML rich text" },
+              theme: { type: "string" },
+              tags: { type: "array", items: { type: "string" } },
+              coverImage: {
+                type: "object",
+                properties: {
+                  url: { type: "string", format: "uri" },
+                  publicId: { type: "string" },
+                  type: { type: "string", enum: ["image"] },
+                  name: { type: "string" },
+                },
+              },
+            },
+          },
+          video: {
+            type: "object",
+            properties: {
+              title: { type: "string" },
+              videoType: { type: "string" },
+              duration: { type: "string" },
+              releasedDate: { type: "string", format: "date" },
+              language: { type: "string" },
+              aspectRatio: { type: "string" },
+              synopsis: { type: "string", description: "HTML rich text" },
+              youtubeLink: { type: "string", format: "uri" },
+              theme: { type: "string" },
+              tags: { type: "array", items: { type: "string" } },
+              thumbnail: {
+                type: "object",
+                properties: {
+                  url: { type: "string", format: "uri" },
+                  publicId: { type: "string" },
+                  type: { type: "string", enum: ["image"] },
+                  name: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+        ["contentType", "childInfo", "guardianContact"],
+      ),
+    },
+  },
+  "/api/organizer/media-requests/{id}": {
+    get: {
+      summary: "Get organizer media request by ID",
+    },
+    patch: {
+      summary: "Update organizer media request (draft/archived)",
+      requestBody: buildRequestBody(
+        {
+          contentType: { type: "string", enum: ["artwork", "story_poem", "video"] },
+          visibilityStatus: { type: "string", enum: ["draft", "published", "archived"] },
+          childInfo: { type: "object" },
+          guardianContact: { type: "object" },
+          tags: { type: "array", items: { type: "string" } },
+          artwork: { type: "object" },
+          storyPoem: { type: "object" },
+          video: { type: "object" },
+        },
+        ["contentType", "childInfo", "guardianContact"],
+      ),
+    },
+  },
+  "/api/admin/media-requests": {
+    get: {
+      summary: "List media requests for admin review",
+    },
+  },
+  "/api/admin/media-requests/{id}": {
+    get: {
+      summary: "Get media request detail for admin",
+    },
+    patch: {
+      summary: "Approve or deny media request",
+      requestBody: buildRequestBody(
+        {
+          status: { type: "string", enum: ["approved", "denied"] },
+          adminReason: { type: "string" },
+        },
+        ["status"],
+      ),
+    },
+  },
   "/api/public/events": {
     get: {
       summary: "List public events",

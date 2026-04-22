@@ -11,6 +11,7 @@ import TextArea from "@/components/form/input/TextArea";
 import LoadingLottie from "@/components/common/LoadingLottie";
 import toast from "react-hot-toast";
 import Badge from "@/components/ui/badge/Badge";
+import { isRichTextEmpty, sanitizeRichTextHtml } from "@/lib/rich-text";
 
 type MediaFile = { url: string; publicId: string; type: "video" | "audio" | "image"; name?: string };
 
@@ -18,6 +19,53 @@ type MediaRequestDetail = {
   _id: string;
   name: string;
   description: string;
+  contentType: "artwork" | "story_poem" | "video" | string;
+  visibilityStatus?: "draft" | "published" | "archived";
+  tags?: string[];
+  childInfo?: {
+    fullName?: string;
+    age?: string;
+    gender?: string;
+    city?: string;
+    country?: string;
+  };
+  guardianContact?: {
+    guardianName?: string;
+    phone?: string;
+    relationshipToChild?: string;
+  };
+  artwork?: {
+    title?: string;
+    description?: string;
+    medium?: string;
+    dateCreated?: string;
+    theme?: string;
+    tags?: string[];
+    artwork?: MediaFile;
+  };
+  storyPoem?: {
+    title?: string;
+    writtenWorkType?: string;
+    language?: string;
+    dateWritten?: string;
+    article?: string;
+    theme?: string;
+    tags?: string[];
+    coverImage?: MediaFile;
+  };
+  video?: {
+    title?: string;
+    videoType?: string;
+    duration?: string;
+    releasedDate?: string;
+    language?: string;
+    aspectRatio?: string;
+    synopsis?: string;
+    youtubeLink?: string;
+    thumbnail?: MediaFile;
+    theme?: string;
+    tags?: string[];
+  };
   files: MediaFile[];
   organizationId?: { name: string; contactEmail?: string; contactPhone?: string };
   status: string;
@@ -25,6 +73,26 @@ type MediaRequestDetail = {
   reviewedAt?: string;
   createdAt: string;
 };
+
+function renderRichHtml(value?: string) {
+  const html = value ?? "";
+  if (isRichTextEmpty(html)) {
+    return <p className="text-sm text-gray-500 dark:text-gray-400">—</p>;
+  }
+  return (
+    <div
+      className="prose prose-sm max-w-none text-gray-800 dark:prose-invert dark:text-gray-200"
+      dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(html) }}
+    />
+  );
+}
+
+function mediaTypeLabel(contentType?: string) {
+  if (contentType === "artwork") return "Artwork";
+  if (contentType === "story_poem") return "Story / Poem";
+  if (contentType === "video") return "Video";
+  return "Media";
+}
 
 export default function MediaRequestDetailClient() {
   const params = useParams();
@@ -109,7 +177,9 @@ export default function MediaRequestDetailClient() {
     setSubmitting(false);
   };
 
-  const statusBadge = (status: string) => {
+  const statusBadge = (status: string, visibilityStatus?: string) => {
+    if (visibilityStatus === "draft") return <Badge color="info">Draft</Badge>;
+    if (visibilityStatus === "archived") return <Badge color="warning">Archived</Badge>;
     if (status === "pending") return <Badge color="warning">Pending</Badge>;
     if (status === "approved") return <Badge color="success">Approved</Badge>;
     return <Badge color="error">Denied</Badge>;
@@ -145,7 +215,8 @@ export default function MediaRequestDetailClient() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <PageBreadcrumb pageTitle={request.name} />
         <div className="flex items-center gap-2">
-          {statusBadge(request.status)}
+          {statusBadge(request.status, request.visibilityStatus)}
+          <Badge color="info">{mediaTypeLabel(request.contentType)}</Badge>
           <Link href="/admin/media-requests">
             <Button size="sm" variant="outline">Back to list</Button>
           </Link>
@@ -158,7 +229,7 @@ export default function MediaRequestDetailClient() {
             <div className="space-y-4">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Description</p>
-                <p className="mt-1 text-gray-800 dark:text-white/90">{request.description}</p>
+                <div className="mt-1">{renderRichHtml(request.description)}</div>
               </div>
               <div className="flex flex-wrap gap-4 border-t border-gray-200 pt-4 dark:border-gray-800">
                 <div>
@@ -175,12 +246,102 @@ export default function MediaRequestDetailClient() {
             </div>
           </ComponentCard>
 
-          {request.files?.length > 0 && (
-            <ComponentCard title="Media files">
-              <div className="grid gap-4 sm:grid-cols-2">
-                {request.files.map((file, i) => (
-                  <MediaFilePreview key={i} file={file} />
-                ))}
+          <ComponentCard title="Children Information">
+            <dl className="grid gap-3 sm:grid-cols-2 text-sm">
+              <div><dt className="text-gray-500">Full Name</dt><dd>{request.childInfo?.fullName || "—"}</dd></div>
+              <div><dt className="text-gray-500">Age</dt><dd>{request.childInfo?.age || "—"}</dd></div>
+              <div><dt className="text-gray-500">Gender</dt><dd>{request.childInfo?.gender || "—"}</dd></div>
+              <div><dt className="text-gray-500">City</dt><dd>{request.childInfo?.city || "—"}</dd></div>
+              <div><dt className="text-gray-500">Country</dt><dd>{request.childInfo?.country || "—"}</dd></div>
+            </dl>
+          </ComponentCard>
+
+          <ComponentCard title="Guardian Contact (private)">
+            <dl className="grid gap-3 sm:grid-cols-2 text-sm">
+              <div><dt className="text-gray-500">Guardian Name</dt><dd>{request.guardianContact?.guardianName || "—"}</dd></div>
+              <div><dt className="text-gray-500">Phone</dt><dd>{request.guardianContact?.phone || "—"}</dd></div>
+              <div><dt className="text-gray-500">Relationship</dt><dd>{request.guardianContact?.relationshipToChild || "—"}</dd></div>
+            </dl>
+          </ComponentCard>
+
+          {request.contentType === "artwork" && request.artwork && (
+            <ComponentCard title="Artwork Details">
+              <div className="space-y-4">
+                <dl className="grid gap-3 sm:grid-cols-2 text-sm">
+                  <div><dt className="text-gray-500">Title</dt><dd>{request.artwork.title || "—"}</dd></div>
+                  <div><dt className="text-gray-500">Medium</dt><dd>{request.artwork.medium || "—"}</dd></div>
+                  <div><dt className="text-gray-500">Date Created</dt><dd>{request.artwork.dateCreated ? new Date(request.artwork.dateCreated).toLocaleDateString() : "—"}</dd></div>
+                  <div><dt className="text-gray-500">Theme</dt><dd>{request.artwork.theme || "—"}</dd></div>
+                </dl>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Description</p>
+                  <div className="mt-1">{renderRichHtml(request.artwork.description)}</div>
+                </div>
+                {request.artwork.tags && request.artwork.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {request.artwork.tags.map((tag) => <Badge key={tag} color="light">{tag}</Badge>)}
+                  </div>
+                )}
+                {request.artwork.artwork && <MediaFilePreview file={request.artwork.artwork} />}
+              </div>
+            </ComponentCard>
+          )}
+
+          {request.contentType === "story_poem" && request.storyPoem && (
+            <ComponentCard title="Story / Poem Details">
+              <div className="space-y-4">
+                <dl className="grid gap-3 sm:grid-cols-2 text-sm">
+                  <div><dt className="text-gray-500">Title</dt><dd>{request.storyPoem.title || "—"}</dd></div>
+                  <div><dt className="text-gray-500">Written Work Type</dt><dd>{request.storyPoem.writtenWorkType || "—"}</dd></div>
+                  <div><dt className="text-gray-500">Language</dt><dd>{request.storyPoem.language || "—"}</dd></div>
+                  <div><dt className="text-gray-500">Date Written</dt><dd>{request.storyPoem.dateWritten ? new Date(request.storyPoem.dateWritten).toLocaleDateString() : "—"}</dd></div>
+                  <div><dt className="text-gray-500">Theme</dt><dd>{request.storyPoem.theme || "—"}</dd></div>
+                </dl>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Article</p>
+                  <div className="mt-1">{renderRichHtml(request.storyPoem.article)}</div>
+                </div>
+                {request.storyPoem.tags && request.storyPoem.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {request.storyPoem.tags.map((tag) => <Badge key={tag} color="light">{tag}</Badge>)}
+                  </div>
+                )}
+                {request.storyPoem.coverImage && <MediaFilePreview file={request.storyPoem.coverImage} />}
+              </div>
+            </ComponentCard>
+          )}
+
+          {request.contentType === "video" && request.video && (
+            <ComponentCard title="Video Details">
+              <div className="space-y-4">
+                <dl className="grid gap-3 sm:grid-cols-2 text-sm">
+                  <div><dt className="text-gray-500">Title</dt><dd>{request.video.title || "—"}</dd></div>
+                  <div><dt className="text-gray-500">Video Type</dt><dd>{request.video.videoType || "—"}</dd></div>
+                  <div><dt className="text-gray-500">Duration</dt><dd>{request.video.duration || "—"}</dd></div>
+                  <div><dt className="text-gray-500">Released Date</dt><dd>{request.video.releasedDate ? new Date(request.video.releasedDate).toLocaleDateString() : "—"}</dd></div>
+                  <div><dt className="text-gray-500">Language</dt><dd>{request.video.language || "—"}</dd></div>
+                  <div><dt className="text-gray-500">Aspect Ratio</dt><dd>{request.video.aspectRatio || "—"}</dd></div>
+                  <div className="sm:col-span-2"><dt className="text-gray-500">YouTube Link</dt><dd>{request.video.youtubeLink || "—"}</dd></div>
+                  <div><dt className="text-gray-500">Theme</dt><dd>{request.video.theme || "—"}</dd></div>
+                </dl>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Synopsis</p>
+                  <div className="mt-1">{renderRichHtml(request.video.synopsis)}</div>
+                </div>
+                {request.video.tags && request.video.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {request.video.tags.map((tag) => <Badge key={tag} color="light">{tag}</Badge>)}
+                  </div>
+                )}
+                {request.video.thumbnail && <MediaFilePreview file={request.video.thumbnail} />}
+              </div>
+            </ComponentCard>
+          )}
+
+          {request.tags && request.tags.length > 0 && (
+            <ComponentCard title="Common Tags">
+              <div className="flex flex-wrap gap-2">
+                {request.tags.map((tag) => <Badge key={tag} color="light">{tag}</Badge>)}
               </div>
             </ComponentCard>
           )}
@@ -266,27 +427,9 @@ function MediaFilePreview({ file }: { file: MediaFile }) {
       <div className="min-h-[120px] bg-gray-50 dark:bg-gray-900/50 flex items-center justify-center">
         {type === "image" && (
           <a href={file.url} target="_blank" rel="noopener noreferrer" className="block w-full focus:ring-2 focus:ring-brand-500 rounded-b-xl overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={file.url} alt={name} className="h-48 w-full object-cover hover:opacity-95 transition" />
           </a>
-        )}
-        {type === "video" && (
-          <div className="w-full p-2">
-            <video
-              src={file.url}
-              controls
-              className="w-full max-h-52 rounded-lg"
-              preload="metadata"
-            >
-              <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-brand-500 text-sm">Download video</a>
-            </video>
-          </div>
-        )}
-        {type === "audio" && (
-          <div className="w-full p-4">
-            <audio src={file.url} controls className="w-full">
-              <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-brand-500 text-sm">Download audio</a>
-            </audio>
-          </div>
         )}
       </div>
       <div className="border-t border-gray-200 px-4 py-2 dark:border-gray-800">

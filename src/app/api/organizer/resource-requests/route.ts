@@ -6,7 +6,6 @@ import { connectDB } from "@/lib/db";
 import { ensureTags } from "@/lib/tags";
 import { slugify } from "@/lib/slugify";
 import {
-  AGE_AUDIENCE_VALUES,
   FILE_FORMAT_VALUES,
   VISIBILITY_STATUS_VALUES,
 } from "@/lib/resource-form-constants";
@@ -134,8 +133,13 @@ export async function POST(req: Request) {
     }
     const normalizedContentType = contentType.trim();
 
-    const ageGroups = Array.isArray(ageAudienceGroups) ? ageAudienceGroups : [];
-    const ageOk = ageGroups.every((a: unknown) => typeof a === "string" && AGE_AUDIENCE_VALUES.includes(a as (typeof AGE_AUDIENCE_VALUES)[number]));
+    const ageGroups = Array.isArray(ageAudienceGroups)
+      ? ageAudienceGroups
+          .filter((a: unknown): a is string => typeof a === "string")
+          .map((a) => a.trim())
+          .filter((a) => a.length > 0)
+      : [];
+    const ageOk = ageGroups.length > 0;
     if (!ageOk || ageGroups.length === 0) {
       return NextResponse.json(
         { error: "Select at least one age group / audience" },
@@ -246,7 +250,7 @@ export async function POST(req: Request) {
       featured: Boolean(featured),
       slug,
       organizationId: user.organizationId,
-      status: "pending",
+      status: vis === "published" ? "pending" : "approved",
     });
     await ensureTags(tagList);
     return NextResponse.json({ success: true });

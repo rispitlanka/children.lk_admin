@@ -120,7 +120,9 @@ export default function ResourceViewClient() {
       .finally(() => setLoading(false));
   }, [params.id]);
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, visibilityStatus?: string) => {
+    if (visibilityStatus === "draft") return <Badge color="info">Draft</Badge>;
+    if (visibilityStatus === "archived") return <Badge color="warning">Archived</Badge>;
     if (status === "pending") return <Badge color="warning">Pending</Badge>;
     if (status === "approved") return <Badge color="success">Approved</Badge>;
     return <Badge color="error">Denied</Badge>;
@@ -176,7 +178,23 @@ export default function ResourceViewClient() {
     };
   };
 
-  const getStatusInfo = (status: string) => {
+  const getStatusInfo = (status: string, visibilityStatus?: string) => {
+    if (visibilityStatus === "draft") {
+      return {
+        icon: FileIcon,
+        color: "text-blue-600 dark:text-blue-400",
+        bgColor: "bg-blue-50 dark:bg-blue-500/10",
+        borderColor: "border-blue-200 dark:border-blue-500/20",
+      };
+    }
+    if (visibilityStatus === "archived") {
+      return {
+        icon: AlertIcon,
+        color: "text-gray-600 dark:text-gray-300",
+        bgColor: "bg-gray-50 dark:bg-gray-700/30",
+        borderColor: "border-gray-200 dark:border-gray-600/50",
+      };
+    }
     switch (status) {
       case "approved":
         return {
@@ -237,9 +255,16 @@ export default function ResourceViewClient() {
     <div>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <PageBreadcrumb pageTitle="Resource Details" />
-        <Button size="sm" variant="outline" onClick={() => router.push("/organizer/resources")}>
-          Back to Resources
-        </Button>
+        <div className="flex items-center gap-2">
+          {(resource.visibilityStatus === "draft" || resource.visibilityStatus === "archived") && (
+            <Link href={`/organizer/resources/new?edit=${resource._id}`}>
+              <Button size="sm">Edit</Button>
+            </Link>
+          )}
+          <Button size="sm" variant="outline" onClick={() => router.push("/organizer/resources")}>
+            Back to Resources
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-8">
@@ -252,7 +277,7 @@ export default function ResourceViewClient() {
               <div className="absolute bottom-6 left-6 right-6">
                 <h1 className="mb-2 text-3xl font-bold text-white">{resource.name}</h1>
                 <div className="flex flex-wrap items-center gap-3">
-                  {getStatusBadge(resource.status)}
+                  {getStatusBadge(resource.status, resource.visibilityStatus)}
                   {resource.featured && <Badge color="warning">Featured</Badge>}
                   <div className="flex items-center gap-1 text-white/90">
                     <CalenderIcon className="h-4 w-4" />
@@ -267,7 +292,7 @@ export default function ResourceViewClient() {
             <div className="mb-6 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 p-8 text-white">
               <h1 className="mb-3 text-3xl font-bold">{resource.name}</h1>
               <div className="flex flex-wrap items-center gap-3">
-                {getStatusBadge(resource.status)}
+                {getStatusBadge(resource.status, resource.visibilityStatus)}
                 {resource.featured && <Badge color="warning">Featured</Badge>}
                 <div className="flex items-center gap-1 text-white/90">
                   <CalenderIcon className="h-4 w-4" />
@@ -325,14 +350,14 @@ export default function ResourceViewClient() {
 
             {resource.status === "denied" && resource.adminReason && (
               <div
-                className={`rounded-xl border p-6 ${getStatusInfo(resource.status).bgColor} ${getStatusInfo(resource.status).borderColor}`}
+                className={`rounded-xl border p-6 ${getStatusInfo(resource.status, resource.visibilityStatus).bgColor} ${getStatusInfo(resource.status, resource.visibilityStatus).borderColor}`}
               >
                 <div className="flex items-start gap-3">
-                  <div className={`flex-shrink-0 ${getStatusInfo(resource.status).color}`}>
+                  <div className={`flex-shrink-0 ${getStatusInfo(resource.status, resource.visibilityStatus).color}`}>
                     <CloseLineIcon className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
-                    <h3 className={`mb-2 text-lg font-semibold ${getStatusInfo(resource.status).color}`}>
+                    <h3 className={`mb-2 text-lg font-semibold ${getStatusInfo(resource.status, resource.visibilityStatus).color}`}>
                       Admin feedback
                     </h3>
                     <p className="text-gray-800 dark:text-gray-200">{resource.adminReason}</p>
@@ -345,22 +370,30 @@ export default function ResourceViewClient() {
           <div className="space-y-6">
             <ComponentCard title="Review status">
               <div
-                className={`rounded-lg border p-4 ${getStatusInfo(resource.status).bgColor} ${getStatusInfo(resource.status).borderColor}`}
+                className={`rounded-lg border p-4 ${getStatusInfo(resource.status, resource.visibilityStatus).bgColor} ${getStatusInfo(resource.status, resource.visibilityStatus).borderColor}`}
               >
                 <div className="flex items-center gap-3">
-                  <div className={getStatusInfo(resource.status).color}>
-                    {React.createElement(getStatusInfo(resource.status).icon, { className: "h-6 w-6" })}
+                  <div className={getStatusInfo(resource.status, resource.visibilityStatus).color}>
+                    {React.createElement(getStatusInfo(resource.status, resource.visibilityStatus).icon, { className: "h-6 w-6" })}
                   </div>
                   <div>
-                    <p className={`font-semibold capitalize ${getStatusInfo(resource.status).color}`}>
-                      {resource.status}
+                    <p className={`font-semibold capitalize ${getStatusInfo(resource.status, resource.visibilityStatus).color}`}>
+                      {resource.visibilityStatus === "draft"
+                        ? "draft"
+                        : resource.visibilityStatus === "archived"
+                          ? "archived"
+                          : resource.status}
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {resource.status === "approved"
-                        ? "Approved by admin"
-                        : resource.status === "denied"
-                          ? "Not approved"
-                          : "Awaiting admin review"}
+                      {resource.visibilityStatus === "draft"
+                        ? "Saved as draft (not sent for admin review)"
+                        : resource.visibilityStatus === "archived"
+                          ? "Saved as archived (not sent for admin review)"
+                          : resource.status === "approved"
+                            ? "Approved by admin"
+                            : resource.status === "denied"
+                              ? "Not approved"
+                              : "Awaiting admin review"}
                     </p>
                   </div>
                 </div>
@@ -559,10 +592,10 @@ export default function ResourceViewClient() {
             {resource.updatedAt !== resource.createdAt && (
               <div className="relative flex items-start gap-4">
                 <div
-                  className={`flex h-8 w-8 items-center justify-center rounded-full ${getStatusInfo(resource.status).bgColor}`}
+                  className={`flex h-8 w-8 items-center justify-center rounded-full ${getStatusInfo(resource.status, resource.visibilityStatus).bgColor}`}
                 >
-                  {React.createElement(getStatusInfo(resource.status).icon, {
-                    className: `h-4 w-4 ${getStatusInfo(resource.status).color}`,
+                  {React.createElement(getStatusInfo(resource.status, resource.visibilityStatus).icon, {
+                    className: `h-4 w-4 ${getStatusInfo(resource.status, resource.visibilityStatus).color}`,
                   })}
                 </div>
                 <div className="min-w-0 flex-1">

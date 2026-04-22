@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import ComponentCard from "@/components/common/ComponentCard";
+import LoadingLottie from "@/components/common/LoadingLottie";
 import Button from "@/components/ui/button/Button";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
@@ -122,6 +123,9 @@ function toggleInList<T extends string>(list: T[], value: T): T[] {
 
 export default function AddResourceClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get("edit");
+  const isEditMode = Boolean(editId);
   const [taxonomy, setTaxonomy] = useState<TaxCat[]>([]);
   const [coOrgs, setCoOrgs] = useState<{ _id: string; name: string }[]>([]);
 
@@ -163,6 +167,7 @@ export default function AddResourceClient() {
   const [uploadingPicture, setUploadingPicture] = useState(false);
   const [uploadingDoc, setUploadingDoc] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [loadingExisting, setLoadingExisting] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -194,14 +199,114 @@ export default function AddResourceClient() {
         if (!cancelled && coRes.ok && coData.organizations) {
           setCoOrgs(coData.organizations);
         }
+        if (!cancelled && editId) {
+          setLoadingExisting(true);
+          const existingRes = await fetch(`/api/organizer/resource-requests/${editId}`);
+          const existingData = await existingRes.json();
+          if (!existingRes.ok || existingData?.error) {
+            throw new Error(existingData?.error ?? "Failed to load existing resource");
+          }
+          const categoryId =
+            typeof existingData.categoryId === "object"
+              ? String(existingData.categoryId?._id ?? "")
+              : String(existingData.categoryId ?? "");
+          const subCategoryId =
+            typeof existingData.subCategoryId === "object"
+              ? String(existingData.subCategoryId?._id ?? "")
+              : String(existingData.subCategoryId ?? "");
+          const documents = Array.isArray(existingData.documents) ? existingData.documents : [];
+          const primary = documents.find((d: { isPrimary?: boolean }) => d?.isPrimary) ?? documents[0];
+          setForm((f) => ({
+            ...f,
+            name: String(existingData.name ?? ""),
+            description: String(existingData.description ?? ""),
+            publicationDate: existingData.publicationDate ? String(existingData.publicationDate).slice(0, 10) : "",
+            picture: String(existingData.picture ?? ""),
+            picturePublicId: String(existingData.picturePublicId ?? ""),
+            categoryId: categoryId || f.categoryId,
+            subCategoryId: subCategoryId || f.subCategoryId,
+            contentType: String(existingData.contentType ?? ""),
+            mainPublisherName: String(existingData.mainPublisherName ?? f.mainPublisherName),
+            rightsNotice: String(existingData.rightsNotice ?? ""),
+            externalDownloadUrl: String(existingData.externalDownloadUrl ?? ""),
+            visibilityStatus:
+              VISIBILITY_STATUS_VALUES.includes(existingData.visibilityStatus as VisibilityStatusValue)
+                ? (existingData.visibilityStatus as VisibilityStatusValue)
+                : "draft",
+            contentPublishedAt: existingData.contentPublishedAt
+              ? String(existingData.contentPublishedAt).slice(0, 10)
+              : "",
+            slug: String(existingData.slug ?? ""),
+          }));
+          setSlugEditedManually(Boolean(String(existingData.slug ?? "").trim()));
+          setTags(Array.isArray(existingData.tags) ? existingData.tags.filter((t: unknown): t is string => typeof t === "string") : []);
+          setAgeAudienceGroups(
+            Array.isArray(existingData.ageAudienceGroups)
+              ? existingData.ageAudienceGroups.filter((x: unknown): x is string => typeof x === "string")
+              : []
+          );
+          setCountries(
+            Array.isArray(existingData.countries)
+              ? existingData.countries.filter((x: unknown): x is string => typeof x === "string")
+              : []
+          );
+          setRegions(
+            Array.isArray(existingData.regions)
+              ? existingData.regions.filter((x: unknown): x is string => typeof x === "string")
+              : []
+          );
+          setFeatured(Boolean(existingData.featured));
+          const coIds = Array.isArray(existingData.coPublisherOrganizationIds)
+            ? existingData.coPublisherOrganizationIds
+                .map((x: unknown) => (typeof x === "object" && x ? String((x as { _id?: string })._id ?? "") : String(x ?? "")))
+                .filter(Boolean)
+            : [];
+          setHasCoPublishers(Boolean(existingData.hasCoPublishers && coIds.length));
+          setCoPublisherIds(coIds);
+          if (primary) {
+            const fileFormat = (primary.fileFormat ?? "pdf") as FileFormatValue;
+            const languages = Array.isArray(primary.languages)
+              ? primary.languages.filter((x: unknown): x is string => typeof x === "string")
+              : ["en"];
+            setPrimaryFileFormat(FILE_FORMAT_VALUES.includes(fileFormat) ? fileFormat : "pdf");
+            setPrimaryLanguages(languages.length ? languages : ["en"]);
+            setPrimaryDoc({
+              url: String(primary.url ?? ""),
+              publicId: String(primary.publicId ?? ""),
+              type: getDocTypeFromFileFormat(FILE_FORMAT_VALUES.includes(fileFormat) ? fileFormat : "pdf"),
+              name: String(primary.name ?? ""),
+              fileFormat: FILE_FORMAT_VALUES.includes(fileFormat) ? fileFormat : "pdf",
+              languages: languages.length ? languages : ["en"],
+              fileSizeBytes: typeof primary.fileSizeBytes === "number" ? primary.fileSizeBytes : undefined,
+              isPrimary: true,
+            });
+          }
+          if (existingData.picture) {
+            setPicturePreview({
+              url: String(existingData.picture),
+              publicId: String(existingData.picturePublicId ?? ""),
+            });
+          }
+          if (
+            existingData.contentType &&
+            typeof existingData.contentType === "string" &&
+            !CONTENT_TYPE_VALUES.includes(existingData.contentType as ContentTypeValue)
+          ) {
+            setCustomContentTypes((prev) =>
+              prev.includes(existingData.contentType) ? prev : [...prev, existingData.contentType]
+            );
+          }
+          setLoadingExisting(false);
+        }
       } catch {
         if (!cancelled) toast.error("Failed to load form data");
+        if (!cancelled) setLoadingExisting(false);
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [editId]);
 
   const subOptions = useMemo(() => {
     const cat = taxonomy.find((c) => c._id === form.categoryId);
@@ -299,8 +404,10 @@ export default function AddResourceClient() {
           languages: langs,
         },
       ];
-      const res = await fetch("/api/organizer/resource-requests", {
-        method: "POST",
+      const res = await fetch(
+        editId ? `/api/organizer/resource-requests/${editId}` : "/api/organizer/resource-requests",
+        {
+        method: editId ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: form.name.trim(),
@@ -334,7 +441,19 @@ export default function AddResourceClient() {
         setSubmitting(false);
         return;
       }
-      toast.success("Resource request submitted");
+      toast.success(
+        form.visibilityStatus === "published"
+          ? editId
+            ? "Resource updated and submitted for review"
+            : "Resource request submitted"
+          : form.visibilityStatus === "archived"
+            ? editId
+              ? "Resource updated as archived"
+              : "Resource saved as archived"
+            : editId
+              ? "Resource updated as draft"
+              : "Resource saved as draft"
+      );
       router.push("/organizer/resources");
     } catch {
       setError("Something went wrong");
@@ -385,15 +504,32 @@ export default function AddResourceClient() {
   const customRegionsSelected = regions.filter(
     (v) => !REGION_OPTIONS.some((opt) => opt.value === v)
   );
+  const primaryActionLabel =
+    form.visibilityStatus === "published"
+      ? isEditMode
+        ? "Update and submit for review"
+        : "Submit request"
+      : form.visibilityStatus === "archived"
+        ? isEditMode
+          ? "Update archived"
+          : "Save as archived"
+        : isEditMode
+          ? "Update draft"
+          : "Save as draft";
 
   return (
     <div className="w-full space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <PageBreadcrumb pageTitle="Add Resource" />
+        <PageBreadcrumb pageTitle={isEditMode ? "Edit Resource" : "Add Resource"} />
         <Button size="sm" variant="outline" onClick={() => router.push("/organizer/resources")}>
           Back to Resources
         </Button>
       </div>
+      {loadingExisting && (
+        <ComponentCard title="Loading resource">
+          <LoadingLottie variant="block" />
+        </ComponentCard>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
@@ -949,8 +1085,8 @@ export default function AddResourceClient() {
         </div>
 
         <div className="flex flex-wrap gap-3 rounded-2xl border border-gray-200 bg-white px-6 py-5 dark:border-gray-800 dark:bg-white/[0.03]">
-          <Button type="submit" size="sm" disabled={submitting || uploadingPicture || uploadingDoc}>
-            {submitting ? "Submitting…" : "Submit request"}
+          <Button type="submit" size="sm" disabled={loadingExisting || submitting || uploadingPicture || uploadingDoc}>
+            {submitting ? "Submitting…" : primaryActionLabel}
           </Button>
           <Button type="button" variant="outline" size="sm" onClick={() => router.push("/organizer/resources")}>
             Cancel

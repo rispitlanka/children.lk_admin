@@ -52,9 +52,11 @@ export default function OrganizerResourcesClient() {
     load();
   }, []);
 
-  const statusBadge = (status: string) => {
-    if (status === "pending") return <Badge color="warning">Pending review</Badge>;
-    if (status === "approved") return <Badge color="success">Approved</Badge>;
+  const statusBadge = (row: Item) => {
+    if (row.visibilityStatus === "draft") return <Badge color="info">Draft</Badge>;
+    if (row.visibilityStatus === "archived") return <Badge color="warning">Archived</Badge>;
+    if (row.status === "pending") return <Badge color="warning">Pending review</Badge>;
+    if (row.status === "approved") return <Badge color="success">Approved</Badge>;
     return <Badge color="error">Denied</Badge>;
   };
 
@@ -132,7 +134,7 @@ export default function OrganizerResourcesClient() {
                     <TableCell className="py-4 text-sm text-gray-600 dark:text-gray-400">
                       {labelVisibility(row.visibilityStatus)}
                     </TableCell>
-                    <TableCell className="py-4">{statusBadge(row.status)}</TableCell>
+                    <TableCell className="py-4">{statusBadge(row)}</TableCell>
                     <TableCell className="py-4 max-w-[220px] text-sm text-gray-600 dark:text-gray-400">
                       {row.status === "denied" && row.adminReason ? (
                         <span className="block truncate" title={row.adminReason}>
@@ -146,14 +148,24 @@ export default function OrganizerResourcesClient() {
                       {new Date(row.createdAt).toLocaleDateString()}
                     </TableCell>
                     <TableCell className="py-4">
-                      <Link
-                        href={`/organizer/resources/${row._id}`}
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 transition hover:bg-gray-50 hover:text-brand-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-                        aria-label="View resource request"
-                        title="View"
-                      >
-                        <EyeIcon className="h-4 w-4" />
-                      </Link>
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={`/organizer/resources/${row._id}`}
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 transition hover:bg-gray-50 hover:text-brand-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                          aria-label="View resource request"
+                          title="View"
+                        >
+                          <EyeIcon className="h-4 w-4" />
+                        </Link>
+                        {(row.visibilityStatus === "draft" || row.visibilityStatus === "archived") && (
+                          <Link
+                            href={`/organizer/resources/new?edit=${row._id}`}
+                            className="inline-flex rounded-md border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50 hover:text-brand-600 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700"
+                          >
+                            Edit
+                          </Link>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

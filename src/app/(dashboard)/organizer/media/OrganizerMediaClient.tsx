@@ -8,7 +8,8 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import Badge from "@/components/ui/badge/Badge";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 import PlusActionLink from "@/components/common/PlusActionLink";
-
+import Button from "@/components/ui/button/Button";
+import { useRouter } from "next/navigation";
 type Item = {
   _id: string;
   name: string;
@@ -23,7 +24,7 @@ type Item = {
 export default function OrganizerMediaClient() {
   const [list, setList] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const router = useRouter();
   const load = () => {
     fetch("/api/organizer/media-requests")
       .then((res) => res.json())
@@ -58,7 +59,8 @@ export default function OrganizerMediaClient() {
     <div>
       <PageBreadcrumb pageTitle="Media" />
       <div className="mb-4 flex justify-end">
-        <PlusActionLink href="/organizer/media/new" label="Add Media" />
+        {/* <PlusActionLink href="/organizer/media/new" label="Add Media" /> */}
+        <Button onClick={() => router.push("/organizer/media/new")}>Add Media</Button>
       </div>
       <ComponentCard title="My media requests">
         {loading ? (

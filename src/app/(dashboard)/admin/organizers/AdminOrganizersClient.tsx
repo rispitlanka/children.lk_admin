@@ -14,7 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PlusIcon } from "@/icons";
-
+import { useRouter } from "next/navigation";
 type Organizer = {
   _id: string;
   name: string;
@@ -26,7 +26,7 @@ type Organizer = {
 export default function AdminOrganizersClient() {
   const [list, setList] = useState<Organizer[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const router = useRouter();
   const load = () => {
     fetch("/api/admin/organizers")
       .then((res) => res.json())
@@ -47,9 +47,10 @@ export default function AdminOrganizersClient() {
       <PageBreadcrumb pageTitle="Organizers" />
       <div className="mb-4 flex justify-end">
         <Link href="/admin/organizers/new">
-          <Button size="sm" startIcon={<PlusIcon className="size-5 shrink-0 block" />}>
+          {/* <Button size="sm" startIcon={<PlusIcon className="size-5 shrink-0 block" />}>
             Create Organizer
-          </Button>
+          </Button> */}
+          <Button onClick={() => router.push("/admin/organizers/new")}>Create Organizer</Button>
         </Link>
       </div>
       <ComponentCard title="Organizers">

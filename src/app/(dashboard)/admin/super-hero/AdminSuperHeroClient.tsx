@@ -17,7 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PencilIcon, TrashBinIcon } from "@/icons";
-
+import { useRouter } from "next/navigation";
 type SuperHeroItem = {
   _id: string;
   name: string;
@@ -34,7 +34,7 @@ export default function AdminSuperHeroClient() {
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
-
+  const router = useRouter();
   const load = () => {
     fetch("/api/admin/super-hero")
       .then((res) => res.json())
@@ -75,7 +75,8 @@ export default function AdminSuperHeroClient() {
     <div>
       <PageBreadcrumb pageTitle="Super Hero" />
       <div className="mb-4 flex justify-end">
-        <PlusActionLink href="/admin/super-hero/new" label="Add Super Hero" />
+        {/* <PlusActionLink href="/admin/super-hero/new" label="Add Super Hero" /> */}
+        <Button onClick={() => router.push("/admin/super-hero/new")}>Add Super Hero</Button>
       </div>
       <ComponentCard title="Super Heroes">
         {loading ? (

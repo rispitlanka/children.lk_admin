@@ -7,6 +7,8 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import Badge from "@/components/ui/badge/Badge";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 import PlusActionLink from "@/components/common/PlusActionLink";
+import Button from "@/components/ui/button/Button";
+import { useRouter } from "next/navigation";
 
 type Item = {
   _id: string;
@@ -22,7 +24,7 @@ type Item = {
 export default function OrganizerSuperHeroClient() {
   const [list, setList] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const router = useRouter();
   const load = () => {
     fetch("/api/organizer/super-hero-requests")
       .then((res) => res.json())
@@ -46,7 +48,8 @@ export default function OrganizerSuperHeroClient() {
     <div>
       <PageBreadcrumb pageTitle="Super Hero" />
       <div className="mb-4 flex justify-end">
-        <PlusActionLink href="/organizer/super-hero/new" label="Request Super Hero" />
+        {/* <PlusActionLink href="/organizer/super-hero/new" label="Request Super Hero" /> */}
+        <Button onClick={() => router.push("/organizer/super-hero/new")}>Request Super Hero</Button>
       </div>
       <ComponentCard title="My super hero requests">
         {loading ? <LoadingLottie variant="block" /> : (

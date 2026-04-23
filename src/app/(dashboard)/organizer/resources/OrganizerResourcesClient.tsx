@@ -16,7 +16,8 @@ import {
 import PlusActionLink from "@/components/common/PlusActionLink";
 import { EyeIcon } from "@/icons";
 import { labelContentType, labelVisibility, taxonomyLine } from "@/lib/resource-display";
-
+import Button from "@/components/ui/button/Button";
+import { useRouter } from "next/navigation";
 type PopulatedName = { _id?: string; name?: string };
 
 type Item = {
@@ -36,7 +37,7 @@ type Item = {
 export default function OrganizerResourcesClient() {
   const [list, setList] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const router = useRouter();
   const load = () => {
     fetch("/api/organizer/resource-requests")
       .then((res) => res.json())
@@ -70,7 +71,8 @@ export default function OrganizerResourcesClient() {
     <div>
       <PageBreadcrumb pageTitle="Resources" />
       <div className="mb-4 flex justify-end">
-        <PlusActionLink href="/organizer/resources/new" label="Add Resource" />
+        {/* <PlusActionLink href="/organizer/resources/new" label="Add Resource" /> */}
+        <Button onClick={() => router.push("/organizer/resources/new")}>Add Resource</Button>
       </div>
       <ComponentCard title="My resource requests">
         {loading ? (

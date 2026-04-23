@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/table";
 import Switch from "@/components/form/switch/Switch";
 import { PlusIcon, PencilIcon, TrashBinIcon } from "@/icons";
-
+import { useRouter } from "next/navigation";
 type AnnouncementItem = {
   _id: string;
   title: string;
@@ -33,7 +33,7 @@ export default function AdminAnnouncementsClient() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
-
+  const router = useRouter();
   const load = () => {
     fetch("/api/admin/announcements")
       .then((res) => res.json())
@@ -96,13 +96,7 @@ export default function AdminAnnouncementsClient() {
     <div>
       <PageBreadcrumb pageTitle="Announcements" />
       <div className="mb-4 flex justify-end">
-        <Link
-          href="/admin/announcements/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-3 text-sm font-medium text-white shadow-theme-xs transition hover:bg-brand-600"
-        >
-          <PlusIcon className="size-5 shrink-0 block" aria-hidden />
-          <span className="leading-none">Add Announcement</span>
-        </Link>
+        <Button onClick={() => router.push("/admin/announcements/new")}>Add Announcement</Button>
       </div>
       <ComponentCard title="Announcements">
         {loading ? (

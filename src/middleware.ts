@@ -13,7 +13,7 @@ function normalizeOrigin(value: string): string {
 }
 
 function getAllowedOrigins(): string[] {
-  const defaults = ["http://localhost:3000", "https://children-lk-v2.vercel.app"];
+  const defaults = ["http://localhost:3000", "https://children-lk-v2.vercel.app","https://www.children.lk"];
   const raw = process.env.CORS_ALLOWED_ORIGINS ?? defaults.join(",");
   return raw
     .split(",")

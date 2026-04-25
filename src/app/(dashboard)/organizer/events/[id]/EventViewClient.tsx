@@ -83,7 +83,8 @@ export default function EventViewClient() {
       month: 'long',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      timeZone: 'Asia/Colombo',
     });
   };
 
@@ -92,7 +93,8 @@ export default function EventViewClient() {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
+      timeZone: 'Asia/Colombo',
     });
   };
 

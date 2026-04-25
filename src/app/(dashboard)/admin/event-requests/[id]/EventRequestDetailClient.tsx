@@ -139,7 +139,7 @@ export default function EventRequestDetailClient() {
   const formatDate = (d: string) =>
     new Date(d).toLocaleDateString(undefined, { dateStyle: "medium" });
   const formatDateTime = (d: string) =>
-    new Date(d).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+    new Date(d).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Colombo" });
 
   if (loading) {
     return (

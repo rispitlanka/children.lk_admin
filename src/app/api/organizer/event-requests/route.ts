@@ -8,6 +8,9 @@ import { slugify } from "@/lib/slugify";
 import { User } from "@/models/User";
 import { EventRequest } from "@/models/EventRequest";
 import { Event } from "@/models/Event";
+import { fromZonedTime } from "date-fns-tz";
+
+const TZ = "Asia/Colombo";
 
 function buildEventLocationDisplay(name: string, address: string, contact: string): string {
   const bits = [
@@ -199,8 +202,8 @@ export async function POST(req: Request) {
       locationContact: locContact,
       locationLatitude: hasCoords ? lat : undefined,
       locationLongitude: hasCoords ? lng : undefined,
-      startDate: new Date(startDate),
-      endDate: endDate ? new Date(endDate) : undefined,
+      startDate: fromZonedTime(startDate, TZ),
+      endDate: endDate ? fromZonedTime(endDate, TZ) : undefined,
       description: desc.trim(),
       tags: tagList,
       pricingType: normalizedPricingType,

@@ -66,7 +66,7 @@ export default function OrganizerEventsClient() {
                         {row.name}
                       </Link>
                     </TableCell>
-                    <TableCell className="py-4 text-gray-600 dark:text-gray-400">{row.startDate ? new Date(row.startDate).toLocaleString() : "—"}</TableCell>
+                    <TableCell className="py-4 text-gray-600 dark:text-gray-400">{row.startDate ? new Date(row.startDate).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Colombo" }) : "—"}</TableCell>
                     <TableCell className="py-4">{statusBadge(row.status)}</TableCell>
                     <TableCell className="py-4 max-w-[280px] text-sm text-gray-600 dark:text-gray-400">
                       {row.status === "denied" && row.adminReason ? (

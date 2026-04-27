@@ -7,7 +7,7 @@ export async function GET() {
   try {
     await connectDB();
     const list = await Event.find({})
-      .populate("organizationId", "name","logo")
+      .populate("organizationId", "name logo")
       .sort({ startDate: 1 })
       .lean();
     return NextResponse.json(list);

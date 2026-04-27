@@ -59,6 +59,7 @@ export interface IMedia {
   };
   files: IMediaFile[];
   organizationId: mongoose.Types.ObjectId;
+  source?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -130,6 +131,7 @@ const MediaSchema = new Schema<IMedia>(
     },
     files: [MediaFileSchema],
     organizationId: { type: Schema.Types.ObjectId, ref: "Organization", required: true },
+    source: String,
   },
   { timestamps: true }
 );

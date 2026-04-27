@@ -114,9 +114,12 @@ export async function PATCH(
       return NextResponse.json({ error: "Child and guardian fields are required" }, { status: 400 });
     }
 
+    const source = typeof body.source === "string" && body.source.trim() ? body.source.trim() : undefined;
+
     const update: Record<string, unknown> = {
       contentType,
       visibilityStatus,
+      source,
       childInfo: {
         fullName: String(childInfo.fullName).trim(),
         age: String(childInfo.age).trim(),

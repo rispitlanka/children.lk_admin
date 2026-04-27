@@ -80,6 +80,7 @@ export async function PATCH(
         video: request.video,
         files: request.files ?? [],
         organizationId: request.organizationId,
+        source: request.source,
       });
     }
     await MediaRequest.updateOne(

@@ -67,6 +67,7 @@ export interface IMediaRequest {
   };
   files: IMediaFile[];
   organizationId: mongoose.Types.ObjectId;
+  source?: string;
   status: RequestStatus;
   adminReason?: string;
   reviewedAt?: Date;
@@ -152,6 +153,7 @@ const MediaRequestSchema = new Schema<IMediaRequest>(
     },
     files: [MediaFileSchema],
     organizationId: { type: Schema.Types.ObjectId, ref: "Organization", required: true },
+    source: String,
     status: { type: String, enum: ["pending", "approved", "denied"], default: "pending" },
     adminReason: String,
     reviewedAt: Date,

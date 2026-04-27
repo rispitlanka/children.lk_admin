@@ -53,6 +53,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
+    const source = typeof body.source === "string" && body.source.trim() ? body.source.trim() : undefined;
     const contentType = body.contentType as "artwork" | "story_poem" | "video" | undefined;
     const visibilityStatus = (body.visibilityStatus ?? "draft") as VisibilityStatus;
     if (!contentType || !["artwork", "story_poem", "video"].includes(contentType)) {
@@ -107,6 +108,7 @@ export async function POST(req: Request) {
         relationshipToChild: String(guardianContact.relationshipToChild).trim(),
       },
       organizationId: user.organizationId,
+      source,
       status: visibilityStatus === "published" ? "pending" : "approved",
       tags: cleanTags(body.tags),
     };

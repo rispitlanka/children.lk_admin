@@ -68,6 +68,7 @@ type MediaRequestDetail = {
   };
   files: MediaFile[];
   organizationId?: { name: string; contactEmail?: string; contactPhone?: string };
+  source?: string;
   status: string;
   adminReason?: string;
   reviewedAt?: string;
@@ -236,6 +237,12 @@ export default function MediaRequestDetailClient() {
                   <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Organization</p>
                   <p className="mt-1 font-medium text-gray-800 dark:text-white/90">{request.organizationId?.name ?? "—"}</p>
                 </div>
+                {request.source && (
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Source</p>
+                    <p className="mt-1 text-gray-800 dark:text-white/90">{request.source}</p>
+                  </div>
+                )}
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Submitted</p>
                   <p className="mt-1 text-gray-800 dark:text-white/90">

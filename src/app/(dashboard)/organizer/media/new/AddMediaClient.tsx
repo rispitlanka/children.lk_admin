@@ -125,6 +125,7 @@ export default function AddMediaClient() {
     theme: THEMES[0],
   });
 
+  const [source, setSource] = useState("");
   const [commonTags, setCommonTags] = useState<string[]>([]);
   const [artworkTags, setArtworkTags] = useState<string[]>([]);
   const [storyPoemTags, setStoryPoemTags] = useState<string[]>([]);
@@ -172,6 +173,7 @@ export default function AddMediaClient() {
           phone: data.guardianContact?.phone ?? "",
           relationshipToChild: data.guardianContact?.relationshipToChild ?? "",
         });
+        setSource(data.source ?? "");
         setCommonTags(Array.isArray(data.tags) ? data.tags : []);
         if (data.artwork) {
           setArtwork({
@@ -298,6 +300,7 @@ export default function AddMediaClient() {
       childInfo,
       guardianContact,
       tags: commonTags,
+      source: source.trim() || undefined,
     };
 
     if (contentType === "artwork") {
@@ -433,6 +436,15 @@ export default function AddMediaClient() {
                       ? `${selectedTypeLabel} will be sent for admin review.`
                       : `${selectedTypeLabel} will be saved without admin review.`}
                   </p>
+                </div>
+                <div>
+                  <Label>Source</Label>
+                  <Input
+                    className="mt-1"
+                    value={source}
+                    onChange={(e) => setSource(e.target.value)}
+                    placeholder="Source of the media"
+                  />
                 </div>
               </div>
             </ComponentCard>

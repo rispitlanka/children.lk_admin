@@ -13,6 +13,12 @@ function parseDateOrUndefined(value: unknown): Date | undefined {
   return Number.isNaN(d.getTime()) ? undefined : d;
 }
 
+function isFutureDate(d: Date): boolean {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return d > today;
+}
+
 function cleanTags(tags: unknown): string[] {
   if (!Array.isArray(tags)) return [];
   return tags
@@ -155,6 +161,10 @@ export async function PATCH(
       ) {
         return NextResponse.json({ error: "Artwork fields are required" }, { status: 400 });
       }
+      const dateCreated = parseDateOrUndefined(artwork.dateCreated);
+      if (dateCreated && isFutureDate(dateCreated)) {
+        return NextResponse.json({ error: "Date Created cannot be a future date" }, { status: 400 });
+      }
       const file = {
         url: String(artwork.artwork.url),
         publicId: String(artwork.artwork.publicId),
@@ -168,7 +178,7 @@ export async function PATCH(
         title: String(artwork.title).trim(),
         description: String(artwork.description).trim(),
         medium: String(artwork.medium).trim(),
-        dateCreated: parseDateOrUndefined(artwork.dateCreated),
+        dateCreated,
         theme: String(artwork.theme).trim(),
         tags: cleanTags(artwork.tags),
         artwork: file,
@@ -183,6 +193,10 @@ export async function PATCH(
         !storyPoem.theme?.trim()
       ) {
         return NextResponse.json({ error: "Story/Poem fields are required" }, { status: 400 });
+      }
+      const dateWritten = parseDateOrUndefined(storyPoem.dateWritten);
+      if (dateWritten && isFutureDate(dateWritten)) {
+        return NextResponse.json({ error: "Date Written cannot be a future date" }, { status: 400 });
       }
       const cover =
         storyPoem.coverImage?.url && storyPoem.coverImage?.publicId
@@ -200,7 +214,7 @@ export async function PATCH(
         title: String(storyPoem.title).trim(),
         writtenWorkType: String(storyPoem.writtenWorkType).trim(),
         language: String(storyPoem.language).trim(),
-        dateWritten: parseDateOrUndefined(storyPoem.dateWritten),
+        dateWritten,
         article: String(storyPoem.article).trim(),
         theme: String(storyPoem.theme).trim(),
         tags: cleanTags(storyPoem.tags),
@@ -221,6 +235,10 @@ export async function PATCH(
       ) {
         return NextResponse.json({ error: "Video fields are required" }, { status: 400 });
       }
+      const releasedDate = parseDateOrUndefined(video.releasedDate);
+      if (releasedDate && isFutureDate(releasedDate)) {
+        return NextResponse.json({ error: "Released Date cannot be a future date" }, { status: 400 });
+      }
       const file = {
         url: String(video.thumbnail.url),
         publicId: String(video.thumbnail.publicId),
@@ -234,7 +252,7 @@ export async function PATCH(
         title: String(video.title).trim(),
         videoType: String(video.videoType).trim(),
         duration: String(video.duration).trim(),
-        releasedDate: parseDateOrUndefined(video.releasedDate),
+        releasedDate,
         language: String(video.language).trim(),
         aspectRatio: String(video.aspectRatio).trim(),
         synopsis: typeof video.synopsis === "string" ? video.synopsis.trim() : undefined,

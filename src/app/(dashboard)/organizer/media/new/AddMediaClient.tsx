@@ -303,9 +303,16 @@ export default function AddMediaClient() {
       source: source.trim() || undefined,
     };
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     if (contentType === "artwork") {
       if (!artwork.title.trim() || !artwork.description.trim() || !artworkFile) {
         setError("Artwork title, description, and artwork image are required");
+        return;
+      }
+      if (artwork.dateCreated && new Date(artwork.dateCreated) > today) {
+        setError("Date Created cannot be a future date");
         return;
       }
       payload.artwork = {
@@ -319,6 +326,10 @@ export default function AddMediaClient() {
         setError("Story/Poem title and article are required");
         return;
       }
+      if (storyPoem.dateWritten && new Date(storyPoem.dateWritten) > today) {
+        setError("Date Written cannot be a future date");
+        return;
+      }
       payload.storyPoem = {
         ...storyPoem,
         dateWritten: storyPoem.dateWritten || undefined,
@@ -328,6 +339,10 @@ export default function AddMediaClient() {
     } else {
       if (!video.title.trim() || !video.youtubeLink.trim() || !videoThumbnail) {
         setError("Video title, YouTube link, and thumbnail are required");
+        return;
+      }
+      if (video.releasedDate && new Date(video.releasedDate) > today) {
+        setError("Released Date cannot be a future date");
         return;
       }
       payload.video = {
@@ -468,6 +483,7 @@ export default function AddMediaClient() {
                         id="media-artwork-date-created"
                         label="Date Created"
                         value={artwork.dateCreated}
+                        maxDate={new Date().toISOString().slice(0, 10)}
                         onChange={(nextDate) => setArtwork((p) => ({ ...p, dateCreated: nextDate }))}
                       />
                     </div>
@@ -499,6 +515,7 @@ export default function AddMediaClient() {
                         id="media-story-date-written"
                         label="Date Written"
                         value={storyPoem.dateWritten}
+                        maxDate={new Date().toISOString().slice(0, 10)}
                         onChange={(nextDate) => setStoryPoem((p) => ({ ...p, dateWritten: nextDate }))}
                       />
                     </div>
@@ -533,6 +550,7 @@ export default function AddMediaClient() {
                         id="media-video-released-date"
                         label="Released Date"
                         value={video.releasedDate}
+                        maxDate={new Date().toISOString().slice(0, 10)}
                         onChange={(nextDate) => setVideo((p) => ({ ...p, releasedDate: nextDate }))}
                       />
                     </div>

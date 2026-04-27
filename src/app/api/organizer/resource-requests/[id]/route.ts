@@ -187,9 +187,16 @@ export async function PATCH(
         isPrimary: Boolean(d.isPrimary),
       };
     });
+    const externalUrl = typeof externalDownloadUrl === "string" ? externalDownloadUrl.trim() : "";
     const primaryCount = normalizedDocs.filter((d) => d.isPrimary).length;
-    if (normalizedDocs.length === 0 || primaryCount !== 1) {
-      return NextResponse.json({ error: "Upload exactly one primary file" }, { status: 400 });
+    if (normalizedDocs.length === 0 && !externalUrl) {
+      return NextResponse.json(
+        { error: "Upload a file or provide an external download URL" },
+        { status: 400 }
+      );
+    }
+    if (normalizedDocs.length > 0 && primaryCount !== 1) {
+      return NextResponse.json({ error: "Exactly one primary file is required" }, { status: 400 });
     }
 
     const vis =
@@ -255,10 +262,7 @@ export async function PATCH(
         hasCoPublishers: hasSecondary,
         coPublisherOrganizationIds: hasSecondary ? coIds : [],
         rightsNotice: typeof rightsNotice === "string" ? rightsNotice.trim() : undefined,
-        externalDownloadUrl:
-          typeof externalDownloadUrl === "string" && externalDownloadUrl.trim()
-            ? externalDownloadUrl.trim()
-            : undefined,
+        externalDownloadUrl: externalUrl || undefined,
         countries: Array.isArray(countries) ? countries.filter((c): c is string => typeof c === "string") : [],
         regions: Array.isArray(regions) ? regions.filter((c): c is string => typeof c === "string") : [],
         visibilityStatus: vis,

@@ -160,6 +160,7 @@ export default function AddResourceClient() {
   const [featured, setFeatured] = useState(false);
 
   const [picturePreview, setPicturePreview] = useState<{ url: string; publicId: string } | null>(null);
+  const [primaryMode, setPrimaryMode] = useState<"upload" | "url">("upload");
   const [primaryDoc, setPrimaryDoc] = useState<DocumentFile | null>(null);
   const [primaryFileFormat, setPrimaryFileFormat] = useState<FileFormatValue>("pdf");
   const [primaryLanguages, setPrimaryLanguages] = useState<string[]>(["en"]);
@@ -221,6 +222,7 @@ export default function AddResourceClient() {
               : String(existingData.subCategoryId ?? "");
           const documents = Array.isArray(existingData.documents) ? existingData.documents : [];
           const primary = documents.find((d: { isPrimary?: boolean }) => d?.isPrimary) ?? documents[0];
+          setPrimaryMode(primary ? "upload" : "url");
           setForm((f) => ({
             ...f,
             name: String(existingData.name ?? ""),
@@ -391,8 +393,12 @@ export default function AddResourceClient() {
       setError("Select a content type.");
       return;
     }
-    if (!primaryDoc) {
+    if (primaryMode === "upload" && !primaryDoc) {
       setError("Upload a primary file.");
+      return;
+    }
+    if (primaryMode === "url" && !form.externalDownloadUrl.trim()) {
+      setError("Provide an external download URL.");
       return;
     }
     if (isRichTextEmpty(form.description)) {
@@ -439,15 +445,12 @@ export default function AddResourceClient() {
       return;
     }
     const langs = primaryLanguages.length ? primaryLanguages : ["en"];
+    const documents =
+      primaryMode === "upload" && primaryDoc
+        ? [{ ...primaryDoc, fileFormat: primaryFileFormat, languages: langs }]
+        : [];
     setSubmitting(true);
     try {
-      const documents = [
-        {
-          ...primaryDoc,
-          fileFormat: primaryFileFormat,
-          languages: langs,
-        },
-      ];
       const res = await fetch(
         editId ? `/api/organizer/resource-requests/${editId}` : "/api/organizer/resource-requests",
         {
@@ -469,7 +472,7 @@ export default function AddResourceClient() {
           hasCoPublishers,
           coPublisherOrganizationIds: hasCoPublishers ? coPublisherIds : [],
           rightsNotice: form.rightsNotice.trim() || undefined,
-          externalDownloadUrl: form.externalDownloadUrl.trim() || undefined,
+          externalDownloadUrl: primaryMode === "url" ? form.externalDownloadUrl.trim() : undefined,
           countries,
           regions,
           visibilityStatus: form.visibilityStatus,
@@ -1010,86 +1013,119 @@ export default function AddResourceClient() {
               </div>
             </ComponentCard>
 
-            <ComponentCard title="Primary file" desc="Upload the file and set its metadata.">
+            <ComponentCard title="Primary file" desc="Choose how to provide the resource file.">
               <div className="space-y-6">
-                <div className="grid gap-6 sm:grid-cols-2">
-                  <div>
-                    <Label>File format *</Label>
-                    <select
-                      value={primaryFileFormat}
-                      onChange={(e) => setPrimaryFileFormat(e.target.value as FileFormatValue)}
-                      className={selectClass}
-                    >
-                      {FILE_FORMAT_VALUES.map((v) => (
-                        <option key={v} value={v}>
-                          {FILE_FORMAT_LABELS[v]}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <Label>Language * (multi)</Label>
-                    <div className="mt-2 flex flex-wrap gap-3">
-                      {LANGUAGE_OPTIONS.map((lang) => (
-                        <Checkbox
-                          key={lang.value}
-                          label={lang.label}
-                          checked={primaryLanguages.includes(lang.value)}
-                          onChange={(c) =>
-                            setPrimaryLanguages((prev) =>
-                              c
-                                ? [...prev, lang.value]
-                                : prev.filter((x) => x !== lang.value)
-                            )
-                          }
-                        />
-                      ))}
-                    </div>
-                  </div>
+                <div className="flex rounded-lg border border-gray-200 overflow-hidden dark:border-gray-700">
+                  <button
+                    type="button"
+                    onClick={() => { setPrimaryMode("upload"); setForm((f) => ({ ...f, externalDownloadUrl: "" })); }}
+                    className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
+                      primaryMode === "upload"
+                        ? "bg-brand-500 text-white"
+                        : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+                    }`}
+                  >
+                    Upload a file
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setPrimaryMode("url"); setPrimaryDoc(null); }}
+                    className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors border-l border-gray-200 dark:border-gray-700 ${
+                      primaryMode === "url"
+                        ? "bg-brand-500 text-white"
+                        : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+                    }`}
+                  >
+                    External URL only
+                  </button>
                 </div>
-                <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-800/30">
-                  <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-                    Choose how the file is stored, then upload. File size is detected automatically.
-                  </p>
-                  <input
-                    type="file"
-                    accept={docAccept}
-                    onChange={handlePrimaryUpload}
-                    disabled={uploadingDoc}
-                    className="mt-3 block w-full text-sm text-gray-500 file:mr-4 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100 dark:file:bg-brand-500/10 dark:file:text-brand-400"
-                  />
-                  {uploadingDoc && <p className="mt-1 text-xs text-gray-500">Uploading…</p>}
-                  {primaryDoc && (
-                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-800/50">
-                      <span className="flex flex-wrap items-center gap-2 text-sm">
-                        <Badge color="info" size="sm">{primaryDoc.fileFormat}</Badge>
-                        <span className="truncate">{primaryDoc.name}</span>
-                        {primaryDoc.fileSizeBytes != null && (
-                          <span className="text-xs text-gray-500">
-                            {(primaryDoc.fileSizeBytes / 1024).toFixed(1)} KB
+
+                {primaryMode === "upload" && (
+                  <>
+                    <div className="grid gap-6 sm:grid-cols-2">
+                      <div>
+                        <Label>File format *</Label>
+                        <select
+                          value={primaryFileFormat}
+                          onChange={(e) => setPrimaryFileFormat(e.target.value as FileFormatValue)}
+                          className={selectClass}
+                        >
+                          {FILE_FORMAT_VALUES.map((v) => (
+                            <option key={v} value={v}>
+                              {FILE_FORMAT_LABELS[v]}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <Label>Language * (multi)</Label>
+                        <div className="mt-2 flex flex-wrap gap-3">
+                          {LANGUAGE_OPTIONS.map((lang) => (
+                            <Checkbox
+                              key={lang.value}
+                              label={lang.label}
+                              checked={primaryLanguages.includes(lang.value)}
+                              onChange={(c) =>
+                                setPrimaryLanguages((prev) =>
+                                  c ? [...prev, lang.value] : prev.filter((x) => x !== lang.value)
+                                )
+                              }
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-800/30">
+                      <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                        Choose how the file is stored, then upload. File size is detected automatically.
+                      </p>
+                      <input
+                        type="file"
+                        accept={docAccept}
+                        onChange={handlePrimaryUpload}
+                        disabled={uploadingDoc}
+                        className="mt-3 block w-full text-sm text-gray-500 file:mr-4 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100 dark:file:bg-brand-500/10 dark:file:text-brand-400"
+                      />
+                      {uploadingDoc && <p className="mt-1 text-xs text-gray-500">Uploading…</p>}
+                      {primaryDoc && (
+                        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-800/50">
+                          <span className="flex flex-wrap items-center gap-2 text-sm">
+                            <Badge color="info" size="sm">{primaryDoc.fileFormat}</Badge>
+                            <span className="truncate">{primaryDoc.name}</span>
+                            {primaryDoc.fileSizeBytes != null && (
+                              <span className="text-xs text-gray-500">
+                                {(primaryDoc.fileSizeBytes / 1024).toFixed(1)} KB
+                              </span>
+                            )}
                           </span>
-                        )}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setPrimaryDoc(null)}
-                        className="rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-error-500 dark:hover:bg-gray-700"
-                        aria-label="Remove file"
-                      >
-                        <TrashBinIcon className="size-4" />
-                      </button>
+                          <button
+                            type="button"
+                            onClick={() => setPrimaryDoc(null)}
+                            className="rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-error-500 dark:hover:bg-gray-700"
+                            aria-label="Remove file"
+                          >
+                            <TrashBinIcon className="size-4" />
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-                <div>
-                  <Label>External download URL (optional)</Label>
-                  <Input
-                    value={form.externalDownloadUrl}
-                    onChange={(e) => setForm((f) => ({ ...f, externalDownloadUrl: e.target.value }))}
-                    placeholder="https://…"
-                    className="mt-1"
-                  />
-                </div>
+                  </>
+                )}
+
+                {primaryMode === "url" && (
+                  <div>
+                    <Label>External download URL *</Label>
+                    <Input
+                      value={form.externalDownloadUrl}
+                      onChange={(e) => setForm((f) => ({ ...f, externalDownloadUrl: e.target.value }))}
+                      placeholder="https://…"
+                      className="mt-1"
+                    />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      Users will be directed to this URL to access the resource.
+                    </p>
+                  </div>
+                )}
               </div>
             </ComponentCard>
 

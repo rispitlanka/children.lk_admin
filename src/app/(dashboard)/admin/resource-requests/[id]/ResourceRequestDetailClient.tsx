@@ -44,10 +44,15 @@ function ensureExtension(name: string, type: string, fileFormat?: string): strin
 }
 
 function getCloudinaryAttachmentUrl(doc: DocFile): string {
-  if (!doc.publicId) return doc.url;
   const fileName = ensureExtension(sanitizeDownloadName(doc.name || "resource-file"), doc.type, doc.fileFormat);
   const format = (doc.fileFormat || (doc.type === "pdf" ? "pdf" : "bin")).toLowerCase();
-  return `/api/public/files/cloudinary-download?publicId=${encodeURIComponent(doc.publicId)}&format=${encodeURIComponent(format)}&fileName=${encodeURIComponent(fileName)}`;
+  return `/api/public/files/cloudinary-download?url=${encodeURIComponent(doc.url)}&format=${encodeURIComponent(format)}&fileName=${encodeURIComponent(fileName)}`;
+}
+
+function getCloudinaryInlineUrl(doc: DocFile): string {
+  const fileName = ensureExtension(sanitizeDownloadName(doc.name || "resource-file"), doc.type, doc.fileFormat);
+  const format = (doc.fileFormat || (doc.type === "pdf" ? "pdf" : "bin")).toLowerCase();
+  return `/api/public/files/cloudinary-download?url=${encodeURIComponent(doc.url)}&format=${encodeURIComponent(format)}&fileName=${encodeURIComponent(fileName)}&inline=true`;
 }
 
 type ResourceRequestDetail = {
@@ -564,7 +569,7 @@ function DocumentPreview({ doc }: { doc: DocFile }) {
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">PDF file</p>
               <div className="mt-3 flex items-center justify-center gap-3">
                 <a
-                  href={doc.url}
+                  href={getCloudinaryInlineUrl(doc)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700/50"

@@ -53,10 +53,9 @@ function ensureExtension(name: string, type: DocumentFile["type"], fileFormat?: 
 }
 
 function getCloudinaryAttachmentUrl(doc: DocumentFile): string {
-  if (!doc.publicId) return doc.url;
   const fileName = ensureExtension(sanitizeDownloadName(doc.name || "resource-file"), doc.type, doc.fileFormat);
   const format = (doc.fileFormat || (doc.type === "pdf" ? "pdf" : "bin")).toLowerCase();
-  return `/api/public/files/cloudinary-download?publicId=${encodeURIComponent(doc.publicId)}&format=${encodeURIComponent(format)}&fileName=${encodeURIComponent(fileName)}`;
+  return `/api/public/files/cloudinary-download?url=${encodeURIComponent(doc.url)}&format=${encodeURIComponent(format)}&fileName=${encodeURIComponent(fileName)}`;
 }
 
 type Resource = {

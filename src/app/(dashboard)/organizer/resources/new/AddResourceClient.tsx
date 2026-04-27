@@ -670,9 +670,8 @@ export default function AddResourceClient() {
                     </select>
                   </div>
                   <div>
-                    <Label>Sub category *</Label>
+                    <Label>Sub category</Label>
                     <select
-                      required
                       value={form.subCategoryId}
                       onChange={(e) => setForm((f) => ({ ...f, subCategoryId: e.target.value }))}
                       className={selectClass}

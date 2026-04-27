@@ -87,6 +87,7 @@ export async function POST(req: Request) {
       contentPublishedAt,
       featured,
       slug: slugInput,
+      source,
     } = body;
 
     if (!name || typeof name !== "string" || !name.trim()) {
@@ -274,6 +275,7 @@ export async function POST(req: Request) {
       contentPublishedAt: contentPub,
       featured: Boolean(featured),
       slug,
+      source: typeof source === "string" && source.trim() ? source.trim() : undefined,
       organizationId: user.organizationId,
       status: vis === "published" ? "pending" : "approved",
     });

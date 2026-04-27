@@ -11,7 +11,15 @@ import PlusActionLink from "@/components/common/PlusActionLink";
 import Button from "@/components/ui/button/Button";
 import { useRouter } from "next/navigation";
 
-type Item = { _id: string; name: string; startDate: string; status: string; adminReason?: string; createdAt: string };
+type Item = {
+  _id: string;
+  name: string;
+  startDate: string;
+  status: string;
+  visibilityStatus?: string;
+  adminReason?: string;
+  createdAt: string;
+};
 
 export default function OrganizerEventsClient() {
   const [list, setList] = useState<Item[]>([]);
@@ -30,11 +38,15 @@ export default function OrganizerEventsClient() {
 
   useEffect(() => { load(); }, []);
 
-  const statusBadge = (s: string) => {
-    if (s === "pending") return <Badge color="warning">Pending</Badge>;
-    if (s === "approved") return <Badge color="success">Approved</Badge>;
+  const statusBadge = (row: Item) => {
+    if (row.visibilityStatus === "draft") return <Badge color="info">Draft</Badge>;
+    if (row.status === "pending") return <Badge color="warning">Pending review</Badge>;
+    if (row.status === "approved") return <Badge color="success">Approved</Badge>;
     return <Badge color="error">Denied</Badge>;
   };
+
+  const canEdit = (row: Item) =>
+    row.visibilityStatus === "draft" || row.status === "denied";
 
   return (
     <div>
@@ -53,13 +65,14 @@ export default function OrganizerEventsClient() {
                   <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Start</TableCell>
                   <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Status</TableCell>
                   <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Admin message</TableCell>
+                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Actions</TableCell>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {list.map((row) => (
                   <TableRow key={row._id} className="border-b border-gray-200 dark:border-gray-800">
                     <TableCell className="py-4 text-gray-800 dark:text-white/90">
-                      <Link 
+                      <Link
                         href={`/organizer/events/${row._id}`}
                         className="text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 font-medium"
                       >
@@ -67,12 +80,22 @@ export default function OrganizerEventsClient() {
                       </Link>
                     </TableCell>
                     <TableCell className="py-4 text-gray-600 dark:text-gray-400">{row.startDate ? new Date(row.startDate).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Colombo" }) : "—"}</TableCell>
-                    <TableCell className="py-4">{statusBadge(row.status)}</TableCell>
+                    <TableCell className="py-4">{statusBadge(row)}</TableCell>
                     <TableCell className="py-4 max-w-[280px] text-sm text-gray-600 dark:text-gray-400">
                       {row.status === "denied" && row.adminReason ? (
                         <span className="block" title={row.adminReason}>{row.adminReason}</span>
                       ) : (
                         "—"
+                      )}
+                    </TableCell>
+                    <TableCell className="py-4">
+                      {canEdit(row) && (
+                        <Link
+                          href={`/organizer/events/new?edit=${row._id}`}
+                          className="inline-flex rounded-md border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50 hover:text-brand-600 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700"
+                        >
+                          Edit
+                        </Link>
                       )}
                     </TableCell>
                   </TableRow>

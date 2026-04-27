@@ -11,7 +11,9 @@ export async function GET() {
   }
   try {
     await connectDB();
-    const list = await EventRequest.find({})
+    const list = await EventRequest.find({
+      $or: [{ visibilityStatus: "published" }, { visibilityStatus: { $exists: false } }],
+    })
       .populate("organizationId", "name")
       .sort({ createdAt: -1 })
       .lean();

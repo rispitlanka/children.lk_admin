@@ -99,6 +99,7 @@ export async function PATCH(
         contentPublishedAt: request.contentPublishedAt,
         featured: request.featured,
         slug: request.slug,
+        source: request.source,
         organizationId: request.organizationId,
       });
     }

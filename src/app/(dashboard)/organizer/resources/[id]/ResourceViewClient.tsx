@@ -90,6 +90,7 @@ type Resource = {
   createdAt: string;
   updatedAt: string;
   organizationId: string;
+  source?: string;
 };
 
 function langLabel(code: string): string {
@@ -339,6 +340,12 @@ export default function ResourceViewClient() {
                     </>
                   )}
                 </dl>
+              </ComponentCard>
+            )}
+
+            {resource.source && (
+              <ComponentCard title="Source">
+                <p className="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">{resource.source}</p>
               </ComponentCard>
             )}
 

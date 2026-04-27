@@ -92,7 +92,11 @@ export async function POST(req: Request) {
       highlight2,
       highlight3,
       slug: slugInput,
+      visibilityStatus,
     } = body;
+
+    const normalizedVisibilityStatus =
+      visibilityStatus === "draft" ? "draft" : "published";
 
     const nm = typeof name === "string" ? name.trim() : "";
     const cat = typeof eventCategory === "string" ? eventCategory.trim() : "";
@@ -224,6 +228,7 @@ export async function POST(req: Request) {
       highlight2: typeof highlight2 === "string" ? highlight2.trim() || undefined : undefined,
       highlight3: typeof highlight3 === "string" ? highlight3.trim() || undefined : undefined,
       organizationId: user.organizationId,
+      visibilityStatus: normalizedVisibilityStatus,
       status: "pending",
     });
     await ensureTags(tagList);

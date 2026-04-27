@@ -23,3 +23,12 @@ export const EVENT_CATEGORY_LABELS: Record<EventCategoryValue, string> = {
   education: "Education",
   other: "Other",
 };
+
+export const EVENT_VISIBILITY_STATUS_VALUES = ["draft", "published"] as const;
+
+export type EventVisibilityStatusValue = (typeof EVENT_VISIBILITY_STATUS_VALUES)[number];
+
+export const EVENT_VISIBILITY_STATUS_LABELS: Record<EventVisibilityStatusValue, string> = {
+  draft: "Draft",
+  published: "Published",
+};

@@ -79,6 +79,7 @@ type ResourceRequestDetail = {
   adminReason?: string;
   reviewedAt?: string;
   createdAt: string;
+  source?: string;
 };
 
 function langLabel(code: string): string {
@@ -316,6 +317,12 @@ export default function ResourceRequestDetailClient() {
                   <div className="sm:col-span-2">
                     <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Slug</p>
                     <p className="mt-1 font-mono text-xs text-gray-800 dark:text-white/90">{request.slug}</p>
+                  </div>
+                )}
+                {request.source && (
+                  <div className="sm:col-span-2">
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Source</p>
+                    <p className="mt-1 font-mono text-xs text-gray-800 dark:text-white/90">{request.source}</p>
                   </div>
                 )}
               </div>

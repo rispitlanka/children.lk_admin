@@ -144,6 +144,7 @@ export default function AddResourceClient() {
     visibilityStatus: "draft" as VisibilityStatusValue,
     contentPublishedAt: "",
     slug: "",
+    source: "",
   });
   const [tags, setTags] = useState<string[]>([]);
   const [ageAudienceGroups, setAgeAudienceGroups] = useState<string[]>([]);
@@ -241,6 +242,7 @@ export default function AddResourceClient() {
               ? String(existingData.contentPublishedAt).slice(0, 10)
               : "",
             slug: String(existingData.slug ?? ""),
+            source: String(existingData.source ?? ""),
           }));
           setSlugEditedManually(Boolean(String(existingData.slug ?? "").trim()));
           setTags(Array.isArray(existingData.tags) ? existingData.tags.filter((t: unknown): t is string => typeof t === "string") : []);
@@ -474,6 +476,7 @@ export default function AddResourceClient() {
           contentPublishedAt: form.contentPublishedAt,
           featured,
           slug: form.slug.trim() || undefined,
+          source: form.source.trim() || undefined,
         }),
       });
       const data = await res.json();
@@ -1091,7 +1094,7 @@ export default function AddResourceClient() {
               </div>
             </ComponentCard>
 
-            <ComponentCard title="Publishing & visibility" desc="Draft status, dates, slug, and featured flag.">
+            <ComponentCard title="Publishing & visibility" desc="Draft status and featured flag.">
               <div className="space-y-6">
                 <div className="grid gap-6 sm:grid-cols-2">
                   <div>
@@ -1123,6 +1126,14 @@ export default function AddResourceClient() {
                       required
                     />
                   </div>
+                </div>
+                <div>
+                  <Label>Source of the resource</Label>
+                  <Input
+                    value={form.source}
+                    onChange={(e) => setForm((f) => ({ ...f, source: e.target.value }))}
+                    placeholder="Source of the resource"
+                  />
                 </div>
                 <Checkbox label="Featured" checked={featured} onChange={setFeatured} />
               </div>

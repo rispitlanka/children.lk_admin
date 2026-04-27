@@ -51,6 +51,7 @@ export interface IResourceRequest {
   contentPublishedAt?: Date;
   featured?: boolean;
   slug?: string;
+  source?: string;
   organizationId: mongoose.Types.ObjectId;
   status: RequestStatus;
   adminReason?: string;
@@ -112,6 +113,7 @@ const ResourceRequestSchema = new Schema<IResourceRequest>(
     contentPublishedAt: Date,
     featured: { type: Boolean, default: false },
     slug: { type: String, trim: true, sparse: true },
+    source: String,
     organizationId: { type: Schema.Types.ObjectId, ref: "Organization", required: true },
     status: { type: String, enum: ["pending", "approved", "denied"], default: "pending" },
     adminReason: String,

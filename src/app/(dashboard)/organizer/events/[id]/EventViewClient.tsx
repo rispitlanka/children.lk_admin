@@ -39,6 +39,7 @@ type Event = {
   highlight1?: string;
   highlight2?: string;
   highlight3?: string;
+  visibilityStatus?: string;
   status: string;
   adminReason?: string;
   createdAt: string;
@@ -71,9 +72,14 @@ export default function EventViewClient() {
   }, [params.id]);
 
   const getStatusBadge = (status: string) => {
-    if (status === "pending") return <Badge color="warning">Pending</Badge>;
+    if (status === "pending") return <Badge color="warning">Pending review</Badge>;
     if (status === "approved") return <Badge color="success">Approved</Badge>;
     return <Badge color="error">Denied</Badge>;
+  };
+
+  const getVisibilityBadge = (visibilityStatus?: string) => {
+    if (visibilityStatus === "draft") return <Badge color="info">Draft</Badge>;
+    return null;
   };
 
   const formatDateTime = (dateString: string) => {
@@ -184,6 +190,11 @@ export default function EventViewClient() {
               <Button size="sm">View Bookings</Button>
             </Link>
           ) : null}
+          {(event.visibilityStatus === "draft" || event.status === "denied") && (
+            <Link href={`/organizer/events/new?edit=${event._id}`}>
+              <Button size="sm" variant="outline">Edit</Button>
+            </Link>
+          )}
           <Button
             size="sm"
             variant="outline"
@@ -210,6 +221,7 @@ export default function EventViewClient() {
                   {event.name}
                 </h1>
                 <div className="flex flex-wrap items-center gap-3 mb-2">
+                  {getVisibilityBadge(event.visibilityStatus)}
                   {getStatusBadge(event.status)}
                   {getEventStatusBadge(event.startDate, event.status, event.endDate)}
                 </div>

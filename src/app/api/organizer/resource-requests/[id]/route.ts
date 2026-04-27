@@ -129,6 +129,7 @@ export async function PATCH(
       contentPublishedAt,
       featured,
       slug: slugInput,
+      source,
     } = body;
 
     if (!name || typeof name !== "string" || !name.trim()) {
@@ -264,6 +265,7 @@ export async function PATCH(
         contentPublishedAt: contentPub,
         featured: Boolean(featured),
         slug,
+        source: typeof source === "string" && source.trim() ? source.trim() : undefined,
         status: vis === "published" ? "pending" : "approved",
         adminReason: undefined,
         reviewedAt: undefined,

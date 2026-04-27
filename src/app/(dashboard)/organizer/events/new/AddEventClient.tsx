@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import ComponentCard from "@/components/common/ComponentCard";
+import LoadingLottie from "@/components/common/LoadingLottie";
 import Button from "@/components/ui/button/Button";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
@@ -13,7 +14,14 @@ import TextArea from "@/components/form/input/TextArea";
 import DatePicker from "@/components/form/date-picker";
 import TagsSelect from "@/components/form/TagsSelect";
 import ResourceDescriptionQuill from "@/components/form/ResourceDescriptionQuill";
-import { EVENT_CATEGORY_LABELS, EVENT_CATEGORY_VALUES, type EventCategoryValue } from "@/lib/event-form-constants";
+import {
+  EVENT_CATEGORY_LABELS,
+  EVENT_CATEGORY_VALUES,
+  EVENT_VISIBILITY_STATUS_LABELS,
+  EVENT_VISIBILITY_STATUS_VALUES,
+  type EventCategoryValue,
+  type EventVisibilityStatusValue,
+} from "@/lib/event-form-constants";
 import { parseLatLngFromGoogleMapsUrl } from "@/lib/google-maps-url";
 import { isRichTextEmpty } from "@/lib/rich-text";
 import { slugify } from "@/lib/slugify";
@@ -56,6 +64,7 @@ const initialForm = {
   highlight2: "",
   highlight3: "",
   whoCanJoin: ["For Students"],
+  visibilityStatus: "published" as EventVisibilityStatusValue,
 };
 
 function fileToBase64(file: File): Promise<string> {
@@ -85,17 +94,71 @@ async function uploadImageToCloudinary(file: File): Promise<{ url: string; publi
 
 export default function AddEventClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get("edit");
+  const isEditMode = Boolean(editId);
+
   const [form, setForm] = useState(initialForm);
   const [tags, setTags] = useState<string[]>([]);
   const [slugEditedManually, setSlugEditedManually] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [loadingExisting, setLoadingExisting] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
     if (slugEditedManually) return;
     setForm((f) => ({ ...f, slug: slugify(f.name) }));
   }, [form.name, slugEditedManually]);
+
+  useEffect(() => {
+    if (!editId) return;
+    setLoadingExisting(true);
+    fetch(`/api/organizer/event-requests/${editId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) throw new Error(data.error);
+        setSlugEditedManually(true);
+        setTags(Array.isArray(data.tags) ? data.tags : []);
+        setForm({
+          name: data.name ?? "",
+          slug: data.slug ?? "",
+          eventCategory: data.eventCategory ?? "",
+          startDate: data.startDate ? new Date(data.startDate).toISOString().slice(0, 16) : "",
+          endDate: data.endDate ? new Date(data.endDate).toISOString().slice(0, 16) : "",
+          googleMapsUrl: "",
+          locationLatitude: data.locationLatitude != null ? String(data.locationLatitude) : "",
+          locationLongitude: data.locationLongitude != null ? String(data.locationLongitude) : "",
+          locationName: data.locationName ?? "",
+          locationAddress: data.locationAddress ?? "",
+          locationContact: data.locationContact ?? "",
+          description: data.description ?? "",
+          pricingType: data.pricingType === "paid" ? "paid" : "free",
+          ticketOptions:
+            Array.isArray(data.ticketOptions) && data.ticketOptions.length > 0
+              ? data.ticketOptions.map((t: { ticketType: string; ticketPrice: number }) => ({
+                  ticketType: t.ticketType,
+                  ticketPrice: String(t.ticketPrice),
+                }))
+              : [{ ticketType: "", ticketPrice: "" }],
+          registrationMode: data.registrationMode === "internal" ? "internal" : "external",
+          registrationExternalUrl: data.registrationExternalUrl ?? "",
+          coverImage: data.coverImage ?? "",
+          coverImagePublicId: data.coverImagePublicId ?? "",
+          highlight1: data.highlight1 ?? "",
+          highlight2: data.highlight2 ?? "",
+          highlight3: data.highlight3 ?? "",
+          whoCanJoin: Array.isArray(data.whoCanJoin) && data.whoCanJoin.length > 0 ? data.whoCanJoin : ["For Students"],
+          visibilityStatus:
+            data.visibilityStatus === "draft" ? "draft" : "published",
+        });
+      })
+      .catch(() => {
+        toast.error("Failed to load event");
+      })
+      .finally(() => setLoadingExisting(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editId]);
 
   const today = new Date();
   const minDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(
@@ -215,43 +278,50 @@ export default function AddEventClient() {
       toast.error("Add at least one audience in Who can join.");
       return;
     }
+    const payload = {
+      name: form.name.trim(),
+      slug: form.slug.trim() || undefined,
+      eventCategory: form.eventCategory,
+      locationName: form.locationName.trim(),
+      locationAddress: form.locationAddress.trim(),
+      locationContact: form.locationContact.trim(),
+      locationLatitude: form.locationLatitude.trim() || undefined,
+      locationLongitude: form.locationLongitude.trim() || undefined,
+      startDate: form.startDate,
+      endDate: form.endDate || undefined,
+      description: form.description.trim(),
+      tags,
+      pricingType: form.pricingType,
+      ticketOptions:
+        form.pricingType === "paid"
+          ? form.ticketOptions
+              .map((item) => ({ ticketType: item.ticketType.trim(), ticketPrice: Number(item.ticketPrice) }))
+              .filter((item) => item.ticketType && Number.isFinite(item.ticketPrice) && item.ticketPrice >= 0)
+          : [],
+      registrationMode: form.registrationMode,
+      registrationExternalUrl:
+        form.registrationMode === "external" ? form.registrationExternalUrl.trim() || undefined : undefined,
+      internalRegistrationFields:
+        form.registrationMode === "internal" ? ["name", "email", "phone"] : [],
+      whoCanJoin,
+      coverImage: form.coverImage || undefined,
+      coverImagePublicId: form.coverImagePublicId || undefined,
+      highlight1: form.highlight1.trim() || undefined,
+      highlight2: form.highlight2.trim() || undefined,
+      highlight3: form.highlight3.trim() || undefined,
+      visibilityStatus: form.visibilityStatus,
+    };
+
     setSubmitting(true);
     try {
-      const res = await fetch("/api/organizer/event-requests", {
-        method: "POST",
+      const url = isEditMode
+        ? `/api/organizer/event-requests/${editId}`
+        : "/api/organizer/event-requests";
+      const method = isEditMode ? "PATCH" : "POST";
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: form.name.trim(),
-          slug: form.slug.trim() || undefined,
-          eventCategory: form.eventCategory,
-          locationName: form.locationName.trim(),
-          locationAddress: form.locationAddress.trim(),
-          locationContact: form.locationContact.trim(),
-          locationLatitude: form.locationLatitude.trim() || undefined,
-          locationLongitude: form.locationLongitude.trim() || undefined,
-          startDate: form.startDate,
-          endDate: form.endDate || undefined,
-          description: form.description.trim(),
-          tags,
-          pricingType: form.pricingType,
-          ticketOptions:
-            form.pricingType === "paid"
-              ? form.ticketOptions
-                  .map((item) => ({ ticketType: item.ticketType.trim(), ticketPrice: Number(item.ticketPrice) }))
-                  .filter((item) => item.ticketType && Number.isFinite(item.ticketPrice) && item.ticketPrice >= 0)
-              : [],
-          registrationMode: form.registrationMode,
-          registrationExternalUrl:
-            form.registrationMode === "external" ? form.registrationExternalUrl.trim() || undefined : undefined,
-          internalRegistrationFields:
-            form.registrationMode === "internal" ? ["name", "email", "phone"] : [],
-          whoCanJoin,
-          coverImage: form.coverImage || undefined,
-          coverImagePublicId: form.coverImagePublicId || undefined,
-          highlight1: form.highlight1.trim() || undefined,
-          highlight2: form.highlight2.trim() || undefined,
-          highlight3: form.highlight3.trim() || undefined,
-        }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -261,7 +331,11 @@ export default function AddEventClient() {
         setSubmitting(false);
         return;
       }
-      toast.success("Event request submitted successfully");
+      toast.success(
+        form.visibilityStatus === "draft"
+          ? isEditMode ? "Event updated as draft" : "Event saved as draft"
+          : isEditMode ? "Event request submitted for review" : "Event request submitted successfully"
+      );
       router.push("/organizer/events");
     } catch {
       setError("Something went wrong");
@@ -270,10 +344,23 @@ export default function AddEventClient() {
     setSubmitting(false);
   };
 
+  if (loadingExisting) {
+    return (
+      <div className="flex min-h-[200px] items-center justify-center">
+        <LoadingLottie variant="block" />
+      </div>
+    );
+  }
+
+  const primaryActionLabel =
+    form.visibilityStatus === "draft"
+      ? isEditMode ? "Update draft" : "Save as draft"
+      : isEditMode ? "Submit for review" : "Submit request";
+
   return (
     <div className="w-full space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <PageBreadcrumb pageTitle="Add Event" />
+        <PageBreadcrumb pageTitle={isEditMode ? "Edit Event" : "Add Event"} />
         <Link href="/organizer/events">
           <Button size="sm" variant="outline">
             Back to Events
@@ -456,6 +543,41 @@ export default function AddEventClient() {
                     />
                   </div>
                 </div>
+              </div>
+            </ComponentCard>
+
+            <ComponentCard
+              title="Status"
+              desc="Draft saves without sending to admin. Published submits the event for admin review."
+            >
+              <div>
+                <Label>Status</Label>
+                <select
+                  value={form.visibilityStatus}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      visibilityStatus: e.target.value as EventVisibilityStatusValue,
+                    }))
+                  }
+                  className={selectClass}
+                >
+                  {EVENT_VISIBILITY_STATUS_VALUES.map((v) => (
+                    <option key={v} value={v}>
+                      {EVENT_VISIBILITY_STATUS_LABELS[v]}
+                    </option>
+                  ))}
+                </select>
+                {form.visibilityStatus === "draft" && (
+                  <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    This event will be saved as a draft and will not be sent to the admin for review.
+                  </p>
+                )}
+                {form.visibilityStatus === "published" && (
+                  <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    This event will be submitted to the admin for review. Once approved, it will be publicly available.
+                  </p>
+                )}
               </div>
             </ComponentCard>
           </div>
@@ -723,8 +845,8 @@ export default function AddEventClient() {
         </div>
 
         <div className="flex flex-wrap gap-3 rounded-2xl border border-gray-200 bg-white px-6 py-5 dark:border-gray-800 dark:bg-white/[0.03]">
-          <Button type="submit" size="sm" disabled={submitting || uploadingImage}>
-            {submitting ? "Submitting…" : uploadingImage ? "Uploading image…" : "Submit request"}
+          <Button type="submit" size="sm" disabled={submitting || uploadingImage || loadingExisting}>
+            {submitting ? "Submitting…" : uploadingImage ? "Uploading image…" : primaryActionLabel}
           </Button>
           <Link href="/organizer/events">
             <Button type="button" variant="outline" size="sm">

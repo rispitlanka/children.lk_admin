@@ -45,6 +45,7 @@ export interface IResource {
   organizationId: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
+  source?: string;
 }
 
 const DocumentFileSchema = new Schema<IDocumentFile>(
@@ -100,6 +101,7 @@ const ResourceSchema = new Schema<IResource>(
     featured: { type: Boolean, default: false },
     slug: { type: String, trim: true, sparse: true },
     organizationId: { type: Schema.Types.ObjectId, ref: "Organization", required: true },
+    source:String,
   },
   { timestamps: true }
 );

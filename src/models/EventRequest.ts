@@ -31,6 +31,7 @@ export interface IEventRequest {
   highlight1?: string;
   highlight2?: string;
   highlight3?: string;
+  visibilityStatus?: "draft" | "published";
   organizationId: mongoose.Types.ObjectId;
   status: RequestStatus;
   adminReason?: string;
@@ -73,6 +74,7 @@ const EventRequestSchema = new Schema<IEventRequest>(
     highlight1: String,
     highlight2: String,
     highlight3: String,
+    visibilityStatus: { type: String, enum: ["draft", "published"], default: "published" },
     organizationId: { type: Schema.Types.ObjectId, ref: "Organization", required: true },
     status: { type: String, enum: ["pending", "approved", "denied"], default: "pending" },
     adminReason: String,

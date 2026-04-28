@@ -123,9 +123,6 @@ const ResourceRequestSchema = new Schema<IResourceRequest>(
   { timestamps: true }
 );
 
-if (mongoose.models.ResourceRequest) {
-  delete mongoose.models.ResourceRequest;
-}
-
 export const ResourceRequest: Model<IResourceRequest> =
+  (mongoose.models.ResourceRequest as Model<IResourceRequest>) ??
   mongoose.model<IResourceRequest>("ResourceRequest", ResourceRequestSchema);

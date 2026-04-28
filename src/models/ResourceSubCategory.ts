@@ -24,9 +24,6 @@ const ResourceSubCategorySchema = new Schema<IResourceSubCategory>(
 
 ResourceSubCategorySchema.index({ categoryId: 1, slug: 1 }, { unique: true });
 
-if (mongoose.models.ResourceSubCategory) {
-  delete mongoose.models.ResourceSubCategory;
-}
-
 export const ResourceSubCategory: Model<IResourceSubCategory> =
+  (mongoose.models.ResourceSubCategory as Model<IResourceSubCategory>) ??
   mongoose.model<IResourceSubCategory>("ResourceSubCategory", ResourceSubCategorySchema);

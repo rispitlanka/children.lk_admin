@@ -3,6 +3,9 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import { ResourceRequest } from "@/models/ResourceRequest";
+import { ResourceCategory } from "@/models/ResourceCategory";
+import { ResourceSubCategory } from "@/models/ResourceSubCategory";
+import { Organization } from "@/models/Organization";
 
 export async function GET() {
   const session = await getServerSession(authOptions);

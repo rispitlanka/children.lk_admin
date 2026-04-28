@@ -20,9 +20,6 @@ const ResourceCategorySchema = new Schema<IResourceCategory>(
   { timestamps: true }
 );
 
-if (mongoose.models.ResourceCategory) {
-  delete mongoose.models.ResourceCategory;
-}
-
 export const ResourceCategory: Model<IResourceCategory> =
+  (mongoose.models.ResourceCategory as Model<IResourceCategory>) ??
   mongoose.model<IResourceCategory>("ResourceCategory", ResourceCategorySchema);

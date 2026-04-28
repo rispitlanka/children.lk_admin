@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import "@/models/Organization";
+import "@/models/ResourceCategory";
+import "@/models/ResourceSubCategory";
 import { Resource } from "@/models/Resource";
 
 export async function GET() {
@@ -8,6 +10,8 @@ export async function GET() {
     await connectDB();
     const list = await Resource.find({})
       .populate("organizationId")
+      .populate("categoryId", "name slug")
+      .populate("subCategoryId", "name slug")
       .sort({ createdAt: -1 })
       .lean();
     const normalized = list.map((item) => ({

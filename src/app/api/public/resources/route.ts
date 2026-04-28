@@ -8,6 +8,8 @@ export async function GET() {
     await connectDB();
     const list = await Resource.find({})
       .populate("organizationId")
+      .populate("categoryId", "name slug")
+      .populate("subCategoryId", "name slug")
       .sort({ createdAt: -1 })
       .lean();
     const normalized = list.map((item) => ({

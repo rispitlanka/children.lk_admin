@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import "@/models/Organization";
+import "@/models/ResourceCategory";
+import "@/models/ResourceSubCategory";
 import { Resource } from "@/models/Resource";
 
 export async function GET(
@@ -19,6 +21,8 @@ export async function GET(
     await connectDB();
     const resource = await Resource.findOne({ slug })
       .populate("organizationId")
+      .populate("categoryId", "name slug")
+      .populate("subCategoryId", "name slug")
       .lean();
 
     if (!resource) {

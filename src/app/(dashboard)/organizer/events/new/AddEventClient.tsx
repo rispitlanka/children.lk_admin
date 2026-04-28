@@ -105,6 +105,7 @@ export default function AddEventClient() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [loadingExisting, setLoadingExisting] = useState(false);
   const [error, setError] = useState("");
+  const [dateRangeError, setDateRangeError] = useState("");
 
   useEffect(() => {
     if (slugEditedManually) return;
@@ -218,6 +219,10 @@ export default function AddEventClient() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    if (dateRangeError) {
+      toast.error(dateRangeError);
+      return;
+    }
     if (!form.eventCategory) {
       setError("Select an event category.");
       toast.error("Select an event category.");
@@ -252,7 +257,12 @@ export default function AddEventClient() {
       toast.error("Enter a valid end date and time.");
       return;
     }
-    if (endDateTime && endDateTime <= startDateTime) {
+    if (endDateTime && endDateTime.getTime() === startDateTime.getTime()) {
+      setError("Start and end date & time cannot be the same.");
+      toast.error("Start and end date & time cannot be the same.");
+      return;
+    }
+    if (endDateTime && endDateTime < startDateTime) {
       setError("End date and time must be after the start date and time.");
       toast.error("End date and time must be after the start date and time.");
       return;
@@ -429,7 +439,14 @@ export default function AddEventClient() {
                       id="event-start-date"
                       label="Start date & time *"
                       value={form.startDate}
-                      onChange={(nextDate) => setForm((f) => ({ ...f, startDate: nextDate }))}
+                      onChange={(nextDate) => {
+                        setForm((f) => ({ ...f, startDate: nextDate }));
+                        setDateRangeError(
+                          nextDate && form.endDate && nextDate === form.endDate
+                            ? "Start and end date & time cannot be the same."
+                            : ""
+                        );
+                      }}
                       minDate={minDate}
                       enableTime
                       required
@@ -440,12 +457,22 @@ export default function AddEventClient() {
                       id="event-end-date"
                       label="End date & time"
                       value={form.endDate}
-                      onChange={(nextDate) => setForm((f) => ({ ...f, endDate: nextDate }))}
+                      onChange={(nextDate) => {
+                        setForm((f) => ({ ...f, endDate: nextDate }));
+                        setDateRangeError(
+                          nextDate && form.startDate && nextDate === form.startDate
+                            ? "Start and end date & time cannot be the same."
+                            : ""
+                        );
+                      }}
                       minDate={form.startDate || minDate}
                       enableTime
                     />
                   </div>
                 </div>
+                {dateRangeError && (
+                  <p className="text-sm text-error-600 dark:text-error-400">{dateRangeError}</p>
+                )}
 
                 <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-800/30">
                   <Label>Location (Google Maps)</Label>

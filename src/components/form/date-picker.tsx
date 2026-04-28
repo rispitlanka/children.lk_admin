@@ -34,6 +34,8 @@ export default function DatePicker({
 }: DatePickerProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const pickerRef = useRef<Instance | null>(null);
+  const onChangeRef = useRef(onChange);
+  useEffect(() => { onChangeRef.current = onChange; });
 
   useEffect(() => {
     if (!inputRef.current) return;
@@ -48,9 +50,9 @@ export default function DatePicker({
       minDate: minDate || undefined,
       maxDate: maxDate || undefined,
       onChange: (dates) => {
-        if (!onChange) return;
+        if (!onChangeRef.current) return;
         const selected = dates[0];
-        onChange(selected ? pickerRef.current?.formatDate(selected, enableTime ? "Y-m-d\\TH:i" : "Y-m-d") ?? "" : "");
+        onChangeRef.current(selected ? pickerRef.current?.formatDate(selected, enableTime ? "Y-m-d\\TH:i" : "Y-m-d") ?? "" : "");
       },
     });
 
@@ -58,7 +60,7 @@ export default function DatePicker({
       pickerRef.current?.destroy();
       pickerRef.current = null;
     };
-  }, [enableTime, minDate, maxDate, onChange, value]);
+  }, [enableTime, minDate, maxDate]);
 
   useEffect(() => {
     const picker = pickerRef.current;

@@ -33,26 +33,14 @@ type DocFile = {
   isPrimary?: boolean;
 };
 
-function sanitizeDownloadName(name: string): string {
-  return name.replace(/[^\w.\- ]+/g, "").trim() || "resource-file";
-}
-
-function ensureExtension(name: string, type: string, fileFormat?: string): string {
-  if (/\.[a-z0-9]{2,8}$/i.test(name)) return name;
-  const ext = (fileFormat || (type === "pdf" ? "pdf" : "")).toLowerCase();
-  return ext ? `${name}.${ext}` : name;
-}
-
 function getCloudinaryAttachmentUrl(doc: DocFile): string {
-  const fileName = ensureExtension(sanitizeDownloadName(doc.name || "resource-file"), doc.type, doc.fileFormat);
   const format = (doc.fileFormat || (doc.type === "pdf" ? "pdf" : "bin")).toLowerCase();
-  return `/api/public/files/cloudinary-download?url=${encodeURIComponent(doc.url)}&format=${encodeURIComponent(format)}&fileName=${encodeURIComponent(fileName)}`;
+  return `/api/public/files/cloudinary-download?publicId=${encodeURIComponent(doc.publicId)}&format=${encodeURIComponent(format)}`;
 }
 
 function getCloudinaryInlineUrl(doc: DocFile): string {
-  const fileName = ensureExtension(sanitizeDownloadName(doc.name || "resource-file"), doc.type, doc.fileFormat);
   const format = (doc.fileFormat || (doc.type === "pdf" ? "pdf" : "bin")).toLowerCase();
-  return `/api/public/files/cloudinary-download?url=${encodeURIComponent(doc.url)}&format=${encodeURIComponent(format)}&fileName=${encodeURIComponent(fileName)}&inline=true`;
+  return `/api/public/files/cloudinary-download?publicId=${encodeURIComponent(doc.publicId)}&format=${encodeURIComponent(format)}`;
 }
 
 type ResourceRequestDetail = {

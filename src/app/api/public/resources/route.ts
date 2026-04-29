@@ -17,6 +17,8 @@ export async function GET() {
     const normalized = list.map((item) => ({
       ...item,
       publicationDate: item.publicationDate ?? item.contentPublishedAt ?? null,
+      coverImage: item.picture ?? null,
+      coverImagePublicId: item.picturePublicId ?? null,
     }));
     return NextResponse.json(normalized);
   } catch (e) {

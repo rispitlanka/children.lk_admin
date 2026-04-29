@@ -35,6 +35,8 @@ export async function GET(
     return NextResponse.json({
       ...resource,
       publicationDate: resource.publicationDate ?? resource.contentPublishedAt ?? null,
+      coverImage: resource.picture ?? null,
+      coverImagePublicId: resource.picturePublicId ?? null,
     });
   } catch (e) {
     console.error(e);

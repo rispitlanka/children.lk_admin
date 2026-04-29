@@ -393,6 +393,11 @@ export default function AddResourceClient() {
       setError("Select a content type.");
       return;
     }
+    if (!form.picture) {
+      setError("Upload a cover image.");
+      toast.error("Upload a cover image.");
+      return;
+    }
     if (primaryMode === "upload" && !primaryDoc) {
       setError("Upload a primary file.");
       return;
@@ -590,7 +595,7 @@ export default function AddResourceClient() {
           <div className="space-y-6">
             <ComponentCard
               title="Basic information"
-              desc="Title, publication date, and optional cover image. Fields marked * are required."
+              desc="Title, publication date, and cover image. Fields marked * are required."
             >
               <div className="space-y-6">
                 <div>
@@ -627,13 +632,16 @@ export default function AddResourceClient() {
                   />
                 </div>
                 <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-800/30">
-                  <Label>Cover image</Label>
-                  <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">Optional promotional image.</p>
+                  <Label>
+                    Cover image <span className="text-error-500">*</span>
+                  </Label>
+                  <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">Required promotional image.</p>
                   <input
                     type="file"
                     accept="image/*"
                     onChange={handlePictureChange}
                     disabled={uploadingPicture}
+                    aria-required="true"
                     className="mt-2 block w-full text-sm text-gray-500 file:mr-4 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100 dark:file:bg-brand-500/10 dark:file:text-brand-400"
                   />
                   {uploadingPicture && <p className="mt-1 text-xs text-gray-500">Uploading…</p>}

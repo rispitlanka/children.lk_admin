@@ -1,11 +1,15 @@
 /** True when HTML has no meaningful text (e.g. empty Quill state `<p><br></p>`). */
 export function isRichTextEmpty(html: string): boolean {
+  return getRichTextPlainText(html).length === 0;
+}
+
+export function getRichTextPlainText(html: string): string {
   const text = html
     .replace(/<[^>]*>/g, " ")
     .replace(/&nbsp;/gi, " ")
     .replace(/\s+/g, " ")
     .trim();
-  return text.length === 0;
+  return text;
 }
 
 /**

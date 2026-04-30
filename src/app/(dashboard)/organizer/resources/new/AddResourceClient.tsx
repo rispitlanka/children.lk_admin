@@ -32,10 +32,13 @@ import {
   type FileFormatValue,
   type VisibilityStatusValue,
 } from "@/lib/resource-form-constants";
-import { isRichTextEmpty } from "@/lib/rich-text";
+import { getRichTextPlainText } from "@/lib/rich-text";
 import { slugify } from "@/lib/slugify";
 
 type DocType = "pdf" | "video" | "audio" | "docx" | "ppt" | "image" | "other";
+
+const DESCRIPTION_MIN_LENGTH = 30;
+
 type DocumentFile = {
   url: string;
   publicId: string;
@@ -406,9 +409,9 @@ export default function AddResourceClient() {
       setError("Provide an external download URL.");
       return;
     }
-    if (isRichTextEmpty(form.description)) {
-      setError("Enter a description.");
-      toast.error("Enter a description.");
+    if (getRichTextPlainText(form.description).length < DESCRIPTION_MIN_LENGTH) {
+      setError(`Description must be at least ${DESCRIPTION_MIN_LENGTH} characters.`);
+      toast.error(`Description must be at least ${DESCRIPTION_MIN_LENGTH} characters.`);
       return;
     }
     if (!form.publicationDate) {

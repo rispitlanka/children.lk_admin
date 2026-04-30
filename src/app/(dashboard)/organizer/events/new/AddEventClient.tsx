@@ -23,11 +23,13 @@ import {
   type EventVisibilityStatusValue,
 } from "@/lib/event-form-constants";
 import { parseLatLngFromGoogleMapsUrl } from "@/lib/google-maps-url";
-import { isRichTextEmpty } from "@/lib/rich-text";
+import { getRichTextPlainText } from "@/lib/rich-text";
 import { slugify } from "@/lib/slugify";
 
 const selectClass =
   "mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800";
+
+const DESCRIPTION_MIN_LENGTH = 30;
 
 const descriptionEditorClass = [
   "resource-description-editor mt-1 rounded-lg border border-gray-300 shadow-theme-xs overflow-hidden",
@@ -228,9 +230,9 @@ export default function AddEventClient() {
       toast.error("Select an event category.");
       return;
     }
-    if (isRichTextEmpty(form.description)) {
-      setError("Enter an event description.");
-      toast.error("Enter an event description.");
+    if (getRichTextPlainText(form.description).length < DESCRIPTION_MIN_LENGTH) {
+      setError(`Event description must be at least ${DESCRIPTION_MIN_LENGTH} characters.`);
+      toast.error(`Event description must be at least ${DESCRIPTION_MIN_LENGTH} characters.`);
       return;
     }
     if (!form.locationName.trim() || !form.locationAddress.trim() || !form.locationContact.trim()) {

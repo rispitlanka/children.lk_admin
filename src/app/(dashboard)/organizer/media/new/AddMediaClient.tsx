@@ -12,6 +12,7 @@ import TextArea from "@/components/form/input/TextArea";
 import DatePicker from "@/components/form/date-picker";
 import TagsSelect from "@/components/form/TagsSelect";
 import ResourceDescriptionQuill from "@/components/form/ResourceDescriptionQuill";
+import { slugify } from "@/lib/slugify";
 
 type ContentType = "artwork" | "story_poem" | "video";
 type VisibilityStatus = "draft" | "published" | "archived";
@@ -126,6 +127,8 @@ export default function AddMediaClient() {
   });
 
   const [source, setSource] = useState("");
+  const [slug, setSlug] = useState("");
+  const [slugEditedManually, setSlugEditedManually] = useState(false);
   const [commonTags, setCommonTags] = useState<string[]>([]);
   const [artworkTags, setArtworkTags] = useState<string[]>([]);
   const [storyPoemTags, setStoryPoemTags] = useState<string[]>([]);
@@ -174,6 +177,8 @@ export default function AddMediaClient() {
           relationshipToChild: data.guardianContact?.relationshipToChild ?? "",
         });
         setSource(data.source ?? "");
+        setSlug(String(data.slug ?? ""));
+        setSlugEditedManually(Boolean(String(data.slug ?? "").trim()));
         setCommonTags(Array.isArray(data.tags) ? data.tags : []);
         if (data.artwork) {
           setArtwork({
@@ -249,6 +254,18 @@ export default function AddMediaClient() {
     };
   }, [editId]);
 
+  const activeTitle =
+    contentType === "artwork"
+      ? artwork.title
+      : contentType === "story_poem"
+        ? storyPoem.title
+        : video.title;
+
+  useEffect(() => {
+    if (slugEditedManually) return;
+    setSlug(slugify(activeTitle));
+  }, [activeTitle, slugEditedManually]);
+
   const uploadOneImage = async (
     file: File | undefined,
     setter: React.Dispatch<React.SetStateAction<MediaFile | null>>
@@ -301,6 +318,7 @@ export default function AddMediaClient() {
       guardianContact,
       tags: commonTags,
       source: source.trim() || undefined,
+      slug: slug.trim() || undefined,
     };
 
     const today = new Date();
@@ -459,6 +477,19 @@ export default function AddMediaClient() {
                     value={source}
                     onChange={(e) => setSource(e.target.value)}
                     placeholder="Source of the media"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <Label>URL slug (optional)</Label>
+                  <Input
+                    className="mt-1"
+                    value={slug}
+                    onChange={(e) => {
+                      const next = e.target.value;
+                      setSlugEditedManually(next.trim().length > 0);
+                      setSlug(slugify(next));
+                    }}
+                    placeholder="Leave blank to auto-generate from title"
                   />
                 </div>
               </div>

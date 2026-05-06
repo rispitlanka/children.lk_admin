@@ -20,6 +20,7 @@ export interface IChildInfo {
 export interface IMedia {
   _id: mongoose.Types.ObjectId;
   name: string;
+  slug?: string;
   description: string;
   contentType: "artwork" | "story_poem" | "video";
   visibilityStatus?: MediaVisibilityStatus;
@@ -88,6 +89,7 @@ const ChildInfoSchema = new Schema<IChildInfo>(
 const MediaSchema = new Schema<IMedia>(
   {
     name: { type: String, required: true },
+    slug: { type: String, trim: true, sparse: true },
     description: { type: String, required: true },
     contentType: {
       type: String,

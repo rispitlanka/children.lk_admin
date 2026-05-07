@@ -81,6 +81,7 @@ export async function PATCH(
         files: request.files ?? [],
         organizationId: request.organizationId,
         source: request.source,
+        slug: request.slug,
       });
     }
     await MediaRequest.updateOne(

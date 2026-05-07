@@ -98,6 +98,8 @@ export async function POST(req: Request) {
     let description = "";
     let files: Array<{ url: string; publicId: string; type: "image" | "video" | "audio"; name?: string }> = [];
 
+    const slug = typeof body.slug === "string" && body.slug.trim() ? body.slug.trim() : undefined;
+
     const base = {
       contentType,
       visibilityStatus,
@@ -115,6 +117,7 @@ export async function POST(req: Request) {
       },
       organizationId: user.organizationId,
       source,
+      slug,
       status: visibilityStatus === "published" ? "pending" : "approved",
       tags: cleanTags(body.tags),
     };

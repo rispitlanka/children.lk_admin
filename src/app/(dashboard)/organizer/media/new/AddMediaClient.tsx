@@ -13,8 +13,9 @@ import DatePicker from "@/components/form/date-picker";
 import TagsSelect from "@/components/form/TagsSelect";
 import ResourceDescriptionQuill from "@/components/form/ResourceDescriptionQuill";
 import { slugify } from "@/lib/slugify";
+import { AGE_AUDIENCE_VALUES, AGE_AUDIENCE_LABELS } from "@/lib/resource-form-constants";
 
-type ContentType = "artwork" | "story_poem" | "video";
+type ContentType = "artwork" | "story_poem" | "video" | "photo";
 type VisibilityStatus = "draft" | "published" | "archived";
 type MediaFile = { url: string; publicId: string; type: "image"; name?: string };
 
@@ -22,6 +23,7 @@ const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
   artwork: "Artwork",
   story_poem: "Story / Poem",
   video: "Video",
+  photo: "Photo",
 };
 
 const THEMES = [
@@ -48,6 +50,21 @@ function fileToBase64(file: File): Promise<string> {
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
+}
+
+function toggleInList<T extends string>(list: T[], value: T): T[] {
+  return list.includes(value) ? list.filter((x) => x !== value) : [...list, value];
+}
+
+function addToMultiList(
+  value: string,
+  list: string[],
+  setter: React.Dispatch<React.SetStateAction<string[]>>,
+  reset: () => void
+) {
+  const trimmed = value.trim();
+  if (trimmed && !list.includes(trimmed)) setter((prev) => [...prev, trimmed]);
+  reset();
 }
 
 async function uploadImage(file: File, folder = "childrenlk/media"): Promise<{ url: string; publicId: string }> {
@@ -126,6 +143,17 @@ export default function AddMediaClient() {
     theme: THEMES[0],
   });
 
+  const [ageAudienceGroups, setAgeAudienceGroups] = useState<string[]>([]);
+  const [customAgeAudience, setCustomAgeAudience] = useState("");
+
+  const [photo, setPhoto] = useState({
+    title: "",
+    description: "",
+    medium: MEDIUMS[0],
+    dateCreated: "",
+    theme: THEMES[0],
+  });
+
   const [source, setSource] = useState("");
   const [slug, setSlug] = useState("");
   const [slugEditedManually, setSlugEditedManually] = useState(false);
@@ -133,9 +161,11 @@ export default function AddMediaClient() {
   const [artworkTags, setArtworkTags] = useState<string[]>([]);
   const [storyPoemTags, setStoryPoemTags] = useState<string[]>([]);
   const [videoTags, setVideoTags] = useState<string[]>([]);
+  const [photoTags, setPhotoTags] = useState<string[]>([]);
   const [artworkFile, setArtworkFile] = useState<MediaFile | null>(null);
   const [storyCoverImage, setStoryCoverImage] = useState<MediaFile | null>(null);
   const [videoThumbnail, setVideoThumbnail] = useState<MediaFile | null>(null);
+  const [photoFile, setPhotoFile] = useState<MediaFile | null>(null);
 
   const primaryActionLabel =
     visibilityStatus === "published"
@@ -180,6 +210,7 @@ export default function AddMediaClient() {
         setSlug(String(data.slug ?? ""));
         setSlugEditedManually(Boolean(String(data.slug ?? "").trim()));
         setCommonTags(Array.isArray(data.tags) ? data.tags : []);
+        setAgeAudienceGroups(Array.isArray(data.ageAudienceGroups) ? data.ageAudienceGroups : []);
         if (data.artwork) {
           setArtwork({
             title: data.artwork.title ?? "",
@@ -239,6 +270,24 @@ export default function AddMediaClient() {
             });
           }
         }
+        if (data.photo) {
+          setPhoto({
+            title: data.photo.title ?? "",
+            description: data.photo.description ?? "",
+            medium: data.photo.medium ?? MEDIUMS[0],
+            dateCreated: data.photo.dateCreated ? String(data.photo.dateCreated).slice(0, 10) : "",
+            theme: data.photo.theme ?? THEMES[0],
+          });
+          setPhotoTags(Array.isArray(data.photo.tags) ? data.photo.tags : []);
+          if (data.photo.photo?.url && data.photo.photo?.publicId) {
+            setPhotoFile({
+              url: data.photo.photo.url,
+              publicId: data.photo.photo.publicId,
+              type: "image",
+              name: data.photo.photo.name,
+            });
+          }
+        }
       } catch (e) {
         if (!cancelled) {
           const msg = e instanceof Error ? e.message : "Failed to load media";
@@ -259,7 +308,9 @@ export default function AddMediaClient() {
       ? artwork.title
       : contentType === "story_poem"
         ? storyPoem.title
-        : video.title;
+        : contentType === "photo"
+          ? photo.title
+          : video.title;
 
   useEffect(() => {
     if (slugEditedManually) return;
@@ -311,12 +362,18 @@ export default function AddMediaClient() {
       return;
     }
 
+    if (ageAudienceGroups.length === 0) {
+      setError("Select at least one age group / audience");
+      return;
+    }
+
     const payload: Record<string, unknown> = {
       contentType,
       visibilityStatus,
       childInfo,
       guardianContact,
       tags: commonTags,
+      ageAudienceGroups,
       source: source.trim() || undefined,
       slug: slug.trim() || undefined,
     };
@@ -353,6 +410,21 @@ export default function AddMediaClient() {
         dateWritten: storyPoem.dateWritten || undefined,
         tags: storyPoemTags,
         coverImage: storyCoverImage || undefined,
+      };
+    } else if (contentType === "photo") {
+      if (!photo.title.trim() || !photo.description.trim() || !photoFile) {
+        setError("Photo title, description, and photo image are required");
+        return;
+      }
+      if (photo.dateCreated && new Date(photo.dateCreated) > today) {
+        setError("Date Created cannot be a future date");
+        return;
+      }
+      payload.photo = {
+        ...photo,
+        dateCreated: photo.dateCreated || undefined,
+        tags: photoTags,
+        photo: photoFile,
       };
     } else {
       if (!video.title.trim() || !video.youtubeLink.trim() || !videoThumbnail) {
@@ -452,6 +524,65 @@ export default function AddMediaClient() {
                 <div><Label>Guardian Name *</Label><Input className="mt-1" value={guardianContact.guardianName} onChange={(e)=>setGuardianContact((p)=>({...p,guardianName:e.target.value}))} /></div>
                 <div><Label>Phone *</Label><Input className="mt-1" value={guardianContact.phone} onChange={(e)=>setGuardianContact((p)=>({...p,phone:e.target.value}))} /></div>
                 <div><Label>Relationship to Child *</Label><Input className="mt-1" value={guardianContact.relationshipToChild} onChange={(e)=>setGuardianContact((p)=>({...p,relationshipToChild:e.target.value}))} /></div>
+              </div>
+            </ComponentCard>
+
+            <ComponentCard title="Age group / audience">
+              <div>
+                <Label className="mb-2 block">Age group / audience * (multi)</Label>
+                <div className="flex flex-wrap gap-2">
+                  {AGE_AUDIENCE_VALUES.map((v) => (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => setAgeAudienceGroups((prev) => toggleInList(prev, v))}
+                      className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
+                        ageAudienceGroups.includes(v)
+                          ? "border-brand-500 bg-brand-50 text-brand-800 dark:border-brand-400 dark:bg-brand-500/15 dark:text-brand-100"
+                          : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
+                      }`}
+                    >
+                      {AGE_AUDIENCE_LABELS[v]}
+                    </button>
+                  ))}
+                </div>
+                {ageAudienceGroups.filter((v) => !AGE_AUDIENCE_VALUES.includes(v as typeof AGE_AUDIENCE_VALUES[number])).length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {ageAudienceGroups
+                      .filter((v) => !AGE_AUDIENCE_VALUES.includes(v as typeof AGE_AUDIENCE_VALUES[number]))
+                      .map((value) => (
+                        <button
+                          key={`custom-age-${value}`}
+                          type="button"
+                          onClick={() => setAgeAudienceGroups((prev) => prev.filter((v) => v !== value))}
+                          className="rounded-full border border-brand-500 bg-brand-50 px-3 py-1.5 text-sm text-brand-800 dark:border-brand-400 dark:bg-brand-500/15 dark:text-brand-100"
+                          title="Click to remove"
+                        >
+                          {value} ×
+                        </button>
+                      ))}
+                  </div>
+                )}
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <Input
+                    value={customAgeAudience}
+                    onChange={(e) => setCustomAgeAudience(e.target.value)}
+                    placeholder="Add custom age group / audience"
+                    className="w-full sm:w-72"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      addToMultiList(customAgeAudience, ageAudienceGroups, setAgeAudienceGroups, () =>
+                        setCustomAgeAudience("")
+                      )
+                    }
+                  >
+                    Add
+                  </Button>
+                </div>
               </div>
             </ComponentCard>
 
@@ -567,6 +698,38 @@ export default function AddMediaClient() {
                       <Label>Cover Image (optional)</Label>
                       <input type="file" accept="image/*" disabled={uploading} onChange={(e)=>uploadOneImage(e.target.files?.[0], setStoryCoverImage)} className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-700" />
                       {storyCoverImage && <p className="mt-2 text-xs text-gray-500">{storyCoverImage.name ?? "Cover image uploaded"}</p>}
+                    </div>
+                  </div>
+                )}
+
+                {contentType === "photo" && (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div><Label>Title of the Photo *</Label><Input className="mt-1" value={photo.title} onChange={(e)=>setPhoto((p)=>({...p,title:e.target.value}))} /></div>
+                    <div>
+                      <DatePicker
+                        id="media-photo-date-created"
+                        label="Date Created"
+                        value={photo.dateCreated}
+                        maxDate={new Date().toISOString().slice(0, 10)}
+                        onChange={(nextDate) => setPhoto((p) => ({ ...p, dateCreated: nextDate }))}
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <Label>Description *</Label>
+                      <ResourceDescriptionQuill
+                        value={photo.description}
+                        onChange={(html) => setPhoto((p) => ({ ...p, description: html }))}
+                        placeholder="Describe the photo"
+                        className={richTextEditorClass}
+                      />
+                    </div>
+                    <div><Label>Medium *</Label><select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={photo.medium} onChange={(e)=>setPhoto((p)=>({...p,medium:e.target.value}))}>{MEDIUMS.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
+                    <div><Label>Theme *</Label><select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={photo.theme} onChange={(e)=>setPhoto((p)=>({...p,theme:e.target.value}))}>{THEMES.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
+                    <div className="sm:col-span-2"><TagsSelect label="Tags" value={photoTags} onChange={setPhotoTags} placeholder="Add tags" /></div>
+                    <div className="sm:col-span-2">
+                      <Label>Photo *</Label>
+                      <input type="file" accept="image/*" disabled={uploading} onChange={(e)=>uploadOneImage(e.target.files?.[0], setPhotoFile)} className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-700" />
+                      {photoFile && <p className="mt-2 text-xs text-gray-500">{photoFile.name ?? "Photo uploaded"}</p>}
                     </div>
                   </div>
                 )}

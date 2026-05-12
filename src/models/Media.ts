@@ -22,7 +22,7 @@ export interface IMedia {
   name: string;
   slug?: string;
   description: string;
-  contentType: "artwork" | "story_poem" | "video";
+  contentType: "artwork" | "story_poem" | "video" | "photo";
   visibilityStatus?: MediaVisibilityStatus;
   tags?: string[];
   childInfo: IChildInfo;
@@ -58,6 +58,16 @@ export interface IMedia {
     theme: string;
     tags?: string[];
   };
+  photo?: {
+    title: string;
+    description: string;
+    medium: string;
+    dateCreated?: Date;
+    theme: string;
+    tags?: string[];
+    photo: IMediaFile;
+  };
+  ageAudienceGroups?: string[];
   files: IMediaFile[];
   organizationId: mongoose.Types.ObjectId;
   source?: string;
@@ -93,7 +103,7 @@ const MediaSchema = new Schema<IMedia>(
     description: { type: String, required: true },
     contentType: {
       type: String,
-      enum: ["artwork", "story_poem", "video"],
+      enum: ["artwork", "story_poem", "video", "photo"],
       required: true,
     },
     visibilityStatus: { type: String, enum: ["draft", "published", "archived"], default: "published" },
@@ -131,6 +141,16 @@ const MediaSchema = new Schema<IMedia>(
       theme: { type: String },
       tags: [String],
     },
+    photo: {
+      title: { type: String },
+      description: { type: String },
+      medium: { type: String },
+      dateCreated: { type: Date },
+      theme: { type: String },
+      tags: [String],
+      photo: { type: MediaFileSchema },
+    },
+    ageAudienceGroups: [String],
     files: [MediaFileSchema],
     organizationId: { type: Schema.Types.ObjectId, ref: "Organization", required: true },
     source: String,

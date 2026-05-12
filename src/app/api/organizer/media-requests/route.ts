@@ -60,9 +60,9 @@ export async function POST(req: Request) {
 
     const body = await req.json();
     const source = typeof body.source === "string" && body.source.trim() ? body.source.trim() : undefined;
-    const contentType = body.contentType as "artwork" | "story_poem" | "video" | undefined;
+    const contentType = body.contentType as "artwork" | "story_poem" | "video" | "photo" | undefined;
     const visibilityStatus = (body.visibilityStatus ?? "draft") as VisibilityStatus;
-    if (!contentType || !["artwork", "story_poem", "video"].includes(contentType)) {
+    if (!contentType || !["artwork", "story_poem", "video", "photo"].includes(contentType)) {
       return NextResponse.json({ error: "Valid content type is required" }, { status: 400 });
     }
     if (!["draft", "published", "archived"].includes(visibilityStatus)) {
@@ -100,6 +100,19 @@ export async function POST(req: Request) {
 
     const slug = typeof body.slug === "string" && body.slug.trim() ? body.slug.trim() : undefined;
 
+    const ageAudienceGroups = Array.isArray(body.ageAudienceGroups)
+      ? (body.ageAudienceGroups as unknown[])
+          .filter((a): a is string => typeof a === "string")
+          .map((a) => a.trim())
+          .filter((a) => a.length > 0)
+      : [];
+    if (ageAudienceGroups.length === 0) {
+      return NextResponse.json(
+        { error: "Select at least one age group / audience" },
+        { status: 400 }
+      );
+    }
+
     const base = {
       contentType,
       visibilityStatus,
@@ -120,6 +133,7 @@ export async function POST(req: Request) {
       slug,
       status: visibilityStatus === "published" ? "pending" : "approved",
       tags: cleanTags(body.tags),
+      ageAudienceGroups,
     };
 
     if (contentType === "artwork") {
@@ -202,6 +216,47 @@ export async function POST(req: Request) {
           theme: String(storyPoem.theme).trim(),
           tags: cleanTags(storyPoem.tags),
           coverImage: files[0],
+        },
+      });
+    } else if (contentType === "photo") {
+      const photo = body.photo ?? {};
+      if (
+        !photo.title?.trim() ||
+        !photo.description?.trim() ||
+        !photo.medium?.trim() ||
+        !photo.theme?.trim() ||
+        !photo.photo?.url ||
+        !photo.photo?.publicId
+      ) {
+        return NextResponse.json({ error: "Photo fields are required" }, { status: 400 });
+      }
+      const dateCreated = parseDateOrUndefined(photo.dateCreated);
+      if (dateCreated && isFutureDate(dateCreated)) {
+        return NextResponse.json({ error: "Date Created cannot be a future date" }, { status: 400 });
+      }
+      name = String(photo.title).trim();
+      description = String(photo.description).trim();
+      files = [
+        {
+          url: String(photo.photo.url),
+          publicId: String(photo.photo.publicId),
+          type: "image",
+          name: photo.photo.name ? String(photo.photo.name) : undefined,
+        },
+      ];
+      await MediaRequest.create({
+        ...base,
+        name,
+        description,
+        files,
+        photo: {
+          title: name,
+          description,
+          medium: String(photo.medium).trim(),
+          dateCreated,
+          theme: String(photo.theme).trim(),
+          tags: cleanTags(photo.tags),
+          photo: files[0],
         },
       });
     } else {

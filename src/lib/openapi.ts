@@ -581,6 +581,35 @@ const OPERATION_OVERRIDES: Record<string, Partial<Record<Lowercase<HttpMethod>, 
       ],
     },
   },
+  "/api/public/news-media": {
+    get: {
+      summary: "List public news media",
+    },
+  },
+  "/api/public/news-media/{id}": {
+    get: {
+      summary: "Get public news media by ID",
+    },
+  },
+  "/api/admin/news-media": {
+    get: {
+      summary: "List news media for admin",
+    },
+    post: {
+      summary: "Create news media (supports multipart/form-data for featuredImage and files)",
+    },
+  },
+  "/api/admin/news-media/{id}": {
+    get: {
+      summary: "Get news media detail for admin",
+    },
+    patch: {
+      summary: "Update news media (supports multipart/form-data)",
+    },
+    delete: {
+      summary: "Delete news media",
+    },
+  },
 };
 
 export function buildOpenApiSpec() {

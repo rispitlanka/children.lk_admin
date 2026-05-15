@@ -16,26 +16,29 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import Switch from "@/components/form/switch/Switch";
-import { PlusIcon, PencilIcon, TrashBinIcon } from "@/icons";
+import { PencilIcon, TrashBinIcon } from "@/icons";
 import { useRouter } from "next/navigation";
-type AnnouncementItem = {
+import Image from "next/image";
+
+type NewsMediaItem = {
   _id: string;
   title: string;
-  description: string;
-  isLive: boolean;
+  content: string;
+  featuredImage?: string;
+  files?: string[];
   createdAt: string;
   updatedAt: string;
 };
 
-export default function AdminAnnouncementsClient() {
-  const [list, setList] = useState<AnnouncementItem[]>([]);
+export default function AdminNewsMediaClient() {
+  const [list, setList] = useState<NewsMediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [togglingId, setTogglingId] = useState<string | null>(null);
   const router = useRouter();
+
   const load = () => {
-    fetch("/api/admin/announcements")
+    fetch("/api/admin/news-media")
       .then((res) => res.json())
       .then((data) => {
         if (data.error) throw new Error(data.error);
@@ -49,39 +52,17 @@ export default function AdminAnnouncementsClient() {
     load();
   }, []);
 
-  const handleToggleLive = async (row: AnnouncementItem) => {
-    setTogglingId(row._id);
-    try {
-      const res = await fetch(`/api/admin/announcements/${row._id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isLive: !row.isLive }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        load();
-        toast.success(row.isLive ? "Announcement is now off" : "Announcement is now live");
-      } else {
-        toast.error(data.error ?? "Failed to update status");
-      }
-    } catch {
-      toast.error("Something went wrong");
-    } finally {
-      setTogglingId(null);
-    }
-  };
-
   const handleDeleteClick = (id: string) => setDeleteId(id);
   const handleDeleteConfirm = async () => {
     if (!deleteId) return;
     setDeleting(true);
     try {
-      const res = await fetch(`/api/admin/announcements/${deleteId}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/news-media/${deleteId}`, { method: "DELETE" });
       const data = await res.json();
       if (res.ok) {
         setDeleteId(null);
         load();
-        toast.success("Announcement deleted");
+        toast.success("News Media deleted");
       } else {
         toast.error(data.error ?? "Failed to delete");
       }
@@ -94,11 +75,11 @@ export default function AdminAnnouncementsClient() {
 
   return (
     <div>
-      <PageBreadcrumb pageTitle="Announcements" />
+      <PageBreadcrumb pageTitle="News Media" />
       <div className="mb-4 flex justify-end">
-        <Button onClick={() => router.push("/admin/announcements/new")}>Add Announcement</Button>
+        <Button onClick={() => router.push("/admin/news-media/new")}>Add News Media</Button>
       </div>
-      <ComponentCard title="Announcements">
+      <ComponentCard title="News Media">
         {loading ? (
           <LoadingLottie variant="block" />
         ) : (
@@ -106,35 +87,32 @@ export default function AdminAnnouncementsClient() {
             <Table className="w-full text-left text-theme-sm">
               <TableHeader>
                 <TableRow className="border-b border-gray-200 dark:border-gray-800">
+                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Image</TableCell>
                   <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Title</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Description</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Status</TableCell>
+                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Content</TableCell>
                   <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Actions</TableCell>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {list.map((row) => (
                   <TableRow key={row._id} className="border-b border-gray-200 dark:border-gray-800">
+                    <TableCell className="py-4">
+                      {row.featuredImage ? (
+                        <Image src={row.featuredImage} alt={row.title} width={40} height={40} className="rounded-lg object-cover w-10 h-10" />
+                      ) : (
+                        <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-xs text-gray-400">No Img</div>
+                      )}
+                    </TableCell>
                     <TableCell className="py-4 font-medium text-gray-800 dark:text-white/90">{row.title}</TableCell>
                     <TableCell className="py-4 max-w-xs text-gray-600 dark:text-gray-400">
-                      <span className="block truncate" title={row.description}>
-                        {row.description || "—"}
+                      <span className="block truncate" title={row.content}>
+                        {row.content || "—"}
                       </span>
-                    </TableCell>
-                    <TableCell className="py-4">
-                      <div key={`${row._id}-${row.isLive}`}>
-                        <Switch
-                          label={row.isLive ? "Live" : "Off"}
-                          defaultChecked={row.isLive}
-                          onChange={() => handleToggleLive(row)}
-                          disabled={togglingId === row._id}
-                        />
-                      </div>
                     </TableCell>
                     <TableCell className="py-4">
                       <div className="flex gap-2">
                         <Link
-                          href={`/admin/announcements/${row._id}/edit`}
+                          href={`/admin/news-media/${row._id}/edit`}
                           className="inline-flex items-center justify-center font-medium rounded-lg transition px-4 py-3 text-sm bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/[0.03]"
                         >
                           <PencilIcon className="size-4" />
@@ -149,7 +127,7 @@ export default function AdminAnnouncementsClient() {
               </TableBody>
             </Table>
             {list.length === 0 && (
-              <p className="py-8 text-center text-gray-500 dark:text-gray-400">No announcements yet.</p>
+              <p className="py-8 text-center text-gray-500 dark:text-gray-400">No news media yet.</p>
             )}
           </div>
         )}
@@ -161,7 +139,7 @@ export default function AdminAnnouncementsClient() {
         className="max-w-sm w-full shadow-xl border border-gray-200 dark:border-gray-800"
       >
         <div className="p-6 text-center">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">Delete announcement?</h3>
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">Delete News Media?</h3>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">This action cannot be undone.</p>
           <div className="mt-6 flex gap-2 justify-center">
             <Button size="sm" variant="outline" onClick={() => setDeleteId(null)} disabled={deleting}>

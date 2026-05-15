@@ -62,8 +62,8 @@ const adminNavItems: NavItem[] = [
   },
   {
     icon: <DocsIcon />,
-    name: "Announcements",
-    path: "/admin/announcements",
+    name: "News Media",
+    path: "/admin/news-media",
   },
   {
     icon: <UserCircleIcon />,

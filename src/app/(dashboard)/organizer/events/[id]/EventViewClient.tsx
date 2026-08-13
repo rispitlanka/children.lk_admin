@@ -267,242 +267,248 @@ export default function EventViewClient() {
           )}
         </div>
 
-        {/* Main Content Grid */}
-        <div className="grid gap-8 lg:grid-cols-3">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Event Details */}
-            <ComponentCard title="📅 Event Details">
-              <div className="grid gap-6 sm:grid-cols-2">
+        <div className="space-y-6">
+          {/* Status Card */}
+          <ComponentCard title="📊 Status">
+            <div className={`rounded-lg p-4 ${getStatusInfo(event.status).bgColor} ${getStatusInfo(event.status).borderColor} border`}>
+              <div className="flex items-center gap-3">
+                <div className={`${getStatusInfo(event.status).color}`}>
+                  {React.createElement(getStatusInfo(event.status).icon, { className: "h-6 w-6" })}
+                </div>
+                <div>
+                  <p className={`font-semibold ${getStatusInfo(event.status).color}`}>
+                    {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {event.status === "approved" ? "Event approved" : 
+                     event.status === "denied" ? "Needs revision" : "Under review"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </ComponentCard>
+
+          {/* Admin Message */}
+          {event.status === "denied" && event.adminReason && (
+            <div className={`rounded-xl border p-6 ${getStatusInfo(event.status).bgColor} ${getStatusInfo(event.status).borderColor}`}>
+              <div className="flex items-start gap-3">
+                <div className={`flex-shrink-0 ${getStatusInfo(event.status).color}`}>
+                  <CloseLineIcon className="h-6 w-6" />
+                </div>
+                <div className="flex-1">
+                  <h3 className={`text-lg font-semibold mb-2 ${getStatusInfo(event.status).color}`}>
+                    Admin Feedback
+                  </h3>
+                  <p className={`${getStatusInfo(event.status).color.replace('600', '700').replace('400', '300')}`}>
+                    {event.adminReason}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Event Details */}
+          <ComponentCard title="📅 Event Details">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-5 text-sm md:grid-cols-2 min-[1200px]:grid-cols-3">
+              <div className="flex items-start gap-3 p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-500/20">
+                  <span className="text-lg">🕐</span>
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-1">Start Time</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {formatDateTime(event.startDate)}
+                  </p>
+                </div>
+              </div>
+
+              {event.endDate && (
                 <div className="flex items-start gap-3 p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-500/20">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100 dark:bg-red-500/20">
                     <span className="text-lg">🕐</span>
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-medium text-gray-900 dark:text-white mb-1">Start Time</h4>
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-1">End Time</h4>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {formatDateTime(event.startDate)}
+                      {formatDateTime(event.endDate)}
                     </p>
                   </div>
                 </div>
+              )}
 
-                {event.endDate && (
-                  <div className="flex items-start gap-3 p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100 dark:bg-red-500/20">
-                      <span className="text-lg">🕐</span>
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium text-gray-900 dark:text-white mb-1">End Time</h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {formatDateTime(event.endDate)}
-                      </p>
-                    </div>
-                  </div>
-                )}
+              <div className="flex items-start gap-3 p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 dark:bg-green-500/20">
+                  <span className="text-lg">📍</span>
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-1">Location</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {event.location}
+                  </p>
+                </div>
+              </div>
 
-                <div className="flex items-start gap-3 p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 dark:bg-green-500/20">
-                    <span className="text-lg">📍</span>
+              {event.registrationExternalUrl && (
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50 col-span-1 md:col-span-2 min-[1200px]:col-span-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-500/20">
+                    <span className="text-lg">🔗</span>
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-medium text-gray-900 dark:text-white mb-1">Location</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {event.location}
-                    </p>
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-1">Registration</h4>
+                    <Link
+                      href={event.registrationExternalUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 break-all hover:underline"
+                    >
+                      Open Registration Link ({event.registrationExternalUrl})
+                    </Link>
                   </div>
                 </div>
+              )}
+            </div>
+          </ComponentCard>
 
-                {event.registrationExternalUrl && (
-                  <div className="flex items-start gap-3 p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-500/20">
-                      <span className="text-lg">🔗</span>
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium text-gray-900 dark:text-white mb-1">Registration</h4>
-                      <Link
-                        href={event.registrationExternalUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 break-all hover:underline"
-                      >
-                        Open Registration Link
-                      </Link>
-                    </div>
-                  </div>
-                )}
+          <ComponentCard title="🎟️ Pricing & ticketing">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-5 text-sm text-gray-700 dark:text-gray-300 md:grid-cols-2 min-[1200px]:grid-cols-3">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Pricing</p>
+                <p className="mt-1 font-medium text-gray-900 dark:text-white capitalize">{event.pricingType ?? "free"}</p>
               </div>
-            </ComponentCard>
-
-            <ComponentCard title="🎟️ Pricing & ticketing">
-              <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
-                <p><strong>Pricing:</strong> {event.pricingType ?? "free"}</p>
-                {event.pricingType === "paid" && (
-                  <>
-                    {(event.ticketOptions ?? []).length > 0 ? (
+              {event.pricingType === "paid" && (
+                <>
+                  {(event.ticketOptions ?? []).length > 0 ? (
+                    <div className="col-span-1 md:col-span-2 min-[1200px]:col-span-2">
+                      <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Ticket categories</p>
+                      <ul className="mt-1 list-disc pl-5">
+                        {(event.ticketOptions ?? []).map((ticket, i) => (
+                          <li key={i}>
+                            {ticket.ticketType}: {ticket.ticketPrice}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : (
+                    <>
                       <div>
-                        <p><strong>Ticket categories:</strong></p>
-                        <ul className="mt-1 list-disc pl-5">
-                          {(event.ticketOptions ?? []).map((ticket, i) => (
-                            <li key={i}>
-                              {ticket.ticketType}: {ticket.ticketPrice}
-                            </li>
-                          ))}
-                        </ul>
+                        <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Ticket type</p>
+                        <p className="mt-1 text-gray-800 dark:text-white/90">{event.ticketType || "—"}</p>
                       </div>
-                    ) : (
-                      <>
-                        <p><strong>Ticket type:</strong> {event.ticketType || "—"}</p>
-                        <p><strong>Ticket price:</strong> {event.ticketPrice ?? "—"}</p>
-                      </>
-                    )}
-                  </>
+                      <div>
+                        <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Ticket price</p>
+                        <p className="mt-1 text-gray-800 dark:text-white/90">{event.ticketPrice ?? "—"}</p>
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Registration mode</p>
+                <p className="mt-1 font-medium text-gray-900 dark:text-white capitalize">{event.registrationMode ?? "external"}</p>
+              </div>
+              {event.registrationMode === "internal" ? (
+                <div className="col-span-1 md:col-span-2 min-[1200px]:col-span-2">
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Internal fields</p>
+                  <p className="mt-1 text-gray-800 dark:text-white/90">{(event.internalRegistrationFields ?? []).join(", ") || "name, email, phone"}</p>
+                </div>
+              ) : null}
+            </div>
+          </ComponentCard>
+
+          {(event.whoCanJoin ?? []).length > 0 && (
+            <ComponentCard title="🙋 Who can join">
+              <ul className="list-disc space-y-1 pl-5 text-sm text-gray-700 dark:text-gray-300">
+                {(event.whoCanJoin ?? []).map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+            </ComponentCard>
+          )}
+
+          {/* Description */}
+          <ComponentCard title="📝 Description">
+            <div
+              className="prose prose-gray prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300"
+              dangerouslySetInnerHTML={{ __html: event.description || "" }}
+            />
+          </ComponentCard>
+
+          {(event.highlight1?.trim() ||
+            event.highlight2?.trim() ||
+            event.highlight3?.trim()) && (
+            <ComponentCard title="✨ Highlights">
+              <ol className="list-decimal space-y-3 pl-5 text-sm text-gray-800 dark:text-white/90">
+                {[event.highlight1, event.highlight2, event.highlight3].map((h, i) =>
+                  h?.trim() ? <li key={i}>{h}</li> : null
                 )}
-                <p><strong>Registration mode:</strong> {event.registrationMode ?? "external"}</p>
-                {event.registrationMode === "internal" ? (
-                  <p><strong>Internal fields:</strong> {(event.internalRegistrationFields ?? []).join(", ") || "name, email, phone"}</p>
-                ) : null}
-              </div>
+              </ol>
             </ComponentCard>
+          )}
 
-            {(event.whoCanJoin ?? []).length > 0 && (
-              <ComponentCard title="🙋 Who can join">
-                <ul className="list-disc space-y-1 pl-5 text-sm text-gray-700 dark:text-gray-300">
-                  {(event.whoCanJoin ?? []).map((item, i) => (
-                    <li key={i}>{item}</li>
-                  ))}
-                </ul>
-              </ComponentCard>
-            )}
-
-            {/* Description */}
-            <ComponentCard title="📝 Description">
-              <div
-                className="prose prose-gray prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300"
-                // eslint-disable-next-line react/no-danger
-                dangerouslySetInnerHTML={{ __html: event.description || "" }}
-              />
+          {event.eventCategory && (
+            <ComponentCard title="📂 Category">
+              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                {EVENT_CATEGORY_LABELS[event.eventCategory as EventCategoryValue] ?? event.eventCategory}
+              </p>
             </ComponentCard>
+          )}
 
-            {(event.highlight1?.trim() ||
-              event.highlight2?.trim() ||
-              event.highlight3?.trim()) && (
-              <ComponentCard title="✨ Highlights">
-                <ol className="list-decimal space-y-3 pl-5 text-sm text-gray-800 dark:text-white/90">
-                  {[event.highlight1, event.highlight2, event.highlight3].map((h, i) =>
-                    h?.trim() ? <li key={i}>{h}</li> : null
-                  )}
-                </ol>
-              </ComponentCard>
-            )}
-
-            {event.eventCategory && (
-              <ComponentCard title="📂 Category">
-                <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  {EVENT_CATEGORY_LABELS[event.eventCategory as EventCategoryValue] ?? event.eventCategory}
-                </p>
-              </ComponentCard>
-            )}
-
-            {(event.locationName ||
-              event.locationAddress ||
-              event.locationContact ||
-              (event.locationLatitude != null &&
-                event.locationLongitude != null &&
-                Number.isFinite(event.locationLatitude) &&
-                Number.isFinite(event.locationLongitude))) && (
-              <ComponentCard title="📍 Venue details">
-                <div className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
-                  {event.locationName?.trim() && (
-                    <p>
-                      <span className="font-medium text-gray-900 dark:text-white">Name: </span>
-                      {event.locationName}
-                    </p>
-                  )}
-                  {event.locationAddress?.trim() && (
-                    <p className="whitespace-pre-wrap">
-                      <span className="font-medium text-gray-900 dark:text-white">Address: </span>
-                      {event.locationAddress}
-                    </p>
-                  )}
-                  {event.locationContact?.trim() && (
-                    <p>
-                      <span className="font-medium text-gray-900 dark:text-white">Contact: </span>
-                      {event.locationContact}
-                    </p>
-                  )}
-                  {event.locationLatitude != null &&
-                    event.locationLongitude != null &&
-                    Number.isFinite(event.locationLatitude) &&
-                    Number.isFinite(event.locationLongitude) && (
-                      <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
-                        <iframe
-                          title="Venue map"
-                          src={`https://www.google.com/maps?q=${encodeURIComponent(String(event.locationLatitude))},${encodeURIComponent(String(event.locationLongitude))}&z=15&output=embed`}
-                          className="h-56 w-full border-0"
-                          loading="lazy"
-                          referrerPolicy="no-referrer-when-downgrade"
-                        />
-                      </div>
-                    )}
-                </div>
-              </ComponentCard>
-            )}
-
-            {/* Admin Message */}
-            {event.status === "denied" && event.adminReason && (
-              <div className={`rounded-xl border p-6 ${getStatusInfo(event.status).bgColor} ${getStatusInfo(event.status).borderColor}`}>
-                <div className="flex items-start gap-3">
-                  <div className={`flex-shrink-0 ${getStatusInfo(event.status).color}`}>
-                    <CloseLineIcon className="h-6 w-6" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className={`text-lg font-semibold mb-2 ${getStatusInfo(event.status).color}`}>
-                      Admin Feedback
-                    </h3>
-                    <p className={`${getStatusInfo(event.status).color.replace('600', '700').replace('400', '300')}`}>
-                      {event.adminReason}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Status Card */}
-            <ComponentCard title="📊 Status">
-              <div className={`rounded-lg p-4 ${getStatusInfo(event.status).bgColor} ${getStatusInfo(event.status).borderColor} border`}>
-                <div className="flex items-center gap-3">
-                  <div className={`${getStatusInfo(event.status).color}`}>
-                    {React.createElement(getStatusInfo(event.status).icon, { className: "h-6 w-6" })}
-                  </div>
+          {(event.locationName ||
+            event.locationAddress ||
+            event.locationContact ||
+            (event.locationLatitude != null &&
+              event.locationLongitude != null &&
+              Number.isFinite(event.locationLatitude) &&
+              Number.isFinite(event.locationLongitude))) && (
+            <ComponentCard title="📍 Venue details">
+              <div className="grid grid-cols-1 gap-x-6 gap-y-5 text-sm text-gray-700 dark:text-gray-300 md:grid-cols-2 min-[1200px]:grid-cols-3">
+                {event.locationName?.trim() && (
                   <div>
-                    <p className={`font-semibold ${getStatusInfo(event.status).color}`}>
-                      {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {event.status === "approved" ? "Event approved" : 
-                       event.status === "denied" ? "Needs revision" : "Under review"}
-                    </p>
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Name</p>
+                    <p className="mt-1 font-medium text-gray-900 dark:text-white">{event.locationName}</p>
                   </div>
-                </div>
+                )}
+                {event.locationContact?.trim() && (
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Contact</p>
+                    <p className="mt-1 text-gray-800 dark:text-white/90">{event.locationContact}</p>
+                  </div>
+                )}
+                {event.locationAddress?.trim() && (
+                  <div className="col-span-1 md:col-span-2 min-[1200px]:col-span-3">
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Address</p>
+                    <p className="mt-1 whitespace-pre-wrap text-gray-800 dark:text-white/90">{event.locationAddress}</p>
+                  </div>
+                )}
+                {event.locationLatitude != null &&
+                  event.locationLongitude != null &&
+                  Number.isFinite(event.locationLatitude) &&
+                  Number.isFinite(event.locationLongitude) && (
+                    <div className="col-span-1 md:col-span-2 min-[1200px]:col-span-3 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+                      <iframe
+                        title="Venue map"
+                        src={`https://www.google.com/maps?q=${encodeURIComponent(String(event.locationLatitude))},${encodeURIComponent(String(event.locationLongitude))}&z=15&output=embed`}
+                        className="h-56 w-full border-0"
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                      />
+                    </div>
+                  )}
               </div>
             </ComponentCard>
+          )}
 
-            {/* Tags */}
-            {event.tags && event.tags.length > 0 && (
-              <ComponentCard title="🏷️ Tags">
-                <div className="flex flex-wrap gap-2">
-                  {event.tags.map((tag, index) => (
-                    <Badge key={index} color="info" size="sm">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              </ComponentCard>
-            )}
-          </div>
+          {event.tags && event.tags.length > 0 && (
+            <ComponentCard title="🏷️ Tags">
+              <div className="flex flex-wrap gap-2">
+                {event.tags.map((tag, index) => (
+                  <Badge key={index} color="info" size="sm">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            </ComponentCard>
+          )}
         </div>
 
         {/* Event Timeline */}

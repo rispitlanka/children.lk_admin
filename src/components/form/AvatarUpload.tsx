@@ -206,7 +206,7 @@ export default function AvatarUpload({
           />
           <label
             htmlFor="avatar-upload"
-            className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
+            className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
           >
             <svg
               className="h-4 w-4"
@@ -228,11 +228,11 @@ export default function AvatarUpload({
 
       {showCropModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75">
-          <div className="mx-4 w-full max-w-2xl rounded-lg bg-white p-6 dark:bg-gray-900">
+          <div className="mx-4 w-full max-w-2xl rounded-[10px] bg-white p-6 dark:bg-gray-900">
             <h3 className="mb-4 text-lg font-semibold text-gray-800 dark:text-white/90">
               Crop Avatar
             </h3>
-            <div className="relative h-96 w-full overflow-hidden rounded-lg bg-gray-900">
+            <div className="relative h-96 w-full overflow-hidden rounded-[10px] bg-gray-900">
               <Cropper
                 image={imageSrc}
                 crop={crop}

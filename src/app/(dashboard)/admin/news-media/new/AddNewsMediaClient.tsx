@@ -12,6 +12,8 @@ import Label from "@/components/form/Label";
 import TextArea from "@/components/form/input/TextArea";
 import Switch from "@/components/form/switch/Switch";
 
+import DashedDropzone from "@/components/form/input/DashedDropzone";
+
 export default function AddNewsMediaClient() {
   const router = useRouter();
   const [form, setForm] = useState({
@@ -74,7 +76,7 @@ export default function AddNewsMediaClient() {
 
       const res = await fetch("/api/admin/news-media", {
         method: "POST",
-        body: formData, // fetch will set multipart/form-data boundary automatically
+        body: formData,
       });
       const data = await res.json();
       if (!res.ok) {
@@ -94,11 +96,11 @@ export default function AddNewsMediaClient() {
   };
 
   return (
-    <div className="w-full">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="w-full space-y-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <PageBreadcrumb pageTitle="Add News Media" />
         <Link href="/admin/news-media">
-          <Button size="sm" variant="outline">Back to list</Button>
+          <Button size="sm" variant="outline" className="h-10 px-4 text-xs">Back to list</Button>
         </Link>
       </div>
 
@@ -108,20 +110,19 @@ export default function AddNewsMediaClient() {
       >
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
-            <p className="rounded-lg bg-error-50 px-4 py-2 text-sm text-error-600 dark:bg-error-500/10 dark:text-error-400">
+            <p className="rounded-[10px] border border-rose-200 bg-rose-50/50 p-3.5 text-xs text-rose-600 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-400">
               {error}
             </p>
           )}
 
-          <div className="grid gap-6 sm:grid-cols-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
             <div className="sm:col-span-2">
               <Label>Title *</Label>
               <Input
                 value={form.title}
                 onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                placeholder="News title"
+                placeholder="Enter news title"
                 required
-                className="mt-1"
               />
             </div>
             
@@ -131,45 +132,59 @@ export default function AddNewsMediaClient() {
                 value={form.content}
                 onChange={(v) => setForm((f) => ({ ...f, content: v }))}
                 rows={6}
-                placeholder="News content"
-                className="mt-1"
+                placeholder="Enter news content"
               />
             </div>
 
             <div className="sm:col-span-2 md:col-span-1">
               <Label>Featured Image (Max 10MB)</Label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 dark:text-gray-400 dark:file:bg-brand-900/20 dark:file:text-brand-400"
-              />
-              {featuredImage && (
-                <div className="mt-2">
-                  <p className="text-sm text-gray-500 mb-1">Selected: {featuredImage.name}</p>
-                  <img src={URL.createObjectURL(featuredImage)} alt="Preview" className="w-32 h-32 object-cover rounded" />
+              {featuredImage ? (
+                <div className="flex items-center gap-3 rounded-[10px] border border-gray-200 bg-gray-50/50 p-3 dark:border-gray-800 dark:bg-gray-800/30">
+                  <img src={URL.createObjectURL(featuredImage)} alt="Preview" className="h-14 w-14 rounded-[10px] object-cover" />
+                  <div className="flex-1 truncate">
+                    <p className="text-xs font-medium text-gray-900 dark:text-white truncate">{featuredImage.name}</p>
+                    <p className="text-[11px] text-gray-400">{(featuredImage.size / 1024 / 1024).toFixed(2)} MB</p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setFeaturedImage(null)}
+                    className="h-8 text-xs"
+                  >
+                    Remove
+                  </Button>
                 </div>
+              ) : (
+                <DashedDropzone
+                  onChange={handleImageChange}
+                  accept="image/*"
+                  label="Click or drag featured image"
+                  sublabel="PNG, JPG, or WEBP (max 10MB)"
+                />
               )}
             </div>
 
             <div className="sm:col-span-2 md:col-span-1">
               <Label>Additional Files (Max 10MB each)</Label>
-              <input
-                type="file"
-                multiple
+              <DashedDropzone
                 onChange={handleFilesChange}
-                className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100 dark:text-gray-400 dark:file:bg-gray-800 dark:file:text-gray-300"
+                multiple
+                label="Click or drag additional files"
+                sublabel="Images, PDFs, or docs (max 10MB each)"
               />
               {files.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-2">
+                <div className="mt-3 flex flex-wrap gap-2">
                   {files.map((f, i) => (
-                    <div key={i} className="border border-gray-200 dark:border-gray-800 rounded p-2 flex flex-col items-center max-w-[150px]">
-                      {f.type.startsWith("image/") ? (
-                        <img src={URL.createObjectURL(f)} alt={f.name} className="w-20 h-20 object-cover rounded mb-1" />
-                      ) : (
-                        <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded flex items-center justify-center mb-1 text-xs text-gray-500">File</div>
-                      )}
-                      <span className="text-xs text-gray-500 truncate w-full text-center" title={f.name}>{f.name}</span>
+                    <div key={i} className="flex items-center gap-2 rounded-[6px] border border-gray-200 bg-gray-50/50 px-2.5 py-1.5 dark:border-gray-800 dark:bg-gray-800/30 text-xs">
+                      <span className="truncate max-w-[120px] text-gray-700 dark:text-gray-300" title={f.name}>{f.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => setFiles(prev => prev.filter((_, idx) => idx !== i))}
+                        className="text-gray-400 hover:text-rose-500"
+                      >
+                        ×
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -177,13 +192,15 @@ export default function AddNewsMediaClient() {
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-3 border-t border-gray-200 pt-6 dark:border-gray-800">
-            <Button type="submit" size="sm" disabled={submitting}>
+          <div className="flex items-center justify-end gap-3 border-t border-gray-200 pt-4 mt-6 dark:border-gray-800">
+            <Link href="/admin/news-media">
+              <Button type="button" variant="outline" size="sm" className="h-10 px-4 text-xs">
+                Cancel
+              </Button>
+            </Link>
+            <Button type="submit" size="sm" disabled={submitting} className="h-10 px-4 text-xs">
               {submitting ? "Creating..." : "Create News Media"}
             </Button>
-            <Link href="/admin/news-media">
-              <Button type="button" variant="outline" size="sm">Cancel</Button>
-            </Link>
           </div>
         </form>
       </ComponentCard>

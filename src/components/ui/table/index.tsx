@@ -32,8 +32,8 @@ interface TableCellProps {
 }
 
 // Table Component
-const Table: React.FC<TableProps> = ({ children, className }) => {
-  return <table className={`min-w-full  ${className}`}>{children}</table>;
+const Table: React.FC<TableProps> = ({ children, className = "" }) => {
+  return <table className={`table-fixed w-full text-left align-top border-collapse ${className}`}>{children}</table>;
 };
 
 // TableHeader Component
@@ -47,18 +47,26 @@ const TableBody: React.FC<TableBodyProps> = ({ children, className }) => {
 };
 
 // TableRow Component
-const TableRow: React.FC<TableRowProps> = ({ children, className }) => {
-  return <tr className={className}>{children}</tr>;
-};
+const TableRow = React.forwardRef<HTMLTableRowElement, TableRowProps>(
+  ({ children, className }, ref) => {
+    return (
+      <tr ref={ref} className={className}>
+        {children}
+      </tr>
+    );
+  }
+);
+TableRow.displayName = "TableRow";
 
 // TableCell Component
 const TableCell: React.FC<TableCellProps> = ({
   children,
   isHeader = false,
-  className,
+  className = "",
 }) => {
   const CellTag = isHeader ? "th" : "td";
-  return <CellTag className={` ${className}`}>{children}</CellTag>;
+  return <CellTag className={`px-4 py-3 align-top ${className}`}>{children}</CellTag>;
 };
 
 export { Table, TableHeader, TableBody, TableRow, TableCell };
+

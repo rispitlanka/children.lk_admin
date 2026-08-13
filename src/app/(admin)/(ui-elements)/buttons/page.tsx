@@ -15,7 +15,7 @@ export default function Buttons() {
   return (
     <div>
       <PageBreadcrumb pageTitle="Buttons" />
-      <div className="space-y-5 sm:space-y-6">
+      <div className="space-y-8">
         {/* Primary Button */}
         <ComponentCard title="Primary Button">
           <div className="flex items-center gap-5">

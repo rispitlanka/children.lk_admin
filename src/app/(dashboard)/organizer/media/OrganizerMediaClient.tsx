@@ -67,52 +67,63 @@ export default function OrganizerMediaClient() {
           <LoadingLottie variant="block" />
         ) : (
           <div className="overflow-x-auto">
-            <Table className="w-full text-left text-theme-sm">
+            <Table className="table-fixed w-full text-left text-theme-sm">
+              <colgroup>
+                <col className="w-[30%]" />
+                <col className="w-[15%]" />
+                <col className="w-[15%]" />
+                <col className="w-[25%]" />
+                <col className="w-[15%]" />
+                <col className="w-[100px]" />
+              </colgroup>
               <TableHeader>
                 <TableRow className="border-b border-gray-200 dark:border-gray-800">
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Name</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Type</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Status</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Admin message</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Date</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Actions</TableCell>
+                  <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Name</TableCell>
+                  <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Type</TableCell>
+                  <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Status</TableCell>
+                  <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Admin message</TableCell>
+                  <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Date</TableCell>
+                  <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300 text-right">Actions</TableCell>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {list.map((row) => (
                   <TableRow key={row._id} className="border-b border-gray-200 dark:border-gray-800">
-                    <TableCell className="py-4 text-gray-800 dark:text-white/90">
+                    <TableCell className="px-4 py-3 text-gray-800 dark:text-white/90 font-medium">
                       <Link 
                         href={`/organizer/media/${row._id}`}
-                        className="text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 font-medium"
+                        className="text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 block whitespace-normal line-clamp-2 break-words"
+                        title={row.name}
                       >
                         {row.name}
                       </Link>
                     </TableCell>
-                    <TableCell className="py-4">
+                    <TableCell className="px-4 py-3">
                       <Badge color={row.contentType === "video" ? "success" : "info"} size="sm">
                         {contentTypeLabel(row)}
                       </Badge>
                     </TableCell>
-                    <TableCell className="py-4">{statusBadge(row)}</TableCell>
-                    <TableCell className="py-4 max-w-[280px] text-sm text-gray-600 dark:text-gray-400">
+                    <TableCell className="px-4 py-3">{statusBadge(row)}</TableCell>
+                    <TableCell className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
                       {row.status === "denied" && row.adminReason ? (
-                        <span className="block" title={row.adminReason}>{row.adminReason}</span>
+                        <span className="block whitespace-normal line-clamp-2 break-words" title={row.adminReason}>{row.adminReason}</span>
                       ) : (
                         "—"
                       )}
                     </TableCell>
-                    <TableCell className="py-4 text-gray-600 dark:text-gray-400">
+                    <TableCell className="px-4 py-3 text-gray-600 dark:text-gray-400">
                       {new Date(row.createdAt).toLocaleDateString()}
                     </TableCell>
-                    <TableCell className="py-4">
+                    <TableCell className="px-4 py-3 text-right">
                       {row.visibilityStatus === "draft" && (
-                        <Link
-                          href={`/organizer/media/new?edit=${row._id}`}
-                          className="inline-flex rounded-md border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50 hover:text-brand-600 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700"
-                        >
-                          Edit
-                        </Link>
+                        <div className="flex items-center justify-end">
+                          <Link
+                            href={`/organizer/media/new?edit=${row._id}`}
+                            className="inline-flex h-8 items-center justify-center rounded-md border border-gray-200 px-3 text-xs font-medium text-gray-700 transition hover:bg-gray-50 hover:text-brand-600 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700"
+                          >
+                            Edit
+                          </Link>
+                        </div>
                       )}
                     </TableCell>
                   </TableRow>

@@ -171,7 +171,7 @@ export default function OrganizerDetailsClient() {
   const { organizer, resources, media, events, stats } = details;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <PageBreadcrumb pageTitle="Organizer Details" />
         <Button 
@@ -183,21 +183,25 @@ export default function OrganizerDetailsClient() {
       </div>
 
       {/* Organizer & Organization Info */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="space-y-8">
         {/* Organizer Information */}
         <ComponentCard title="Organizer Information">
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-x-6 gap-y-5 text-sm md:grid-cols-2 min-[1200px]:grid-cols-3">
             <div>
-              <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Name</p>
+              <p className="mt-1 text-base font-semibold text-gray-900 dark:text-white">
                 {organizer.name}
-              </h4>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Joined on {new Date(organizer.createdAt).toLocaleDateString()}
               </p>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Email</p>
-              <p className="text-gray-600 dark:text-gray-400">{organizer.email}</p>
+              <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Joined</p>
+              <p className="mt-1 text-gray-600 dark:text-gray-400">
+                {new Date(organizer.createdAt).toLocaleDateString(undefined, { dateStyle: "medium" })}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Email</p>
+              <p className="mt-1 font-medium text-gray-800 dark:text-white/90">{organizer.email}</p>
             </div>
           </div>
         </ComponentCard>
@@ -210,7 +214,7 @@ export default function OrganizerDetailsClient() {
                 <img
                   src={organizer.organization.logo}
                   alt={organizer.organization.name}
-                  className="h-16 w-16 rounded-lg object-cover"
+                  className="h-16 w-16 rounded-lg object-cover ring-1 ring-gray-200 dark:ring-gray-700"
                 />
               )}
               <div className="flex-1">
@@ -223,32 +227,32 @@ export default function OrganizerDetailsClient() {
               </div>
             </div>
             
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-5 border-t border-gray-200 pt-4 text-sm dark:border-gray-800 md:grid-cols-2 min-[1200px]:grid-cols-3">
               <div>
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Contact Email</p>
-                <p className="text-gray-600 dark:text-gray-400">{organizer.organization.contactEmail}</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Contact Email</p>
+                <p className="mt-1 font-medium text-gray-800 dark:text-white/90">{organizer.organization.contactEmail}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Contact Phone</p>
-                <p className="text-gray-600 dark:text-gray-400">{organizer.organization.contactPhone}</p>
-              </div>
-              <div className="sm:col-span-2">
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Address</p>
-                <p className="text-gray-600 dark:text-gray-400">{organizer.organization.address}</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Contact Phone</p>
+                <p className="mt-1 text-gray-800 dark:text-white/90">{organizer.organization.contactPhone}</p>
               </div>
               {organizer.organization.website && (
-                <div className="sm:col-span-2">
-                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Website</p>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Website</p>
                   <a 
                     href={organizer.organization.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-brand-600 hover:text-brand-700 dark:text-brand-400"
+                    className="mt-1 block font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 break-all"
                   >
                     {organizer.organization.website}
                   </a>
                 </div>
               )}
+              <div className="col-span-1 md:col-span-2 min-[1200px]:col-span-3">
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Address</p>
+                <p className="mt-1 text-gray-800 dark:text-white/90">{organizer.organization.address}</p>
+              </div>
             </div>
           </div>
         </ComponentCard>
@@ -302,17 +306,23 @@ export default function OrganizerDetailsClient() {
       <ComponentCard title={`Resources (${resources.length})`}>
         {resources.length > 0 ? (
           <div className="overflow-x-auto">
-            <Table className="w-full text-left text-sm">
+            <Table className="table-fixed w-full text-left text-sm">
+              <colgroup>
+                <col className="w-[30%]" />
+                <col className="w-[20%]" />
+                <col className="w-[12%]" />
+                <col className="w-[12%]" />
+                <col className="w-[16%]" />
+                <col className="w-[10%]" />
+              </colgroup>
               <TableHeader>
                 <TableRow className="border-b border-gray-200 dark:border-gray-800">
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Title</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Summary</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Category</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Type</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Visibility</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Audience</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Status</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Date</TableCell>
+                  <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Title</TableCell>
+                  <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Category</TableCell>
+                  <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Type</TableCell>
+                  <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Visibility</TableCell>
+                  <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Audience</TableCell>
+                  <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Status</TableCell>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -330,33 +340,29 @@ export default function OrganizerDetailsClient() {
                           .join(" · ");
                   return (
                   <TableRow key={resource._id} className="border-b border-gray-200 dark:border-gray-800">
-                    <TableCell className="py-4">
+                    <TableCell className="px-4 py-3">
                       <Link 
                         href={`/admin/resource-requests/${resource._id}`}
-                        className="font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400"
+                        className="font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 block whitespace-normal line-clamp-3 break-words"
+                        title={resource.name}
                       >
                         {resource.name}
                       </Link>
                     </TableCell>
-                    <TableCell className="max-w-[200px] py-4 text-gray-600 dark:text-gray-400">
-                      {resource.shortDescription.length > 50 
-                        ? resource.shortDescription.substring(0, 50) + "..." 
-                        : resource.shortDescription}
+                    <TableCell className="px-4 py-3 text-gray-600 dark:text-gray-400">
+                      <span className="block whitespace-normal line-clamp-2 break-words">{taxonomyLine(cat, sub)}</span>
                     </TableCell>
-                    <TableCell className="max-w-[180px] py-4 text-gray-600 dark:text-gray-400">
-                      {taxonomyLine(cat, sub)}
-                    </TableCell>
-                    <TableCell className="py-4 text-gray-600 dark:text-gray-400">
+                    <TableCell className="px-4 py-3 text-gray-600 dark:text-gray-400">
                       {labelContentType(resource.contentType)}
                     </TableCell>
-                    <TableCell className="py-4 text-gray-600 dark:text-gray-400">
+                    <TableCell className="px-4 py-3 text-gray-600 dark:text-gray-400">
                       {labelVisibility(resource.visibilityStatus)}
                     </TableCell>
-                    <TableCell className="max-w-[200px] py-4 text-xs text-gray-600 dark:text-gray-400">
-                      {audienceText || "—"}
+                    <TableCell className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400">
+                      <span className="block whitespace-normal line-clamp-2 break-words">{audienceText || "—"}</span>
                     </TableCell>
-                    <TableCell className="py-4">{getStatusBadge(resource.status)}</TableCell>
-                    <TableCell className="py-4 text-gray-600 dark:text-gray-400">
+                    <TableCell className="px-4 py-3">{getStatusBadge(resource.status)}</TableCell>
+                    <TableCell className="px-4 py-3 text-gray-600 dark:text-gray-400">
                       {new Date(resource.createdAt).toLocaleDateString()}
                     </TableCell>
                   </TableRow>
@@ -374,31 +380,39 @@ export default function OrganizerDetailsClient() {
       <ComponentCard title={`Media (${media.length})`}>
         {media.length > 0 ? (
           <div className="overflow-x-auto">
-            <Table className="w-full text-left text-sm">
+            <Table className="table-fixed w-full text-left text-sm">
+              <colgroup>
+                <col className="w-[35%]" />
+                <col className="w-[15%]" />
+                <col className="w-[20%]" />
+                <col className="w-[15%]" />
+                <col className="w-[15%]" />
+              </colgroup>
               <TableHeader>
                 <TableRow className="border-b border-gray-200 dark:border-gray-800">
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Name</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Type</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Audience</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Status</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Date</TableCell>
+                  <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Name</TableCell>
+                  <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Type</TableCell>
+                  <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Audience</TableCell>
+                  <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Status</TableCell>
+                  <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Date</TableCell>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {media.map((item) => (
                   <TableRow key={item._id} className="border-b border-gray-200 dark:border-gray-800">
-                    <TableCell className="py-4">
+                    <TableCell className="px-4 py-3">
                       <Link 
                         href={`/admin/media/${item._id}`}
-                        className="text-brand-600 hover:text-brand-700 dark:text-brand-400 font-medium"
+                        className="text-brand-600 hover:text-brand-700 dark:text-brand-400 font-medium block whitespace-normal line-clamp-2 break-words"
+                        title={item.name}
                       >
                         {item.name}
                       </Link>
                     </TableCell>
-                    <TableCell className="py-4">
+                    <TableCell className="px-4 py-3">
                       {getContentTypeBadge(item.contentType)}
                     </TableCell>
-                    <TableCell className="py-4">
+                    <TableCell className="px-4 py-3">
                       <div className="space-y-1">
                         <Badge color="primary" size="sm">
                           {item.targetAudience === "children" ? "Children" : "Professionals"}
@@ -408,8 +422,8 @@ export default function OrganizerDetailsClient() {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="py-4">{getStatusBadge(item.status)}</TableCell>
-                    <TableCell className="py-4 text-gray-600 dark:text-gray-400">
+                    <TableCell className="px-4 py-3">{getStatusBadge(item.status)}</TableCell>
+                    <TableCell className="px-4 py-3 text-gray-600 dark:text-gray-400">
                       {new Date(item.createdAt).toLocaleDateString()}
                     </TableCell>
                   </TableRow>
@@ -426,34 +440,42 @@ export default function OrganizerDetailsClient() {
       <ComponentCard title={`Events (${events.length})`}>
         {events.length > 0 ? (
           <div className="overflow-x-auto">
-            <Table className="w-full text-left text-sm">
+            <Table className="table-fixed w-full text-left text-sm">
+              <colgroup>
+                <col className="w-[35%]" />
+                <col className="w-[25%]" />
+                <col className="w-[12%]" />
+                <col className="w-[15%]" />
+                <col className="w-[13%]" />
+              </colgroup>
               <TableHeader>
                 <TableRow className="border-b border-gray-200 dark:border-gray-800">
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Name</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Location</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Date</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Audience</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Status</TableCell>
+                  <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Name</TableCell>
+                  <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Location</TableCell>
+                  <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Date</TableCell>
+                  <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Audience</TableCell>
+                  <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Status</TableCell>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {events.map((event) => (
                   <TableRow key={event._id} className="border-b border-gray-200 dark:border-gray-800">
-                    <TableCell className="py-4">
+                    <TableCell className="px-4 py-3">
                       <Link 
                         href={`/admin/events/${event._id}`}
-                        className="text-brand-600 hover:text-brand-700 dark:text-brand-400 font-medium"
+                        className="text-brand-600 hover:text-brand-700 dark:text-brand-400 font-medium block whitespace-normal line-clamp-2 break-words"
+                        title={event.name}
                       >
                         {event.name}
                       </Link>
                     </TableCell>
-                    <TableCell className="py-4 text-gray-600 dark:text-gray-400">
-                      {event.location}
+                    <TableCell className="px-4 py-3 text-gray-600 dark:text-gray-400">
+                      <span className="block whitespace-normal line-clamp-2 break-words" title={event.location}>{event.location}</span>
                     </TableCell>
-                    <TableCell className="py-4 text-gray-600 dark:text-gray-400">
+                    <TableCell className="px-4 py-3 text-gray-600 dark:text-gray-400">
                       {new Date(event.startDate).toLocaleDateString()}
                     </TableCell>
-                    <TableCell className="py-4">
+                    <TableCell className="px-4 py-3">
                       <div className="space-y-1">
                         <Badge color="primary" size="sm">
                           {event.targetAudience === "children" ? "Children" : "Professionals"}
@@ -463,7 +485,7 @@ export default function OrganizerDetailsClient() {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="py-4">{getStatusBadge(event.status)}</TableCell>
+                    <TableCell className="px-4 py-3">{getStatusBadge(event.status)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

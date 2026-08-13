@@ -11,7 +11,7 @@ export default function ParentDashboardLayout({
   return (
     <div className="min-h-screen">
       <AppHeader profileBasePath="/parent" />
-      <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">{children}</div>
+      <div className="p-6 mx-auto max-w-(--breakpoint-2xl)">{children}</div>
     </div>
   );
 }

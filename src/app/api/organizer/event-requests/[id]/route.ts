@@ -47,36 +47,18 @@ export async function GET(
 
     // Handle both sync and async params
     const resolvedParams = await Promise.resolve(params);
-    console.log("Full params object:", resolvedParams);
-    console.log("Received ID:", resolvedParams?.id, "Type:", typeof resolvedParams?.id);
-    
+
     if (!resolvedParams?.id) {
       return NextResponse.json({ error: "ID parameter is required" }, { status: 400 });
     }
 
     const id = resolvedParams.id;
-    
-    // Validate ObjectId format if needed for debugging
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      console.log("ID is not a valid ObjectId format:", id);
-    }
 
     await connectDB();
 
     const user = await User.findOne({ _id: session.user.id }).select("organizationId").lean();
     if (!user?.organizationId) {
       return NextResponse.json({ error: "No organization found" }, { status: 400 });
-    }
-
-    console.log("Looking for event with ID:", id, "and organizationId:", user.organizationId);
-
-    // First, let's see if the event exists at all (without organizationId filter)
-    const anyEvent = await EventRequest.findOne({ _id: id }).lean();
-    console.log("Event exists (any org):", anyEvent ? "Yes" : "No");
-    if (anyEvent) {
-      console.log("Event organizationId:", anyEvent.organizationId);
-      console.log("User organizationId:", user.organizationId);
-      console.log("IDs match:", anyEvent.organizationId.toString() === user.organizationId.toString());
     }
 
     // Try with string first, then ObjectId if needed
@@ -92,8 +74,6 @@ export async function GET(
         organizationId: new mongoose.Types.ObjectId(user.organizationId),
       }).lean();
     }
-
-    console.log("Found event (with org filter):", eventRequest ? "Yes" : "No");
 
     if (!eventRequest) {
       return NextResponse.json({ error: "Event not found" }, { status: 404 });

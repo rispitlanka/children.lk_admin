@@ -8,6 +8,7 @@ interface InputProps {
   defaultValue?: string | number;
   value?: string | number;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
   className?: string;
   min?: string;
   max?: string;
@@ -27,6 +28,7 @@ const Input: FC<InputProps> = ({
   defaultValue,
   value,
   onChange,
+  onBlur,
   className = "",
   min,
   max,
@@ -38,17 +40,17 @@ const Input: FC<InputProps> = ({
   hint,
 }) => {
   // Determine input styles based on state (disabled, success, error)
-  let inputClasses = `h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 ${className}`;
+  let inputClasses = `h-10 w-full rounded-[10px] border shadow-none appearance-none px-3.5 text-xs placeholder:text-gray-400 focus:outline-none focus:ring-2 dark:bg-gray-dark dark:text-white/90 dark:placeholder:text-white/30 ${className}`;
 
   // Add styles for the different states
   if (disabled) {
-    inputClasses += ` text-gray-500 border-gray-300 cursor-not-allowed dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700`;
+    inputClasses += ` text-gray-500 border-gray-200 bg-gray-100 cursor-not-allowed dark:bg-gray-800 dark:text-gray-400 dark:border-gray-800`;
   } else if (error) {
-    inputClasses += ` text-error-800 border-error-500 focus:ring-3 focus:ring-error-500/10  dark:text-error-400 dark:border-error-500`;
+    inputClasses += ` text-gray-900 border-gray-200 border-b-2 border-b-rose-500 focus:border-brand-500 focus:ring-rose-500/10 dark:text-white/90 dark:border-gray-800 dark:border-b-rose-500`;
   } else if (success) {
-    inputClasses += ` text-success-500 border-success-400 focus:ring-success-500/10 focus:border-success-300  dark:text-success-400 dark:border-success-500`;
+    inputClasses += ` text-gray-900 border-gray-200 border-b-2 border-b-emerald-500 focus:border-brand-500 focus:ring-emerald-500/10 dark:text-white/90 dark:border-gray-800 dark:border-b-emerald-500`;
   } else {
-    inputClasses += ` bg-transparent text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800`;
+    inputClasses += ` bg-white text-gray-900 border-gray-200 focus:border-brand-500 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-dark dark:text-white/90 dark:focus:border-brand-500`;
   }
 
   return (
@@ -61,6 +63,7 @@ const Input: FC<InputProps> = ({
         defaultValue={defaultValue}
         value={value}
         onChange={onChange}
+        onBlur={onBlur}
         min={min}
         max={max}
         step={step}

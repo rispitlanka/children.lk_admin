@@ -71,71 +71,117 @@ export default function AdminSuperHeroClient() {
     }
   };
 
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredList = list.filter((row) => {
+    const searchLower = searchTerm.toLowerCase();
+    const nameStr = row.name.toLowerCase();
+    const orgStr = (row.organizationId?.name ?? "").toLowerCase();
+    const contactStr = (row.contactNumber ?? "").toLowerCase();
+    return !searchTerm || nameStr.includes(searchLower) || orgStr.includes(searchLower) || contactStr.includes(searchLower);
+  });
+
   return (
-    <div>
-      <PageBreadcrumb pageTitle="Super Hero" />
-      <div className="mb-4 flex justify-end">
-        {/* <PlusActionLink href="/admin/super-hero/new" label="Add Super Hero" /> */}
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <PageBreadcrumb pageTitle="Super Hero" />
         <Button onClick={() => router.push("/admin/super-hero/new")}>Add Super Hero</Button>
       </div>
       <ComponentCard title="Super Heroes">
         {loading ? (
           <LoadingLottie variant="block" />
         ) : (
-          <div className="overflow-x-auto">
-            <Table className="w-full text-left text-theme-sm">
-              <TableHeader>
-                <TableRow className="border-b border-gray-200 dark:border-gray-800">
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Name</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Color</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Image</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Contact Number</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Organization</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Actions</TableCell>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {list.map((row) => (
-                  <TableRow key={row._id} className="border-b border-gray-200 dark:border-gray-800">
-                    <TableCell className="py-4 text-gray-800 dark:text-white/90">{row.name}</TableCell>
-                    <TableCell className="py-4">
-                      <span className="inline-flex items-center gap-2">
-                        <span
-                          className="h-4 w-4 rounded-full border border-gray-300 dark:border-gray-600"
-                          style={{ backgroundColor: row.color || "#ffffff" }}
-                        />
-                        <span className="text-gray-600 dark:text-gray-400">{row.color || "—"}</span>
-                      </span>
-                    </TableCell>
-                    <TableCell className="py-4">
-                      {row.image ? (
-                        <img src={row.image} alt="" className="h-10 w-10 rounded-full object-cover" />
-                      ) : (
-                        "—"
-                      )}
-                    </TableCell>
-                    <TableCell className="py-4 text-gray-600 dark:text-gray-400">{row.contactNumber}</TableCell>
-                    <TableCell className="py-4 text-gray-600 dark:text-gray-400">{row.organizationId?.name ?? "—"}</TableCell>
-                    <TableCell className="py-4">
-                      <div className="flex gap-2">
-                        <Link
-                          href={`/admin/super-hero/${row._id}/edit`}
-                          className="inline-flex items-center justify-center font-medium rounded-lg transition px-4 py-3 text-sm bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/[0.03]"
-                        >
-                          <PencilIcon className="size-4" />
-                        </Link>
-                        <Button size="sm" variant="outline" onClick={() => handleDeleteClick(row._id)}>
-                          <TrashBinIcon className="size-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+          <div>
+            <div className="mb-4 flex items-center justify-between">
+              <input
+                type="text"
+                placeholder="Search super heroes..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="h-10 w-full min-w-[220px] sm:w-64 rounded-[10px] border border-gray-200 bg-white px-3.5 text-xs text-gray-800 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none dark:border-gray-800 dark:bg-gray-dark dark:text-white/90 dark:placeholder:text-white/30"
+              />
+            </div>
+            <div className="overflow-x-auto">
+              <Table className="table-fixed w-full text-left text-theme-sm">
+                <colgroup>
+                  <col className="w-[56px]" />
+                  <col className="w-[25%]" />
+                  <col className="w-[15%]" />
+                  <col className="w-[20%]" />
+                  <col className="w-[25%]" />
+                  <col className="w-[100px]" />
+                </colgroup>
+                <TableHeader>
+                  <TableRow className="border-b border-gray-200 bg-transparent dark:border-gray-800">
+                    <TableCell isHeader className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Image</TableCell>
+                    <TableCell isHeader className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Name</TableCell>
+                    <TableCell isHeader className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Color</TableCell>
+                    <TableCell isHeader className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Contact Number</TableCell>
+                    <TableCell isHeader className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Organization</TableCell>
+                    <TableCell isHeader className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 text-right">Actions</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-            {list.length === 0 && (
-              <p className="py-8 text-center text-gray-500 dark:text-gray-400">No super heroes yet.</p>
-            )}
+                </TableHeader>
+                <TableBody>
+                  {filteredList.map((row) => (
+                    <TableRow key={row._id} className="border-b border-gray-200 transition-colors hover:bg-gray-50/60 dark:border-gray-800 dark:hover:bg-white/[0.02]">
+                      <TableCell className="px-4 py-3">
+                        {row.image ? (
+                          <img src={row.image} alt="" className="h-10 w-10 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center text-xs text-gray-400">—</div>
+                        )}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-gray-800 dark:text-white/90 font-medium">
+                        <span className="block whitespace-normal line-clamp-2 break-words" title={row.name}>{row.name}</span>
+                      </TableCell>
+                      <TableCell className="px-4 py-3">
+                        <span className="inline-flex items-center gap-2">
+                          <span
+                            className="h-4 w-4 rounded-full border border-gray-300 dark:border-gray-600 shrink-0"
+                            style={{ backgroundColor: row.color || "#ffffff" }}
+                          />
+                          <span className="text-gray-600 dark:text-gray-400">{row.color || "—"}</span>
+                        </span>
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-gray-600 dark:text-gray-400">{row.contactNumber}</TableCell>
+                      <TableCell className="px-4 py-3 text-gray-600 dark:text-gray-400">
+                        <span className="block whitespace-normal line-clamp-2 break-words" title={row.organizationId?.name ?? "—"}>{row.organizationId?.name ?? "—"}</span>
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-3">
+                          <Link
+                            href={`/admin/super-hero/${row._id}/edit`}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-[6px] bg-transparent text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+                            title="Edit"
+                          >
+                            <PencilIcon className="size-4" />
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteClick(row._id)}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-[6px] bg-transparent text-rose-500 transition-colors hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-500/10"
+                            title="Delete"
+                          >
+                            <TrashBinIcon className="size-4" />
+                          </button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              {filteredList.length === 0 && (
+                <div className="py-12 text-center">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800/50 text-gray-400 dark:text-gray-600 mb-3">
+                    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+                    </svg>
+                  </div>
+                  <h4 className="text-sm font-medium text-gray-900 dark:text-white">No super heroes found</h4>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">There are no records matching your criteria.</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </ComponentCard>
@@ -143,7 +189,7 @@ export default function AdminSuperHeroClient() {
       <Modal
         isOpen={!!deleteId}
         onClose={() => setDeleteId(null)}
-        className="max-w-sm w-full shadow-xl border border-gray-200 dark:border-gray-800"
+        className="max-w-sm w-full border border-gray-200 dark:border-gray-800"
       >
         <div className="p-6 text-center">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">Delete Super Hero?</h3>

@@ -15,6 +15,8 @@ import {
   SUPER_HERO_CONTACT_VALIDATION_MESSAGE,
 } from "@/lib/validation";
 
+import DashedDropzone from "@/components/form/input/DashedDropzone";
+
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -115,11 +117,11 @@ export default function AddSuperHeroClient() {
   };
 
   return (
-    <div className="w-full">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="w-full space-y-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <PageBreadcrumb pageTitle="Add Super Hero" />
         <Link href="/admin/super-hero">
-          <Button size="sm" variant="outline">Back to list</Button>
+          <Button size="sm" variant="outline" className="h-10 px-4 text-xs">Back to list</Button>
         </Link>
       </div>
 
@@ -129,31 +131,38 @@ export default function AddSuperHeroClient() {
       >
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
-            <p className="rounded-lg bg-error-50 px-4 py-2 text-sm text-error-600 dark:bg-error-500/10 dark:text-error-400">
+            <p className="rounded-[10px] border border-rose-200 bg-rose-50/50 p-3.5 text-xs text-rose-600 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-400">
               {error}
             </p>
           )}
 
-          <div className="grid gap-6 sm:grid-cols-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
             <div className="sm:col-span-2">
               <Label>Super Hero Name *</Label>
               <Input
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                placeholder="Fire and Rescue"
+                placeholder="e.g. Fire and Rescue"
                 required
-                className="mt-1"
               />
             </div>
             <div>
               <Label>Super Hero Color *</Label>
-              <Input
-                type="color"
-                value={form.color}
-                onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))}
-                required
-                className="mt-1 h-11"
-              />
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={form.color}
+                  onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))}
+                  required
+                  className="h-10 w-12 cursor-pointer rounded-[10px] border border-gray-200 bg-white p-1 dark:border-gray-800 dark:bg-gray-dark"
+                />
+                <Input
+                  value={form.color}
+                  onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))}
+                  placeholder="#ff0000"
+                  className="flex-1"
+                />
+              </div>
             </div>
             <div>
               <Label>Contact Number *</Label>
@@ -161,27 +170,38 @@ export default function AddSuperHeroClient() {
                 value={form.contactNumber}
                 onChange={(e) => setForm((f) => ({ ...f, contactNumber: e.target.value }))}
                 placeholder="e.g. 199 or +94775921581"
-                className="mt-1"
               />
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Short code or full number; any common format is fine.
+              <p className="mt-1 text-[11px] text-gray-400 dark:text-gray-500">
+                Short code or full number format
               </p>
             </div>
             <div className="sm:col-span-2">
               <Label>Super Hero Image *</Label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                disabled={uploadingImage}
-                className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100 dark:file:bg-brand-500/10 dark:file:text-brand-400"
-              />
-              {uploadingImage && <p className="mt-1 text-xs text-gray-500">Uploading...</p>}
-              {form.image && (
-                <div className="mt-3 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50/50 p-3 dark:border-gray-700 dark:bg-gray-800/30">
-                  <img src={form.image} alt="" className="h-16 w-16 rounded-full object-cover ring-2 ring-gray-200 dark:ring-gray-700" />
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Uploaded</span>
+              {form.image ? (
+                <div className="flex items-center gap-3 rounded-[10px] border border-gray-200 bg-gray-50/50 p-3 dark:border-gray-800 dark:bg-gray-800/30">
+                  <img src={form.image} alt="" className="h-14 w-14 rounded-full object-cover ring-2 ring-gray-200 dark:ring-gray-700" />
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-gray-900 dark:text-white">Super hero image uploaded</p>
+                    <p className="text-[11px] text-gray-400">Ready to use</p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setForm((f) => ({ ...f, image: "", imagePublicId: "" }))}
+                    className="h-8 text-xs"
+                  >
+                    Change
+                  </Button>
                 </div>
+              ) : (
+                <DashedDropzone
+                  onChange={handleImageUpload}
+                  accept="image/*"
+                  disabled={uploadingImage}
+                  label={uploadingImage ? "Uploading image..." : "Click or drag super hero image to upload"}
+                  sublabel="PNG, JPG, or WEBP (max 5MB)"
+                />
               )}
             </div>
             <div className="sm:col-span-2">
@@ -190,20 +210,21 @@ export default function AddSuperHeroClient() {
                 value={form.description}
                 onChange={(v) => setForm((f) => ({ ...f, description: v }))}
                 rows={4}
-                placeholder="Description"
+                placeholder="Enter super hero description"
                 required
-                className="mt-1"
               />
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-3 border-t border-gray-200 pt-6 dark:border-gray-800">
-            <Button type="submit" size="sm" disabled={submitting || uploadingImage}>
+          <div className="flex items-center justify-end gap-3 border-t border-gray-200 pt-4 mt-6 dark:border-gray-800">
+            <Link href="/admin/super-hero">
+              <Button type="button" variant="outline" size="sm" className="h-10 px-4 text-xs">
+                Cancel
+              </Button>
+            </Link>
+            <Button type="submit" size="sm" disabled={submitting || uploadingImage} className="h-10 px-4 text-xs">
               {submitting ? "Creating..." : "Create Super Hero"}
             </Button>
-            <Link href="/admin/super-hero">
-              <Button type="button" variant="outline" size="sm">Cancel</Button>
-            </Link>
           </div>
         </form>
       </ComponentCard>

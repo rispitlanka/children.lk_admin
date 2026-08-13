@@ -15,7 +15,7 @@ export default function Alerts() {
   return (
     <div>
       <PageBreadcrumb pageTitle="Alerts" />
-      <div className="space-y-5 sm:space-y-6">
+      <div className="space-y-8">
         <ComponentCard title="Success Alert">
           <Alert
             variant="success"

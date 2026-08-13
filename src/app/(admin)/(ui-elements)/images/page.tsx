@@ -17,7 +17,7 @@ export default function Images() {
   return (
     <div>
       <PageBreadcrumb pageTitle="Images" />
-      <div className="space-y-5 sm:space-y-6">
+      <div className="space-y-8">
         <ComponentCard title="Responsive image">
           <ResponsiveImage />
         </ComponentCard>

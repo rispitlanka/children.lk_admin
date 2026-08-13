@@ -131,9 +131,11 @@ export default function EventRequestDetailClient() {
   };
 
   const statusBadge = (status: string) => {
-    if (status === "pending") return <Badge color="warning">Pending</Badge>;
-    if (status === "approved") return <Badge color="success">Approved</Badge>;
-    return <Badge color="error">Denied</Badge>;
+    if (status === "pending")
+      return <span className="inline-flex items-center rounded-[6px] bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400">Pending</span>;
+    if (status === "approved")
+      return <span className="inline-flex items-center rounded-[6px] bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">Approved</span>;
+    return <span className="inline-flex items-center rounded-[6px] bg-rose-500/10 px-2.5 py-0.5 text-xs font-medium text-rose-600 dark:text-rose-400">Denied</span>;
   };
 
   const formatDate = (d: string) =>
@@ -167,7 +169,7 @@ export default function EventRequestDetailClient() {
   const isPending = request.status === "pending";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <PageBreadcrumb pageTitle={request.name} />
         <div className="flex items-center gap-2">
@@ -178,234 +180,246 @@ export default function EventRequestDetailClient() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-6">
-          <ComponentCard title="Overview">
-            <div className="space-y-4">
-              {request.eventCategory && (
+      <div className="space-y-8">
+        {isPending && (
+          <ComponentCard title="Actions">
+            {error && <p className="mb-3 text-sm text-error-500">{error}</p>}
+            {!action && (
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Button size="sm" onClick={() => { setAction("approve"); setError(""); }}>
+                  Approve request
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => { setAction("deny"); setError(""); setDenyReason(""); }}>
+                  Deny request
+                </Button>
+              </div>
+            )}
+            {action === "approve" && (
+              <div className="space-y-3">
+                <p className="text-sm text-gray-600 dark:text-gray-400">Approve this event request?</p>
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={handleApprove} disabled={submitting}>
+                    {submitting ? "Saving..." : "Confirm approve"}
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setAction(null)} disabled={submitting}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+            {action === "deny" && (
+              <div className="space-y-3">
+                <Label>Reason for denial *</Label>
+                <TextArea
+                  value={denyReason}
+                  onChange={(v) => setDenyReason(v)}
+                  rows={3}
+                  placeholder="Provide a reason for the requester"
+                />
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={handleDeny} disabled={submitting || !denyReason.trim()}>
+                    {submitting ? "Saving..." : "Confirm deny"}
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => { setAction(null); setDenyReason(""); }} disabled={submitting}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+          </ComponentCard>
+        )}
+
+        {!isPending && request.adminReason && (
+          <ComponentCard title="Admin note">
+            <p className="text-sm text-gray-700 dark:text-gray-300">{request.adminReason}</p>
+            {request.reviewedAt && (
+              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                Reviewed {new Date(request.reviewedAt).toLocaleString()}
+              </p>
+            )}
+          </ComponentCard>
+        )}
+
+        <ComponentCard title="Overview">
+          <div className="space-y-4">
+            {request.eventCategory && (
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Category</p>
+                <p className="mt-1 font-medium text-gray-800 dark:text-white/90">
+                  {EVENT_CATEGORY_LABELS[request.eventCategory as EventCategoryValue] ?? request.eventCategory}
+                </p>
+              </div>
+            )}
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Description</p>
+              <div
+                className="prose prose-sm dark:prose-invert mt-1 max-w-none text-gray-800 dark:text-white/90"
+                dangerouslySetInnerHTML={{ __html: request.description || "—" }}
+              />
+            </div>
+            <div className="grid grid-cols-1 gap-x-6 gap-y-5 border-t border-gray-200 pt-4 text-sm dark:border-gray-800 md:grid-cols-2 min-[1200px]:grid-cols-3">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Location (summary)</p>
+                <p className="mt-1 font-medium text-gray-800 dark:text-white/90">{request.location}</p>
+              </div>
+              {request.locationName && (
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Category</p>
-                  <p className="mt-1 font-medium text-gray-800 dark:text-white/90">
-                    {EVENT_CATEGORY_LABELS[request.eventCategory as EventCategoryValue] ?? request.eventCategory}
-                  </p>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Venue name</p>
+                  <p className="mt-1 text-gray-800 dark:text-white/90">{request.locationName}</p>
+                </div>
+              )}
+              {request.locationContact && (
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Venue contact</p>
+                  <p className="mt-1 text-gray-800 dark:text-white/90">{request.locationContact}</p>
                 </div>
               )}
               <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Description</p>
-                <div
-                  className="prose prose-sm dark:prose-invert mt-1 max-w-none text-gray-800 dark:text-white/90"
-                  // eslint-disable-next-line react/no-danger
-                  dangerouslySetInnerHTML={{ __html: request.description || "—" }}
-                />
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Start date</p>
+                <p className="mt-1 text-gray-800 dark:text-white/90">{formatDateTime(request.startDate)}</p>
               </div>
-              <div className="grid gap-4 border-t border-gray-200 pt-4 dark:border-gray-800 sm:grid-cols-2">
+              {request.endDate && (
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Location (summary)</p>
-                  <p className="mt-1 font-medium text-gray-800 dark:text-white/90">{request.location}</p>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">End date</p>
+                  <p className="mt-1 text-gray-800 dark:text-white/90">{formatDateTime(request.endDate)}</p>
                 </div>
-                {request.locationName && (
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Venue name</p>
-                    <p className="mt-1 text-gray-800 dark:text-white/90">{request.locationName}</p>
-                  </div>
-                )}
-                {request.locationAddress && (
-                  <div className="sm:col-span-2">
-                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Address</p>
-                    <p className="mt-1 whitespace-pre-wrap text-gray-800 dark:text-white/90">{request.locationAddress}</p>
-                  </div>
-                )}
-                {request.locationContact && (
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Venue contact</p>
-                    <p className="mt-1 text-gray-800 dark:text-white/90">{request.locationContact}</p>
-                  </div>
-                )}
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Start date</p>
-                  <p className="mt-1 text-gray-800 dark:text-white/90">{formatDateTime(request.startDate)}</p>
-                </div>
-                {request.endDate && (
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">End date</p>
-                    <p className="mt-1 text-gray-800 dark:text-white/90">{formatDateTime(request.endDate)}</p>
-                  </div>
-                )}
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Organization</p>
-                  <p className="mt-1 font-medium text-gray-800 dark:text-white/90">{request.organizationId?.name ?? "—"}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Submitted</p>
-                  <p className="mt-1 text-gray-800 dark:text-white/90">{formatDate(request.createdAt)}</p>
-                </div>
+              )}
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Organization</p>
+                <p className="mt-1 font-medium text-gray-800 dark:text-white/90">{request.organizationId?.name ?? "—"}</p>
               </div>
-              {(request.pricingType || request.registrationMode) && (
-                <div className="border-t border-gray-200 pt-4 dark:border-gray-800">
-                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Pricing & ticketing</p>
-                  <div className="mt-2 space-y-1 text-sm text-gray-800 dark:text-white/90">
-                    <p><strong>Pricing:</strong> {request.pricingType ?? "free"}</p>
-                    {request.pricingType === "paid" && (
-                      <>
-                        {(request.ticketOptions ?? []).length > 0 ? (
-                          <p>
-                            <strong>Ticket categories:</strong>{" "}
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Submitted</p>
+                <p className="mt-1 text-gray-800 dark:text-white/90">{formatDate(request.createdAt)}</p>
+              </div>
+              {request.locationAddress && (
+                <div className="col-span-1 md:col-span-2 min-[1200px]:col-span-3">
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Address</p>
+                  <p className="mt-1 whitespace-pre-wrap text-gray-800 dark:text-white/90">{request.locationAddress}</p>
+                </div>
+              )}
+            </div>
+            {(request.pricingType || request.registrationMode) && (
+              <div className="border-t border-gray-200 pt-4 dark:border-gray-800">
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Pricing & ticketing</p>
+                <div className="grid grid-cols-1 gap-x-6 gap-y-5 text-sm md:grid-cols-2 min-[1200px]:grid-cols-3">
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Pricing</p>
+                    <p className="mt-1 font-medium text-gray-800 dark:text-white/90 capitalize">{request.pricingType ?? "free"}</p>
+                  </div>
+                  {request.pricingType === "paid" && (
+                    <>
+                      {(request.ticketOptions ?? []).length > 0 ? (
+                        <div className="col-span-1 md:col-span-2 min-[1200px]:col-span-2">
+                          <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Ticket categories</p>
+                          <p className="mt-1 text-gray-800 dark:text-white/90">
                             {(request.ticketOptions ?? [])
                               .map((ticket) => `${ticket.ticketType}: ${ticket.ticketPrice}`)
                               .join(", ")}
                           </p>
-                        ) : (
-                          <>
-                            <p><strong>Ticket type:</strong> {request.ticketType || "—"}</p>
-                            <p><strong>Ticket price:</strong> {request.ticketPrice ?? "—"}</p>
-                          </>
-                        )}
-                      </>
-                    )}
-                    <p><strong>Registration:</strong> {request.registrationMode ?? "external"}</p>
-                    {request.registrationMode === "external" && request.registrationExternalUrl && (
-                      <p>
-                        <strong>External URL:</strong>{" "}
-                        <a href={request.registrationExternalUrl} target="_blank" rel="noopener noreferrer" className="text-brand-500 hover:text-brand-600">
-                          {request.registrationExternalUrl}
-                        </a>
-                      </p>
-                    )}
-                    {request.registrationMode === "internal" && (
-                      <p><strong>Internal fields:</strong> {(request.internalRegistrationFields ?? []).join(", ") || "name, email, phone"}</p>
-                    )}
+                        </div>
+                      ) : (
+                        <>
+                          <div>
+                            <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Ticket type</p>
+                            <p className="mt-1 text-gray-800 dark:text-white/90">{request.ticketType || "—"}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Ticket price</p>
+                            <p className="mt-1 text-gray-800 dark:text-white/90">{request.ticketPrice ?? "—"}</p>
+                          </div>
+                        </>
+                      )}
+                    </>
+                  )}
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Registration mode</p>
+                    <p className="mt-1 text-gray-800 dark:text-white/90 capitalize">{request.registrationMode ?? "external"}</p>
                   </div>
-                </div>
-              )}
-              {(request.whoCanJoin ?? []).length > 0 && (
-                <div className="border-t border-gray-200 pt-4 dark:border-gray-800">
-                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Who can join</p>
-                  <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-gray-800 dark:text-white/90">
-                    {(request.whoCanJoin ?? []).map((item, i) => (
-                      <li key={i}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {request.tags?.length > 0 && (
-                <div className="border-t border-gray-200 pt-4 dark:border-gray-800">
-                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Tags</p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {request.tags.map((tag, i) => (
-                      <span
-                        key={i}
-                        className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {request.coverImage && (
-                <div className="border-t border-gray-200 pt-4 dark:border-gray-800">
-                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Cover image</p>
-                  <a href={request.coverImage} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={request.coverImage}
-                      alt="Cover"
-                      className="max-h-48 rounded-lg border border-gray-200 object-cover dark:border-gray-700"
-                    />
-                  </a>
-                </div>
-              )}
-              {request.locationLatitude != null &&
-                request.locationLongitude != null &&
-                Number.isFinite(request.locationLatitude) &&
-                Number.isFinite(request.locationLongitude) && (
-                  <div className="border-t border-gray-200 pt-4 dark:border-gray-800">
-                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Map</p>
-                    <div className="mt-2 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
-                      <iframe
-                        title="Venue map"
-                        src={`https://www.google.com/maps?q=${encodeURIComponent(String(request.locationLatitude))},${encodeURIComponent(String(request.locationLongitude))}&z=15&output=embed`}
-                        className="h-56 w-full border-0"
-                        loading="lazy"
-                        referrerPolicy="no-referrer-when-downgrade"
-                      />
+                  {request.registrationMode === "external" && request.registrationExternalUrl && (
+                    <div className="col-span-1 md:col-span-2 min-[1200px]:col-span-2">
+                      <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">External URL</p>
+                      <a href={request.registrationExternalUrl} target="_blank" rel="noopener noreferrer" className="mt-1 block font-medium text-brand-500 hover:text-brand-600 break-all">
+                        {request.registrationExternalUrl}
+                      </a>
                     </div>
-                  </div>
-                )}
-              {[request.highlight1, request.highlight2, request.highlight3].some((h) => h?.trim()) && (
-                <div className="border-t border-gray-200 pt-4 dark:border-gray-800">
-                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Highlights</p>
-                  <ul className="mt-2 list-decimal space-y-2 pl-5 text-sm text-gray-800 dark:text-white/90">
-                    {[request.highlight1, request.highlight2, request.highlight3].map((h, i) =>
-                      h?.trim() ? <li key={i}>{h}</li> : null
-                    )}
-                  </ul>
+                  )}
+                  {request.registrationMode === "internal" && (
+                    <div className="col-span-1 md:col-span-2 min-[1200px]:col-span-2">
+                      <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Internal fields</p>
+                      <p className="mt-1 text-gray-800 dark:text-white/90">{(request.internalRegistrationFields ?? []).join(", ") || "name, email, phone"}</p>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </ComponentCard>
-        </div>
-
-        <div className="space-y-6">
-          {isPending && (
-            <ComponentCard title="Actions">
-              {error && <p className="mb-3 text-sm text-error-500">{error}</p>}
-              {!action && (
-                <div className="flex flex-col gap-2">
-                  <Button size="sm" onClick={() => { setAction("approve"); setError(""); }}>
-                    Approve request
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => { setAction("deny"); setError(""); setDenyReason(""); }}>
-                    Deny request
-                  </Button>
+              </div>
+            )}
+            {(request.whoCanJoin ?? []).length > 0 && (
+              <div className="border-t border-gray-200 pt-4 dark:border-gray-800">
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Who can join</p>
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-gray-800 dark:text-white/90">
+                  {(request.whoCanJoin ?? []).map((item, i) => (
+                    <li key={i}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {request.tags?.length > 0 && (
+              <div className="border-t border-gray-200 pt-4 dark:border-gray-800">
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Tags</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {request.tags.map((tag, i) => (
+                    <span
+                      key={i}
+                      className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                    >
+                      {tag}
+                    </span>
+                  ))}
                 </div>
-              )}
-              {action === "approve" && (
-                <div className="space-y-3">
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Approve this event request?</p>
-                  <div className="flex gap-2">
-                    <Button size="sm" onClick={handleApprove} disabled={submitting}>
-                      {submitting ? "Saving..." : "Confirm approve"}
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => setAction(null)} disabled={submitting}>
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              )}
-              {action === "deny" && (
-                <div className="space-y-3">
-                  <Label>Reason for denial *</Label>
-                  <TextArea
-                    value={denyReason}
-                    onChange={(v) => setDenyReason(v)}
-                    rows={3}
-                    placeholder="Provide a reason for the requester"
+              </div>
+            )}
+            {request.coverImage && (
+              <div className="border-t border-gray-200 pt-4 dark:border-gray-800">
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Cover image</p>
+                <a href={request.coverImage} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={request.coverImage}
+                    alt="Cover"
+                    className="max-h-48 rounded-[10px] border border-gray-200 object-cover dark:border-gray-800"
                   />
-                  <div className="flex gap-2">
-                    <Button size="sm" onClick={handleDeny} disabled={submitting || !denyReason.trim()}>
-                      {submitting ? "Saving..." : "Confirm deny"}
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => { setAction(null); setDenyReason(""); }} disabled={submitting}>
-                      Cancel
-                    </Button>
+                </a>
+              </div>
+            )}
+            {request.locationLatitude != null &&
+              request.locationLongitude != null &&
+              Number.isFinite(request.locationLatitude) &&
+              Number.isFinite(request.locationLongitude) && (
+                <div className="border-t border-gray-200 pt-4 dark:border-gray-800">
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Map</p>
+                  <div className="mt-2 overflow-hidden rounded-[10px] border border-gray-200 dark:border-gray-800">
+                    <iframe
+                      title="Venue map"
+                      src={`https://www.google.com/maps?q=${encodeURIComponent(String(request.locationLatitude))},${encodeURIComponent(String(request.locationLongitude))}&z=15&output=embed`}
+                      className="h-56 w-full border-0"
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                    />
                   </div>
                 </div>
               )}
-            </ComponentCard>
-          )}
-
-          {!isPending && request.adminReason && (
-            <ComponentCard title="Admin note">
-              <p className="text-sm text-gray-700 dark:text-gray-300">{request.adminReason}</p>
-              {request.reviewedAt && (
-                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  Reviewed {new Date(request.reviewedAt).toLocaleString()}
-                </p>
-              )}
-            </ComponentCard>
-          )}
-        </div>
+            {[request.highlight1, request.highlight2, request.highlight3].some((h) => h?.trim()) && (
+              <div className="border-t border-gray-200 pt-4 dark:border-gray-800">
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Highlights</p>
+                <ul className="mt-2 list-decimal space-y-2 pl-5 text-sm text-gray-800 dark:text-white/90">
+                  {[request.highlight1, request.highlight2, request.highlight3].map((h, i) =>
+                    h?.trim() ? <li key={i}>{h}</li> : null
+                  )}
+                </ul>
+              </div>
+            )}
+          </div>
+        </ComponentCard>
       </div>
     </div>
   );

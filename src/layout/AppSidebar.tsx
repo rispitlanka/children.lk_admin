@@ -17,6 +17,7 @@ import {
   TableIcon,
   UserCircleIcon,
 } from "../icons/index";
+import { useSession } from "next-auth/react";
 import SidebarWidget from "./SidebarWidget";
 
 type NavItem = {
@@ -97,18 +98,28 @@ const othersItems: NavItem[] = [
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const pathname = usePathname();
+  const { data: session } = useSession();
+
+  const initials = session?.user?.name
+    ? session.user.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .substring(0, 2)
+        .toUpperCase()
+    : "U";
 
   const renderMenuItems = (
     navItems: NavItem[],
     menuType: "main" | "others"
   ) => (
-    <ul className="flex flex-col gap-4">
+    <ul className="flex flex-col gap-1">
       {navItems.map((nav, index) => (
         <li key={nav.name}>
           {nav.subItems ? (
             <button
               onClick={() => handleSubmenuToggle(index, menuType)}
-              className={`menu-item group  ${
+              className={`menu-item group ${
                 openSubmenu?.type === menuType && openSubmenu?.index === index
                   ? "menu-item-active"
                   : "menu-item-inactive"
@@ -119,7 +130,7 @@ const AppSidebar: React.FC = () => {
               }`}
             >
               <span
-                className={` ${
+                className={`${
                   openSubmenu?.type === menuType && openSubmenu?.index === index
                     ? "menu-item-icon-active"
                     : "menu-item-icon-inactive"
@@ -128,11 +139,11 @@ const AppSidebar: React.FC = () => {
                 {nav.icon}
               </span>
               {(isExpanded || isHovered || isMobileOpen) && (
-                <span className={`menu-item-text`}>{nav.name}</span>
+                <span className="menu-item-text truncate">{nav.name}</span>
               )}
               {(isExpanded || isHovered || isMobileOpen) && (
                 <ChevronDownIcon
-                  className={`ml-auto w-5 h-5 transition-transform duration-200  ${
+                  className={`ml-auto w-4 h-4 transition-transform duration-200 ${
                     openSubmenu?.type === menuType &&
                     openSubmenu?.index === index
                       ? "rotate-180 text-brand-500"
@@ -159,7 +170,7 @@ const AppSidebar: React.FC = () => {
                   {nav.icon}
                 </span>
                 {(isExpanded || isHovered || isMobileOpen) && (
-                  <span className={`menu-item-text`}>{nav.name}</span>
+                  <span className="menu-item-text truncate">{nav.name}</span>
                 )}
               </Link>
             )
@@ -177,7 +188,7 @@ const AppSidebar: React.FC = () => {
                     : "0px",
               }}
             >
-              <ul className="mt-2 space-y-1 ml-9">
+              <ul className="mt-1 space-y-1 ml-6">
                 {nav.subItems.map((subItem) => (
                   <li key={subItem.name}>
                     <Link
@@ -233,11 +244,9 @@ const AppSidebar: React.FC = () => {
   );
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  // const isActive = (path: string) => path === pathname;
-   const isActive = useCallback((path: string) => path === pathname, [pathname]);
+  const isActive = useCallback((path: string) => path === pathname, [pathname]);
 
   useEffect(() => {
-    // Check if the current path matches any submenu item
     let submenuMatched = false;
     ["main", "others"].forEach((menuType) => {
       const items = menuType === "main" ? navItems : othersItems;
@@ -256,14 +265,13 @@ const AppSidebar: React.FC = () => {
       });
     });
 
-    // If no submenu item matches, close the open submenu
     if (!submenuMatched) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- derived state: syncing submenu with pathname
       setOpenSubmenu(null);
     }
   }, [pathname,isActive]);
 
   useEffect(() => {
-    // Set the height of the submenu items when the submenu is opened
     if (openSubmenu !== null) {
       const key = `${openSubmenu.type}-${openSubmenu.index}`;
       if (subMenuRefs.current[key]) {
@@ -290,13 +298,13 @@ const AppSidebar: React.FC = () => {
 
   return (
     <aside
-      className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
+      className={`fixed mt-16 flex flex-col lg:mt-0 top-0 left-0 bg-gray-50 dark:bg-gray-dark text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 dark:border-gray-800
         ${
           isExpanded || isMobileOpen
-            ? "w-[290px]"
+            ? "w-[270px]"
             : isHovered
-            ? "w-[290px]"
-            : "w-[90px]"
+            ? "w-[270px]"
+            : "w-[72px]"
         }
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0`}
@@ -304,8 +312,8 @@ const AppSidebar: React.FC = () => {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div
-        className={`py-8 flex  ${
-          !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
+        className={`py-4 px-6 flex items-center ${
+          !isExpanded && !isHovered ? "lg:justify-center px-2" : "justify-start"
         }`}
       >
         <Link href="/">
@@ -313,27 +321,27 @@ const AppSidebar: React.FC = () => {
             <Image
               src="/images/logo/children.svg"
               alt="Children.lk Logo"
-              width={150}
-              height={48}
-              className="h-10 w-auto"
+              width={120}
+              height={32}
+              className="h-7 w-auto"
             />
           ) : (
             <Image
               src="/images/logo/children.svg"
               alt="Children.lk Logo"
-              width={32}
-              height={32}
-              className="h-8 w-auto"
+              width={28}
+              height={28}
+              className="h-7 w-auto"
             />
           )}
         </Link>
       </div>
-      <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
-        <nav className="mb-6">
+      <div className="flex-1 flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar py-2">
+        <nav className="mb-6 px-2">
           <div className="flex flex-col gap-4">
             <div>
               <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
+                className={`mb-2 px-4 text-xs font-semibold uppercase flex leading-[20px] text-gray-400 ${
                   !isExpanded && !isHovered
                     ? "lg:justify-center"
                     : "justify-start"
@@ -348,9 +356,9 @@ const AppSidebar: React.FC = () => {
               {renderMenuItems(navItems, "main")}
             </div>
 
-            <div className="">
+            <div>
               <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
+                className={`mb-2 px-4 text-xs font-semibold uppercase flex leading-[20px] text-gray-400 ${
                   !isExpanded && !isHovered
                     ? "lg:justify-center"
                     : "justify-start"
@@ -367,6 +375,23 @@ const AppSidebar: React.FC = () => {
           </div>
         </nav>
         {isExpanded || isHovered || isMobileOpen ? <SidebarWidget /> : null}
+      </div>
+
+      {/* Bottom-left avatar bubble */}
+      <div className="p-3 border-t border-gray-200 dark:border-gray-800 flex items-center gap-3 bg-transparent">
+        <div className="w-9 h-9 min-w-[36px] rounded-full bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300 font-semibold text-sm flex items-center justify-center border-none shadow-none shrink-0">
+          {initials}
+        </div>
+        {(isExpanded || isHovered || isMobileOpen) && (
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+              {session?.user?.name ?? "User"}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+              {session?.user?.email ?? ""}
+            </p>
+          </div>
+        )}
       </div>
     </aside>
   );

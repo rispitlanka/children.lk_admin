@@ -13,7 +13,7 @@ export default function LineChart() {
   return (
     <div>
       <PageBreadcrumb pageTitle="Line Chart" />
-      <div className="space-y-6">
+      <div className="space-y-8">
         <ComponentCard title="Line Chart 1">
           <LineChartOne />
         </ComponentCard>

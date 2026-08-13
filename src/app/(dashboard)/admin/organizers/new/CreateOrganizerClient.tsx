@@ -11,6 +11,7 @@ import ComponentCard from "@/components/common/ComponentCard";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
 import TextArea from "@/components/form/input/TextArea";
+import DashedDropzone from "@/components/form/input/DashedDropzone";
 import Button from "@/components/ui/button/Button";
 
 const CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%";
@@ -142,17 +143,24 @@ export default function CreateOrganizerClient() {
   };
 
   return (
-    <div>
+    <div className="space-y-8">
       <PageBreadcrumb pageTitle="Create Organizer" />
-      <ComponentCard title="New Organizer">
-        <form onSubmit={handleSubmit} className="max-w-xl space-y-4">
-          {error && <p className="text-sm text-error-500">{error}</p>}
-          <div className="grid gap-4 sm:grid-cols-2">
+
+      <form onSubmit={handleSubmit} className="space-y-6 max-w-4xl">
+        {error && (
+          <p className="rounded-[10px] border border-rose-200 bg-rose-50/50 p-3.5 text-xs text-rose-600 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-400">
+            {error}
+          </p>
+        )}
+
+        <ComponentCard title="Account Credentials" desc="Set up the primary administrator account for this organization.">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
             <div>
               <Label>Name *</Label>
               <Input
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                placeholder="Full name"
               />
             </div>
             <div>
@@ -161,102 +169,108 @@ export default function CreateOrganizerClient() {
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                placeholder="admin@organization.org"
               />
             </div>
-          </div>
-          <div>
-            <Label>Password *</Label>
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Input
-                  type={showPassword ? "text" : "password"}
-                  value={form.password}
-                  onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-                  className="pr-10"
-                />
-                <button
+            <div className="sm:col-span-2">
+              <Label>Password *</Label>
+              <div className="flex items-center gap-3">
+                <div className="relative flex-1">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    value={form.password}
+                    onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? (
+                      <EyeCloseIcon className="h-4 w-4 fill-current" />
+                    ) : (
+                      <EyeIcon className="h-4 w-4 fill-current" />
+                    )}
+                  </button>
+                </div>
+                <Button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setForm((f) => ({ ...f, password: generatePassword() }))}
+                  className="h-10 shrink-0 text-xs"
                 >
-                  {showPassword ? (
-                    <EyeCloseIcon className="h-5 w-5 fill-current" />
-                  ) : (
-                    <EyeIcon className="h-5 w-5 fill-current" />
-                  )}
-                </button>
+                  Generate password
+                </Button>
               </div>
-              <button
-                type="button"
-                onClick={() => setForm((f) => ({ ...f, password: generatePassword() }))}
-                className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 whitespace-nowrap"
-              >
-                Generate password
-              </button>
             </div>
           </div>
-          <div>
-            <Label>Organization Name *</Label>
-            <Input
-              value={form.organizationName}
-              onChange={(e) => setForm((f) => ({ ...f, organizationName: e.target.value }))}
-            />
-          </div>
-          <div>
-            <Label>Summary *</Label>
-            <TextArea
-              value={form.shortDescription}
-              onChange={(value) => setForm((f) => ({ ...f, shortDescription: value }))}
-              rows={2}
-            />
-          </div>
-          
-          {/* Logo Upload Section */}
-          <div>
-            <Label>Organization Logo</Label>
-            <div className="mt-2 space-y-3">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleLogoUpload}
-                disabled={uploadingLogo}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100 dark:file:bg-brand-500/10 dark:file:text-brand-400"
+        </ComponentCard>
+
+        <ComponentCard title="Organization Details" desc="Public information displayed on resources and event listings.">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+            <div className="sm:col-span-2">
+              <Label>Organization Name *</Label>
+              <Input
+                value={form.organizationName}
+                onChange={(e) => setForm((f) => ({ ...f, organizationName: e.target.value }))}
+                placeholder="Organization name"
               />
-              {uploadingLogo && (
-                <p className="text-sm text-gray-500">Uploading logo...</p>
-              )}
-              {form.logo && (
-                <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800/50">
+            </div>
+            <div className="sm:col-span-2">
+              <Label>Summary *</Label>
+              <TextArea
+                value={form.shortDescription}
+                onChange={(value) => setForm((f) => ({ ...f, shortDescription: value }))}
+                rows={3}
+                placeholder="Brief summary of the organization"
+              />
+            </div>
+            
+            {/* Logo Upload Section */}
+            <div className="sm:col-span-2">
+              <Label>Organization Logo</Label>
+              {form.logo ? (
+                <div className="flex items-center gap-3 rounded-[10px] border border-gray-200 bg-gray-50/50 p-3 dark:border-gray-800 dark:bg-gray-800/30">
                   <img
                     src={form.logo}
                     alt="Organization logo"
-                    className="h-12 w-12 rounded-lg object-cover"
+                    className="h-12 w-12 rounded-[10px] object-cover"
                   />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">Logo uploaded</p>
-                    <p className="text-xs text-gray-500">Ready to use</p>
+                    <p className="text-xs font-medium text-gray-900 dark:text-white">Logo uploaded</p>
+                    <p className="text-[11px] text-gray-400">Ready to use</p>
                   </div>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={() => setForm((f) => ({ ...f, logo: "" }))}
+                    className="h-8 text-xs"
                   >
                     Remove
                   </Button>
                 </div>
+              ) : (
+                <DashedDropzone
+                  onChange={handleLogoUpload}
+                  accept="image/*"
+                  disabled={uploadingLogo}
+                  label={uploadingLogo ? "Uploading logo..." : "Click or drag logo to upload"}
+                  sublabel="PNG, JPG, or WEBP (max 5MB)"
+                />
               )}
             </div>
-          </div>
-          
-          <div className="grid gap-4 sm:grid-cols-2">
+            
             <div>
               <Label>Contact Email *</Label>
               <Input
                 type="email"
                 value={form.contactEmail}
                 onChange={(e) => setForm((f) => ({ ...f, contactEmail: e.target.value }))}
+                placeholder="contact@organization.org"
               />
             </div>
             <div>
@@ -266,44 +280,41 @@ export default function CreateOrganizerClient() {
                 onChange={(e) => setForm((f) => ({ ...f, contactPhone: e.target.value }))}
                 placeholder="+94771234567"
               />
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Must start with +94 followed by 9 digits
+              <p className="mt-1 text-[11px] text-gray-400 dark:text-gray-500">
+                Format: +94 followed by 9 digits
               </p>
             </div>
+            <div className="sm:col-span-2">
+              <Label>Address *</Label>
+              <Input
+                value={form.address}
+                onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
+                placeholder="Physical address"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <Label>Website</Label>
+              <Input
+                type="url"
+                value={form.website}
+                onChange={(e) => setForm((f) => ({ ...f, website: e.target.value }))}
+                placeholder="https://organization.org"
+              />
+            </div>
           </div>
-          <div>
-            <Label>Address *</Label>
-            <Input
-              value={form.address}
-              onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
-            />
-          </div>
-          <div>
-            <Label>Website</Label>
-            <Input
-              type="url"
-              value={form.website}
-              onChange={(e) => setForm((f) => ({ ...f, website: e.target.value }))}
-              placeholder="https://"
-            />
-          </div>
-          <div className="flex gap-2 pt-2">
-            <button
-              type="submit"
-              disabled={submitting}
-              className="inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {submitting ? "Creating..." : "Create Organizer"}
-            </button>
-            <Link
-              href="/admin/organizers"
-              className="inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/[0.03] dark:hover:text-gray-300"
-            >
-              Cancel
+
+          <div className="mt-6 flex items-center justify-end gap-3 border-t border-gray-200 pt-4 dark:border-gray-800">
+            <Link href="/admin/organizers">
+              <Button type="button" variant="outline" size="sm" className="h-10 px-4 text-xs">
+                Cancel
+              </Button>
             </Link>
+            <Button type="submit" size="sm" disabled={submitting || uploadingLogo} className="h-10 px-4 text-xs">
+              {submitting ? "Creating..." : "Create Organizer"}
+            </Button>
           </div>
-        </form>
-      </ComponentCard>
+        </ComponentCard>
+      </form>
     </div>
   );
 }

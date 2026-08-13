@@ -24,7 +24,7 @@ export default function AdminDashboardLayout({
       <Backdrop />
       <div className={`flex-1 transition-all duration-300 ease-in-out ${mainContentMargin}`}>
         <AppHeader profileBasePath="/admin" />
-        <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">{children}</div>
+        <div className="p-6 mx-auto max-w-(--breakpoint-2xl)">{children}</div>
       </div>
     </div>
   );

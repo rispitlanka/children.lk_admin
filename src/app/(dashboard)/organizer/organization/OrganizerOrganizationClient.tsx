@@ -170,7 +170,7 @@ export default function OrganizerOrganizationClient() {
             </Button>
           }
         >
-          <div className="space-y-6 max-w-2xl">
+          <div className="space-y-6">
             {/* Logo */}
             {org.logo && (
               <div className="flex items-center gap-4">
@@ -186,48 +186,46 @@ export default function OrganizerOrganizationClient() {
               </div>
             )}
 
-            {/* Basic Info */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Basic Info & Description */}
+            <div className="grid grid-cols-1 gap-x-6 gap-y-5 text-sm md:grid-cols-2 min-[1200px]:grid-cols-3">
               <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">Name</p>
-                <p className="text-gray-700 dark:text-gray-300">{org.name}</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Name</p>
+                <p className="font-semibold text-gray-900 dark:text-white">{org.name}</p>
               </div>
               
               <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">Contact Email</p>
-                <p className="text-gray-700 dark:text-gray-300">{org.contactEmail}</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Contact Email</p>
+                <p className="font-medium text-gray-800 dark:text-white/90">{org.contactEmail}</p>
               </div>
               
               <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">Contact Phone</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Contact Phone</p>
                 <p className="text-gray-700 dark:text-gray-300">{org.contactPhone}</p>
               </div>
               
               {org.website && (
                 <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">Website</p>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Website</p>
                   <a 
                     href={org.website} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
+                    className="font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 break-all"
                   >
                     {org.website}
                   </a>
                 </div>
               )}
-            </div>
 
-            {/* Description */}
-            <div>
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Description</p>
-              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{org.shortDescription}</p>
-            </div>
+              <div className="col-span-1 md:col-span-2 min-[1200px]:col-span-3">
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Short Description</p>
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{org.shortDescription}</p>
+              </div>
 
-            {/* Address */}
-            <div>
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Address</p>
-              <p className="text-gray-700 dark:text-gray-300">{org.address}</p>
+              <div className="col-span-1 md:col-span-2 min-[1200px]:col-span-3">
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Address</p>
+                <p className="text-gray-700 dark:text-gray-300">{org.address}</p>
+              </div>
             </div>
           </div>
         </ComponentCard>

@@ -43,10 +43,12 @@ export default function TagsSelect({
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- async data fetch on mount; setState called inside async callback, not synchronously in render
     fetchTags();
   }, [fetchTags]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- async data fetch on search; setState called inside async callback, not synchronously in render
     if (open && inputValue.trim()) fetchTags(inputValue.trim());
     else if (open && !inputValue.trim()) fetchTags();
   }, [open, inputValue, fetchTags]);
@@ -92,7 +94,7 @@ export default function TagsSelect({
   return (
     <div className={`relative ${className}`} ref={containerRef}>
       {label && <Label>{label}</Label>}
-      <div className="mt-1 flex min-h-[44px] flex-wrap items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 shadow-theme-xs focus-within:border-brand-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:focus-within:border-brand-500">
+      <div className="mt-1 flex min-h-[44px] flex-wrap items-center gap-2 rounded-[10px] border border-gray-200 bg-white px-3 py-2 focus-within:border-brand-500 focus-within:outline-none dark:border-gray-800 dark:bg-gray-dark">
         {value.map((tag) => (
           <span
             key={tag}
@@ -134,8 +136,8 @@ export default function TagsSelect({
       {open && (
         <div
           role="listbox"
-          className="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-900"
-          style={{ width: containerRef.current?.offsetWidth ?? "100%" }}
+          className="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-[10px] border border-gray-200 bg-white py-1 dark:border-gray-800 dark:bg-gray-dark"
+          style={{ width: "100%" }}
         >
           {loading ? (
             <div className="flex justify-center py-4">
@@ -147,6 +149,7 @@ export default function TagsSelect({
                 <button
                   type="button"
                   role="option"
+                  aria-selected={false}
                   className="w-full px-3 py-2 text-left text-sm text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-500/10"
                   onClick={() => addTag(inputValue.trim())}
                 >
@@ -160,6 +163,7 @@ export default function TagsSelect({
                     key={name}
                     type="button"
                     role="option"
+                    aria-selected={value.includes(name)}
                     className="w-full px-3 py-2 text-left text-sm text-gray-800 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"
                     onClick={() => addTag(name)}
                   >

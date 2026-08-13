@@ -27,17 +27,17 @@ import { getRichTextPlainText } from "@/lib/rich-text";
 import { slugify } from "@/lib/slugify";
 
 const selectClass =
-  "mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800";
+  "h-10 w-full appearance-none rounded-[10px] border border-gray-200 bg-white px-3.5 text-xs text-gray-800 shadow-none focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-dark dark:text-white/90";
 
 const DESCRIPTION_MIN_LENGTH = 30;
 
 const descriptionEditorClass = [
-  "resource-description-editor mt-1 rounded-lg border border-gray-300 shadow-theme-xs overflow-hidden",
-  "dark:border-gray-700",
-  "[&_.ql-toolbar]:rounded-t-lg [&_.ql-toolbar]:border-0 [&_.ql-toolbar]:border-b [&_.ql-toolbar]:border-gray-200 [&_.ql-toolbar]:bg-gray-50",
-  "dark:[&_.ql-toolbar]:border-gray-700 dark:[&_.ql-toolbar]:bg-gray-800/80",
-  "[&_.ql-container]:rounded-b-lg [&_.ql-container]:border-0 [&_.ql-container]:bg-transparent dark:[&_.ql-container]:bg-gray-900",
-  "[&_.ql-editor]:min-h-[200px] [&_.ql-editor]:px-3 [&_.ql-editor]:py-2.5 [&_.ql-editor]:text-sm",
+  "resource-description-editor mt-1 rounded-[10px] border border-gray-200 shadow-none overflow-hidden",
+  "dark:border-gray-800",
+  "[&_.ql-toolbar]:rounded-t-[10px] [&_.ql-toolbar]:border-0 [&_.ql-toolbar]:border-b [&_.ql-toolbar]:border-gray-200 [&_.ql-toolbar]:bg-gray-50/50",
+  "dark:[&_.ql-toolbar]:border-gray-800 dark:[&_.ql-toolbar]:bg-gray-800/50",
+  "[&_.ql-container]:rounded-b-[10px] [&_.ql-container]:border-0 [&_.ql-container]:bg-transparent dark:[&_.ql-container]:bg-gray-dark",
+  "[&_.ql-editor]:min-h-[200px] [&_.ql-editor]:px-3.5 [&_.ql-editor]:py-2.5 [&_.ql-editor]:text-xs",
   "text-gray-800 dark:[&_.ql-editor]:text-white/90",
   "[&_.ql-stroke]:stroke-gray-600 dark:[&_.ql-stroke]:stroke-gray-400",
   "[&_.ql-fill]:fill-gray-600 dark:[&_.ql-fill]:fill-gray-400",
@@ -111,11 +111,13 @@ export default function AddEventClient() {
 
   useEffect(() => {
     if (slugEditedManually) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- derived state: auto-generating slug from form.name
     setForm((f) => ({ ...f, slug: slugify(f.name) }));
   }, [form.name, slugEditedManually]);
 
   useEffect(() => {
     if (!editId) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- loading flag before async fetch; standard pattern
     setLoadingExisting(true);
     fetch(`/api/organizer/event-requests/${editId}`)
       .then((res) => res.json())
@@ -160,7 +162,6 @@ export default function AddEventClient() {
         toast.error("Failed to load event");
       })
       .finally(() => setLoadingExisting(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editId]);
 
   const today = new Date();

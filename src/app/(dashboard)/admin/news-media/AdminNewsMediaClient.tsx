@@ -73,62 +73,97 @@ export default function AdminNewsMediaClient() {
     }
   };
 
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredList = list.filter((row) => {
+    const searchLower = searchTerm.toLowerCase();
+    const titleStr = row.title.toLowerCase();
+    const contentStr = (row.content ?? "").toLowerCase();
+    return !searchTerm || titleStr.includes(searchLower) || contentStr.includes(searchLower);
+  });
+
   return (
-    <div>
-      <PageBreadcrumb pageTitle="News Media" />
-      <div className="mb-4 flex justify-end">
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <PageBreadcrumb pageTitle="News Media" />
         <Button onClick={() => router.push("/admin/news-media/new")}>Add News Media</Button>
       </div>
       <ComponentCard title="News Media">
         {loading ? (
           <LoadingLottie variant="block" />
         ) : (
-          <div className="overflow-x-auto">
-            <Table className="w-full text-left text-theme-sm">
-              <TableHeader>
-                <TableRow className="border-b border-gray-200 dark:border-gray-800">
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Image</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Title</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Content</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Actions</TableCell>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {list.map((row) => (
-                  <TableRow key={row._id} className="border-b border-gray-200 dark:border-gray-800">
-                    <TableCell className="py-4">
-                      {row.featuredImage ? (
-                        <Image src={row.featuredImage} alt={row.title} width={40} height={40} className="rounded-lg object-cover w-10 h-10" />
-                      ) : (
-                        <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-xs text-gray-400">No Img</div>
-                      )}
-                    </TableCell>
-                    <TableCell className="py-4 font-medium text-gray-800 dark:text-white/90">{row.title}</TableCell>
-                    <TableCell className="py-4 max-w-xs text-gray-600 dark:text-gray-400">
-                      <span className="block truncate" title={row.content}>
-                        {row.content || "—"}
-                      </span>
-                    </TableCell>
-                    <TableCell className="py-4">
-                      <div className="flex gap-2">
-                        <Link
-                          href={`/admin/news-media/${row._id}/edit`}
-                          className="inline-flex items-center justify-center font-medium rounded-lg transition px-4 py-3 text-sm bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/[0.03]"
-                        >
-                          <PencilIcon className="size-4" />
-                        </Link>
-                        <Button size="sm" variant="outline" onClick={() => handleDeleteClick(row._id)}>
-                          <TrashBinIcon className="size-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+          <div>
+            <div className="mb-4 flex items-center justify-between">
+              <input
+                type="text"
+                placeholder="Search news media..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="h-10 w-full min-w-[220px] sm:w-64 rounded-[10px] border border-gray-200 bg-white px-3.5 text-xs text-gray-800 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none dark:border-gray-800 dark:bg-gray-dark dark:text-white/90 dark:placeholder:text-white/30"
+              />
+            </div>
+            <div className="overflow-x-auto">
+              <Table className="table-fixed w-full text-left text-theme-sm">
+                <colgroup>
+                  <col className="w-[90px]" />
+                  <col className="w-auto" />
+                  <col className="w-[100px]" />
+                </colgroup>
+                <TableHeader>
+                  <TableRow className="border-b border-gray-200 bg-transparent dark:border-gray-800">
+                    <TableCell isHeader className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Image</TableCell>
+                    <TableCell isHeader className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Title</TableCell>
+                    <TableCell isHeader className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 text-right">Actions</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-            {list.length === 0 && (
-              <p className="py-8 text-center text-gray-500 dark:text-gray-400">No news media yet.</p>
-            )}
+                </TableHeader>
+                <TableBody>
+                  {filteredList.map((row) => (
+                    <TableRow key={row._id} className="border-b border-gray-200 transition-colors hover:bg-gray-50/60 dark:border-gray-800 dark:hover:bg-white/[0.02]">
+                      <TableCell className="px-4 py-3">
+                        {row.featuredImage ? (
+                          <Image src={row.featuredImage} alt={row.title} width={64} height={64} className="rounded-xl object-cover w-16 h-16 aspect-square shrink-0" />
+                        ) : (
+                          <div className="w-16 h-16 aspect-square bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center text-xs text-gray-400 shrink-0">No Img</div>
+                        )}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 font-medium text-gray-800 dark:text-white/90">
+                        <span className="block whitespace-normal line-clamp-3 break-words" title={row.title}>{row.title}</span>
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-3">
+                          <Link
+                            href={`/admin/news-media/${row._id}/edit`}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-[6px] bg-transparent text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+                            title="Edit"
+                          >
+                            <PencilIcon className="size-4" />
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteClick(row._id)}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-[6px] bg-transparent text-rose-500 transition-colors hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-500/10"
+                            title="Delete"
+                          >
+                            <TrashBinIcon className="size-4" />
+                          </button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              {filteredList.length === 0 && (
+                <div className="py-12 text-center">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800/50 text-gray-400 dark:text-gray-600 mb-3">
+                    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5" />
+                    </svg>
+                  </div>
+                  <h4 className="text-sm font-medium text-gray-900 dark:text-white">No news media found</h4>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">There are no records matching your criteria.</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </ComponentCard>
@@ -136,7 +171,7 @@ export default function AdminNewsMediaClient() {
       <Modal
         isOpen={!!deleteId}
         onClose={() => setDeleteId(null)}
-        className="max-w-sm w-full shadow-xl border border-gray-200 dark:border-gray-800"
+        className="max-w-sm w-full border border-gray-200 dark:border-gray-800"
       >
         <div className="p-6 text-center">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">Delete News Media?</h3>

@@ -98,64 +98,60 @@ export default function OrganizerDashboard() {
   };
 
   return (
-    <div className="grid grid-cols-12 gap-4 md:gap-6">
-      <div className="col-span-12">
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h1 className="font-semibold text-gray-800 text-title-sm dark:text-white/90">
-                Organizer Dashboard
-              </h1>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                Track your submissions and manage your organization in one place.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Link
-                href="/organizer/resources/new"
-                className="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs transition hover:bg-brand-600"
-              >
-                Add Resource
-              </Link>
-              <Link
-                href="/organizer/media/new"
-                className="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs transition hover:bg-brand-600"
-              >
-                Add Media
-              </Link>
-              <Link
-                href="/organizer/events/new"
-                className="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs transition hover:bg-brand-600"
-              >
-                Add Event
-              </Link>
-            </div>
+    <div className="flex flex-col gap-4">
+      <div className="rounded-[10px] border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-dark">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white">
+              Organizer Dashboard
+            </h1>
+            <p className="mt-1 text-sm leading-snug text-gray-500 dark:text-gray-400">
+              Track your submissions and manage your organization in one place.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/organizer/resources/new"
+              className="inline-flex items-center justify-center rounded-[10px] border border-brand-500 bg-brand-500 px-3.5 py-2 text-sm font-medium text-white transition hover:bg-brand-600 hover:border-brand-600"
+            >
+              Add Resource
+            </Link>
+            <Link
+              href="/organizer/media/new"
+              className="inline-flex items-center justify-center rounded-[10px] border border-brand-500 bg-brand-500 px-3.5 py-2 text-sm font-medium text-white transition hover:bg-brand-600 hover:border-brand-600"
+            >
+              Add Media
+            </Link>
+            <Link
+              href="/organizer/events/new"
+              className="inline-flex items-center justify-center rounded-[10px] border border-brand-500 bg-brand-500 px-3.5 py-2 text-sm font-medium text-white transition hover:bg-brand-600 hover:border-brand-600"
+            >
+              Add Event
+            </Link>
           </div>
         </div>
       </div>
 
-      <div className="col-span-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {cards.map((card) => (
           <Link
             key={card.key}
             href={card.href}
-            className="rounded-2xl border border-gray-200 bg-white p-5 transition hover:border-brand-300 hover:shadow-sm dark:border-gray-800 dark:bg-white/[0.03] dark:hover:border-brand-700 md:p-6"
+            className="group rounded-[10px] border border-gray-200 bg-white p-5 transition-all hover:border-gray-300 dark:border-gray-800 dark:bg-gray-dark dark:hover:border-gray-700"
           >
-            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800">
-              <span className="text-gray-800 dark:text-white/90 [&>svg]:size-6">
-                {card.icon}
-              </span>
-            </div>
-            <div className="mt-5 flex items-end justify-between gap-3">
-              <div className="min-w-0">
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                  {card.label}
-                </span>
-                <p className="mt-2 font-medium text-gray-800 dark:text-white/90 truncate">
-                  {card.description(c)}
-                </p>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 min-w-0">
+                  <span className="shrink-0 text-gray-500 dark:text-gray-400 [&>svg]:size-[18px]">
+                    {card.icon}
+                  </span>
+                  <span className="truncate">{card.label}</span>
+                </div>
+                <ArrowRightIcon className="size-4 text-gray-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
               </div>
-              <ArrowRightIcon className="size-5 text-gray-400 shrink-0" />
+              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                {card.description(c)}
+              </p>
             </div>
           </Link>
         ))}

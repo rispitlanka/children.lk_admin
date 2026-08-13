@@ -164,9 +164,11 @@ export default function ResourceRequestDetailClient() {
   };
 
   const statusBadge = (status: string) => {
-    if (status === "pending") return <Badge color="warning">Pending</Badge>;
-    if (status === "approved") return <Badge color="success">Approved</Badge>;
-    return <Badge color="error">Denied</Badge>;
+    if (status === "pending")
+      return <span className="inline-flex items-center rounded-[6px] bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400">Pending</span>;
+    if (status === "approved")
+      return <span className="inline-flex items-center rounded-[6px] bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">Approved</span>;
+    return <span className="inline-flex items-center rounded-[6px] bg-rose-500/10 px-2.5 py-0.5 text-xs font-medium text-rose-600 dark:text-rose-400">Denied</span>;
   };
 
   if (loading) {
@@ -207,7 +209,7 @@ export default function ResourceRequestDetailClient() {
     : "";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <PageBreadcrumb pageTitle={request.name} />
         <div className="flex items-center gap-2">
@@ -218,282 +220,279 @@ export default function ResourceRequestDetailClient() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-6">
-          <ComponentCard title="Overview">
-            <div className="space-y-4">
+      <div className="space-y-8">
+        {isPending && (
+          <ComponentCard title="Actions">
+            {error && <p className="mb-3 text-sm text-error-500">{error}</p>}
+            {!action && (
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Button size="sm" onClick={() => { setAction("approve"); setError(""); }}>
+                  Approve request
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => { setAction("deny"); setError(""); setDenyReason(""); }}>
+                  Deny request
+                </Button>
+              </div>
+            )}
+            {action === "approve" && (
+              <div className="space-y-3">
+                <p className="text-sm text-gray-600 dark:text-gray-400">Approve this resource request?</p>
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={handleApprove} disabled={submitting}>
+                    {submitting ? "Saving..." : "Confirm approve"}
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setAction(null)} disabled={submitting}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+            {action === "deny" && (
+              <div className="space-y-3">
+                <Label>Reason for denial *</Label>
+                <TextArea
+                  value={denyReason}
+                  onChange={(v) => setDenyReason(v)}
+                  rows={3}
+                  placeholder="Provide a reason for the requester"
+                />
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={handleDeny} disabled={submitting || !denyReason.trim()}>
+                    {submitting ? "Saving..." : "Confirm deny"}
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => { setAction(null); setDenyReason(""); }} disabled={submitting}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+          </ComponentCard>
+        )}
+
+        {!isPending && request.adminReason && (
+          <ComponentCard title="Admin note">
+            <p className="text-sm text-gray-700 dark:text-gray-300">{request.adminReason}</p>
+            {request.reviewedAt && (
+              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                Reviewed {new Date(request.reviewedAt).toLocaleString()}
+              </p>
+            )}
+          </ComponentCard>
+        )}
+
+        <ComponentCard title="Overview">
+          <div className="space-y-4">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                Description
+              </p>
+              {safeDescriptionHtml ? (
+                <div
+                  className="prose prose-sm mt-1 max-w-none text-gray-800 dark:prose-invert dark:text-white/90"
+                  dangerouslySetInnerHTML={{ __html: safeDescriptionHtml }}
+                />
+              ) : (
+                <p className="mt-1 whitespace-pre-wrap text-gray-800 dark:text-white/90">
+                  {request.shortDescription}
+                </p>
+              )}
+            </div>
+            <div className="grid grid-cols-1 gap-x-6 gap-y-5 border-t border-gray-200 pt-4 text-sm dark:border-gray-800 md:grid-cols-2 min-[1200px]:grid-cols-3">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                  Description
+                  Organization
                 </p>
-                {safeDescriptionHtml ? (
-                  <div
-                    className="prose prose-sm mt-1 max-w-none text-gray-800 dark:prose-invert dark:text-white/90"
-                    // eslint-disable-next-line react/no-danger -- sanitized rich-text HTML from editor
-                    dangerouslySetInnerHTML={{ __html: safeDescriptionHtml }}
-                  />
-                ) : (
-                  <p className="mt-1 whitespace-pre-wrap text-gray-800 dark:text-white/90">
-                    {request.shortDescription}
-                  </p>
-                )}
+                <p className="mt-1 font-medium text-gray-800 dark:text-white/90">
+                  {request.organizationId?.name ?? "—"}
+                </p>
               </div>
-              <div className="grid gap-4 border-t border-gray-200 pt-4 text-sm dark:border-gray-800 sm:grid-cols-2">
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                    Organization
-                  </p>
-                  <p className="mt-1 font-medium text-gray-800 dark:text-white/90">
-                    {request.organizationId?.name ?? "—"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                    Submitted
-                  </p>
-                  <p className="mt-1 text-gray-800 dark:text-white/90">
-                    {new Date(request.createdAt).toLocaleDateString(undefined, { dateStyle: "medium" })}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                    Category
-                  </p>
-                  <p className="mt-1 text-gray-800 dark:text-white/90">{taxonomyLine(cat, sub)}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                    Content type
-                  </p>
-                  <p className="mt-1 text-gray-800 dark:text-white/90">
-                    {labelContentType(request.contentType)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                    Age / audience
-                  </p>
-                  <p className="mt-1 text-gray-800 dark:text-white/90">
-                    {formatAgeAudienceGroups(request.ageAudienceGroups)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                    Visibility
-                  </p>
-                  <p className="mt-1 text-gray-800 dark:text-white/90">
-                    {labelVisibility(request.visibilityStatus)}
-                    {request.featured ? " · Featured" : ""}
-                  </p>
-                </div>
-                {request.publicationDate && (
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                      Publication date
-                    </p>
-                    <p className="mt-1 text-gray-800 dark:text-white/90">
-                      {new Date(request.publicationDate).toLocaleDateString()}
-                    </p>
-                  </div>
-                )}
-                {request.contentPublishedAt && (
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                      Published date
-                    </p>
-                    <p className="mt-1 text-gray-800 dark:text-white/90">
-                      {new Date(request.contentPublishedAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                )}
-                {request.slug && (
-                  <div className="sm:col-span-2">
-                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Slug</p>
-                    <p className="mt-1 font-mono text-xs text-gray-800 dark:text-white/90">{request.slug}</p>
-                  </div>
-                )}
-                {request.source && (
-                  <div className="sm:col-span-2">
-                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Source</p>
-                    <p className="mt-1 font-mono text-xs text-gray-800 dark:text-white/90">{request.source}</p>
-                  </div>
-                )}
-              </div>
-              {request.tags?.length ? (
-                <div className="border-t border-gray-200 pt-4 dark:border-gray-800">
-                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Tags</p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {request.tags.map((tag, i) => (
-                      <span
-                        key={i}
-                        className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-            </div>
-          </ComponentCard>
-
-          <ComponentCard title="Publishers &amp; rights">
-            <dl className="grid gap-3 text-sm sm:grid-cols-2">
               <div>
-                <dt className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                  Main publisher
-                </dt>
-                <dd className="mt-1 font-medium text-gray-900 dark:text-white">{request.mainPublisherName ?? "—"}</dd>
-              </div>
-              {coNames.length > 0 && (
-                <div className="sm:col-span-2">
-                  <dt className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                    Co-publishers
-                  </dt>
-                  <dd className="mt-1 text-gray-800 dark:text-white/90">{coNames.join(", ")}</dd>
-                </div>
-              )}
-              {request.rightsNotice && (
-                <div className="sm:col-span-2">
-                  <dt className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                    Rights / © notice
-                  </dt>
-                  <dd className="mt-1 whitespace-pre-wrap text-gray-800 dark:text-white/90">{request.rightsNotice}</dd>
-                </div>
-              )}
-            </dl>
-          </ComponentCard>
-
-          {(request.countries?.length || request.regions?.length) ? (
-            <ComponentCard title="Geography">
-              {!!request.countries?.length && (
-                <p className="text-sm text-gray-800 dark:text-white/90">
-                  <span className="text-gray-500">Countries: </span>
-                  {request.countries.join(", ")}
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                  Submitted
                 </p>
+                <p className="mt-1 text-gray-800 dark:text-white/90">
+                  {new Date(request.createdAt).toLocaleDateString(undefined, { dateStyle: "medium" })}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                  Category
+                </p>
+                <p className="mt-1 text-gray-800 dark:text-white/90">{taxonomyLine(cat, sub)}</p>
+              </div>
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                  Content type
+                </p>
+                <p className="mt-1 text-gray-800 dark:text-white/90">
+                  {labelContentType(request.contentType)}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                  Age / audience
+                </p>
+                <p className="mt-1 text-gray-800 dark:text-white/90">
+                  {formatAgeAudienceGroups(request.ageAudienceGroups)}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                  Visibility
+                </p>
+                <p className="mt-1 text-gray-800 dark:text-white/90">
+                  {labelVisibility(request.visibilityStatus)}
+                  {request.featured ? " · Featured" : ""}
+                </p>
+              </div>
+              {request.publicationDate && (
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    Publication date
+                  </p>
+                  <p className="mt-1 text-gray-800 dark:text-white/90">
+                    {new Date(request.publicationDate).toLocaleDateString()}
+                  </p>
+                </div>
+              )}
+              {request.contentPublishedAt && (
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    Published date
+                  </p>
+                  <p className="mt-1 text-gray-800 dark:text-white/90">
+                    {new Date(request.contentPublishedAt).toLocaleDateString()}
+                  </p>
+                </div>
+              )}
+              {request.slug && (
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Slug</p>
+                  <p className="mt-1 font-mono text-xs text-gray-800 dark:text-white/90">{request.slug}</p>
+                </div>
+              )}
+              {request.source && (
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Source</p>
+                  <p className="mt-1 font-mono text-xs text-gray-800 dark:text-white/90">{request.source}</p>
+                </div>
+              )}
+            </div>
+            {request.tags?.length ? (
+              <div className="border-t border-gray-200 pt-4 dark:border-gray-800">
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Tags</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {request.tags.map((tag, i) => (
+                    <span
+                      key={i}
+                      className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </ComponentCard>
+
+        <ComponentCard title="Publishers &amp; rights">
+          <dl className="grid grid-cols-1 gap-x-6 gap-y-5 text-sm md:grid-cols-2 min-[1200px]:grid-cols-3">
+            <div>
+              <dt className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                Main publisher
+              </dt>
+              <dd className="mt-1 font-medium text-gray-900 dark:text-white">{request.mainPublisherName ?? "—"}</dd>
+            </div>
+            {coNames.length > 0 && (
+              <div className="col-span-1 md:col-span-2 min-[1200px]:col-span-2">
+                <dt className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                  Co-publishers
+                </dt>
+                <dd className="mt-1 text-gray-800 dark:text-white/90">{coNames.join(", ")}</dd>
+              </div>
+            )}
+            {request.rightsNotice && (
+              <div className="col-span-1 md:col-span-2 min-[1200px]:col-span-3">
+                <dt className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                  Rights / © notice
+                </dt>
+                <dd className="mt-1 whitespace-pre-wrap text-gray-800 dark:text-white/90">{request.rightsNotice}</dd>
+              </div>
+            )}
+          </dl>
+        </ComponentCard>
+
+        {(request.countries?.length || request.regions?.length) ? (
+          <ComponentCard title="Geography">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-5 text-sm md:grid-cols-2 min-[1200px]:grid-cols-3">
+              {!!request.countries?.length && (
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Countries</p>
+                  <p className="mt-1 text-gray-800 dark:text-white/90">{request.countries.join(", ")}</p>
+                </div>
               )}
               {!!request.regions?.length && (
-                <p className="mt-2 text-sm text-gray-800 dark:text-white/90">
-                  <span className="text-gray-500">Regions: </span>
-                  {request.regions.join(", ")}
-                </p>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Regions</p>
+                  <p className="mt-1 text-gray-800 dark:text-white/90">{request.regions.join(", ")}</p>
+                </div>
               )}
-            </ComponentCard>
-          ) : null}
+            </div>
+          </ComponentCard>
+        ) : null}
 
-          {request.externalDownloadUrl && (
-            <ComponentCard title="External download">
+        {request.externalDownloadUrl && (
+          <ComponentCard title="External download">
+            <a
+              href={request.externalDownloadUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-medium text-brand-500 hover:text-brand-600 break-all"
+            >
+              {request.externalDownloadUrl}
+            </a>
+          </ComponentCard>
+        )}
+
+        {request.picture && (
+          <ComponentCard title="Cover picture">
+            <div className="overflow-hidden rounded-[10px] border border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-dark">
               <a
-                href={request.externalDownloadUrl}
+                href={request.picture}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm font-medium text-brand-500 hover:text-brand-600"
+                className="block focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 rounded-[10px]"
               >
-                {request.externalDownloadUrl}
+                <img
+                  src={request.picture}
+                  alt="Resource cover"
+                  className="h-auto w-full max-h-[400px] object-contain"
+                />
               </a>
-            </ComponentCard>
-          )}
-
-          {request.picture && (
-            <ComponentCard title="Cover picture">
-              <div className="overflow-hidden rounded-xl border border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900/50">
+              <div className="border-t border-gray-200 px-4 py-2 dark:border-gray-800">
                 <a
                   href={request.picture}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 rounded-xl"
+                  className="text-sm font-medium text-brand-500 hover:text-brand-600"
                 >
-                  <img
-                    src={request.picture}
-                    alt="Resource cover"
-                    className="h-auto w-full max-h-[400px] object-contain"
-                  />
+                  Open full size →
                 </a>
-                <div className="border-t border-gray-200 px-4 py-2 dark:border-gray-800">
-                  <a
-                    href={request.picture}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm font-medium text-brand-500 hover:text-brand-600"
-                  >
-                    Open full size →
-                  </a>
-                </div>
               </div>
-            </ComponentCard>
-          )}
+            </div>
+          </ComponentCard>
+        )}
 
-          {request.documents?.length > 0 && (
-            <ComponentCard title="Documents &amp; media">
-              <div className="grid gap-4 sm:grid-cols-2">
-                {request.documents.map((doc, i) => (
-                  <DocumentPreview key={i} doc={doc} />
-                ))}
-              </div>
-            </ComponentCard>
-          )}
-        </div>
-
-        <div className="space-y-6">
-          {isPending && (
-            <ComponentCard title="Actions">
-              {error && <p className="mb-3 text-sm text-error-500">{error}</p>}
-              {!action && (
-                <div className="flex flex-col gap-2">
-                  <Button size="sm" onClick={() => { setAction("approve"); setError(""); }}>
-                    Approve request
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => { setAction("deny"); setError(""); setDenyReason(""); }}>
-                    Deny request
-                  </Button>
-                </div>
-              )}
-              {action === "approve" && (
-                <div className="space-y-3">
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Approve this resource request?</p>
-                  <div className="flex gap-2">
-                    <Button size="sm" onClick={handleApprove} disabled={submitting}>
-                      {submitting ? "Saving..." : "Confirm approve"}
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => setAction(null)} disabled={submitting}>
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              )}
-              {action === "deny" && (
-                <div className="space-y-3">
-                  <Label>Reason for denial *</Label>
-                  <TextArea
-                    value={denyReason}
-                    onChange={(v) => setDenyReason(v)}
-                    rows={3}
-                    placeholder="Provide a reason for the requester"
-                  />
-                  <div className="flex gap-2">
-                    <Button size="sm" onClick={handleDeny} disabled={submitting || !denyReason.trim()}>
-                      {submitting ? "Saving..." : "Confirm deny"}
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => { setAction(null); setDenyReason(""); }} disabled={submitting}>
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </ComponentCard>
-          )}
-
-          {!isPending && request.adminReason && (
-            <ComponentCard title="Admin note">
-              <p className="text-sm text-gray-700 dark:text-gray-300">{request.adminReason}</p>
-              {request.reviewedAt && (
-                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  Reviewed {new Date(request.reviewedAt).toLocaleString()}
-                </p>
-              )}
-            </ComponentCard>
-          )}
-        </div>
+        {request.documents?.length > 0 && (
+          <ComponentCard title="Documents &amp; media">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 min-[1200px]:grid-cols-3">
+              {request.documents.map((doc, i) => (
+                <DocumentPreview key={i} doc={doc} />
+              ))}
+            </div>
+          </ComponentCard>
+        )}
       </div>
     </div>
   );
@@ -514,7 +513,7 @@ function DocumentPreview({ doc }: { doc: DocFile }) {
   const isEmbeddable = isPdf || isVideo || isAudio;
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900/50 overflow-hidden">
+    <div className="rounded-[10px] border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-dark overflow-hidden">
       <div className="border-b border-gray-200 p-3 dark:border-gray-800">
         <div className="flex items-center justify-between gap-2">
           <span className="truncate text-sm font-medium text-gray-800 dark:text-white/90">{name}</span>

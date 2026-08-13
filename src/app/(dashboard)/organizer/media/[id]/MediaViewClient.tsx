@@ -131,44 +131,42 @@ export default function MediaViewClient() {
         </div>
       </ComponentCard>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <ComponentCard title="Child Information">
-          <dl className="space-y-2 text-sm">
-            <div><dt className="text-gray-500">Full Name</dt><dd>{media.childInfo?.fullName || "—"}</dd></div>
-            <div><dt className="text-gray-500">Age</dt><dd>{media.childInfo?.age || "—"}</dd></div>
-            <div><dt className="text-gray-500">Gender</dt><dd>{media.childInfo?.gender || "—"}</dd></div>
-            <div><dt className="text-gray-500">City</dt><dd>{media.childInfo?.city || "—"}</dd></div>
-            <div><dt className="text-gray-500">Country</dt><dd>{media.childInfo?.country || "—"}</dd></div>
-          </dl>
-        </ComponentCard>
+      <ComponentCard title="Child Information">
+        <dl className="grid grid-cols-1 gap-x-6 gap-y-5 text-sm md:grid-cols-2 min-[1200px]:grid-cols-3">
+          <div><dt className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Full Name</dt><dd className="mt-1 font-medium text-gray-800 dark:text-white/90">{media.childInfo?.fullName || "—"}</dd></div>
+          <div><dt className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Age</dt><dd className="mt-1 text-gray-800 dark:text-white/90">{media.childInfo?.age || "—"}</dd></div>
+          <div><dt className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Gender</dt><dd className="mt-1 text-gray-800 dark:text-white/90">{media.childInfo?.gender || "—"}</dd></div>
+          <div><dt className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">City</dt><dd className="mt-1 text-gray-800 dark:text-white/90">{media.childInfo?.city || "—"}</dd></div>
+          <div><dt className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Country</dt><dd className="mt-1 text-gray-800 dark:text-white/90">{media.childInfo?.country || "—"}</dd></div>
+        </dl>
+      </ComponentCard>
 
-        <ComponentCard title="Content Details">
-          {media.contentType === "artwork" && (
-            <dl className="space-y-2 text-sm">
-              <div><dt className="text-gray-500">Title</dt><dd>{media.artwork?.title || "—"}</dd></div>
-              <div><dt className="text-gray-500">Medium</dt><dd>{media.artwork?.medium || "—"}</dd></div>
-              <div><dt className="text-gray-500">Theme</dt><dd>{media.artwork?.theme || "—"}</dd></div>
-            </dl>
-          )}
-          {media.contentType === "story_poem" && (
-            <dl className="space-y-2 text-sm">
-              <div><dt className="text-gray-500">Title</dt><dd>{media.storyPoem?.title || "—"}</dd></div>
-              <div><dt className="text-gray-500">Work Type</dt><dd>{media.storyPoem?.writtenWorkType || "—"}</dd></div>
-              <div><dt className="text-gray-500">Language</dt><dd>{media.storyPoem?.language || "—"}</dd></div>
-              <div><dt className="text-gray-500">Theme</dt><dd>{media.storyPoem?.theme || "—"}</dd></div>
-            </dl>
-          )}
-          {media.contentType === "video" && (
-            <dl className="space-y-2 text-sm">
-              <div><dt className="text-gray-500">Title</dt><dd>{media.video?.title || "—"}</dd></div>
-              <div><dt className="text-gray-500">Video Type</dt><dd>{media.video?.videoType || "—"}</dd></div>
-              <div><dt className="text-gray-500">Duration</dt><dd>{media.video?.duration || "—"}</dd></div>
-              <div><dt className="text-gray-500">Language</dt><dd>{media.video?.language || "—"}</dd></div>
-              <div><dt className="text-gray-500">YouTube</dt><dd>{media.video?.youtubeLink || "—"}</dd></div>
-            </dl>
-          )}
-        </ComponentCard>
-      </div>
+      <ComponentCard title="Content Details">
+        {media.contentType === "artwork" && (
+          <dl className="grid grid-cols-1 gap-x-6 gap-y-5 text-sm md:grid-cols-2 min-[1200px]:grid-cols-3">
+            <div><dt className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Title</dt><dd className="mt-1 font-medium text-gray-800 dark:text-white/90">{media.artwork?.title || "—"}</dd></div>
+            <div><dt className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Medium</dt><dd className="mt-1 text-gray-800 dark:text-white/90">{media.artwork?.medium || "—"}</dd></div>
+            <div><dt className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Theme</dt><dd className="mt-1 text-gray-800 dark:text-white/90">{media.artwork?.theme || "—"}</dd></div>
+          </dl>
+        )}
+        {media.contentType === "story_poem" && (
+          <dl className="grid grid-cols-1 gap-x-6 gap-y-5 text-sm md:grid-cols-2 min-[1200px]:grid-cols-3">
+            <div><dt className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Title</dt><dd className="mt-1 font-medium text-gray-800 dark:text-white/90">{media.storyPoem?.title || "—"}</dd></div>
+            <div><dt className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Work Type</dt><dd className="mt-1 text-gray-800 dark:text-white/90">{media.storyPoem?.writtenWorkType || "—"}</dd></div>
+            <div><dt className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Language</dt><dd className="mt-1 text-gray-800 dark:text-white/90">{media.storyPoem?.language || "—"}</dd></div>
+            <div><dt className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Theme</dt><dd className="mt-1 text-gray-800 dark:text-white/90">{media.storyPoem?.theme || "—"}</dd></div>
+          </dl>
+        )}
+        {media.contentType === "video" && (
+          <dl className="grid grid-cols-1 gap-x-6 gap-y-5 text-sm md:grid-cols-2 min-[1200px]:grid-cols-3">
+            <div><dt className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Title</dt><dd className="mt-1 font-medium text-gray-800 dark:text-white/90">{media.video?.title || "—"}</dd></div>
+            <div><dt className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Video Type</dt><dd className="mt-1 text-gray-800 dark:text-white/90">{media.video?.videoType || "—"}</dd></div>
+            <div><dt className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Duration</dt><dd className="mt-1 text-gray-800 dark:text-white/90">{media.video?.duration || "—"}</dd></div>
+            <div><dt className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Language</dt><dd className="mt-1 text-gray-800 dark:text-white/90">{media.video?.language || "—"}</dd></div>
+            <div className="col-span-1 md:col-span-2 min-[1200px]:col-span-3"><dt className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">YouTube</dt><dd className="mt-1 text-gray-800 dark:text-white/90 break-all">{media.video?.youtubeLink || "—"}</dd></div>
+          </dl>
+        )}
+      </ComponentCard>
     </div>
   );
 }

@@ -54,42 +54,52 @@ export default function OrganizerSuperHeroClient() {
       <ComponentCard title="My super hero requests">
         {loading ? <LoadingLottie variant="block" /> : (
           <div className="overflow-x-auto">
-            <Table className="w-full text-left text-theme-sm">
+            <Table className="table-fixed w-full text-left text-theme-sm">
+              <colgroup>
+                <col className="w-[56px]" />
+                <col className="w-[25%]" />
+                <col className="w-[15%]" />
+                <col className="w-[20%]" />
+                <col className="w-[15%]" />
+                <col className="w-[25%]" />
+              </colgroup>
               <TableHeader>
                 <TableRow className="border-b border-gray-200 dark:border-gray-800">
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Name</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Color</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Image</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Contact Number</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Status</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Admin message</TableCell>
+                  <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Image</TableCell>
+                  <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Name</TableCell>
+                  <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Color</TableCell>
+                  <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Contact Number</TableCell>
+                  <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Status</TableCell>
+                  <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Admin message</TableCell>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {list.map((row) => (
                   <TableRow key={row._id} className="border-b border-gray-200 dark:border-gray-800">
-                    <TableCell className="py-4 text-gray-800 dark:text-white/90">{row.name}</TableCell>
-                    <TableCell className="py-4">
+                    <TableCell className="px-4 py-3">
+                      {row.image ? (
+                        <img src={row.image} alt="" className="h-10 w-10 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center text-xs text-gray-400">—</div>
+                      )}
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-gray-800 dark:text-white/90 font-medium">
+                      <span className="block whitespace-normal line-clamp-2 break-words" title={row.name}>{row.name}</span>
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <span className="inline-flex items-center gap-2">
                         <span
-                          className="h-4 w-4 rounded-full border border-gray-300 dark:border-gray-600"
+                          className="h-4 w-4 rounded-full border border-gray-300 dark:border-gray-600 shrink-0"
                           style={{ backgroundColor: row.color || "#ffffff" }}
                         />
                         <span className="text-gray-600 dark:text-gray-400">{row.color || "—"}</span>
                       </span>
                     </TableCell>
-                    <TableCell className="py-4">
-                      {row.image ? (
-                        <img src={row.image} alt="" className="h-8 w-8 rounded-full object-cover" />
-                      ) : (
-                        "—"
-                      )}
-                    </TableCell>
-                    <TableCell className="py-4 text-gray-600 dark:text-gray-400">{row.contactNumber}</TableCell>
-                    <TableCell className="py-4">{statusBadge(row.status)}</TableCell>
-                    <TableCell className="py-4 max-w-[280px] text-sm text-gray-600 dark:text-gray-400">
+                    <TableCell className="px-4 py-3 text-gray-600 dark:text-gray-400">{row.contactNumber}</TableCell>
+                    <TableCell className="px-4 py-3">{statusBadge(row.status)}</TableCell>
+                    <TableCell className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
                       {row.status === "denied" && row.adminReason ? (
-                        <span className="block" title={row.adminReason}>{row.adminReason}</span>
+                        <span className="block whitespace-normal line-clamp-2 break-words" title={row.adminReason}>{row.adminReason}</span>
                       ) : (
                         "—"
                       )}

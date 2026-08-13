@@ -73,28 +73,40 @@ export default function EventBookingsClient() {
               </Badge>
             </div>
             <div className="overflow-x-auto">
-              <Table className="w-full text-left text-theme-sm">
+              <Table className="table-fixed w-full text-left text-theme-sm">
+                <colgroup>
+                  <col className="w-[20%]" />
+                  <col className="w-[22%]" />
+                  <col className="w-[15%]" />
+                  <col className="w-[15%]" />
+                  <col className="w-[13%]" />
+                  <col className="w-[15%]" />
+                </colgroup>
                 <TableHeader>
                   <TableRow className="border-b border-gray-200 dark:border-gray-800">
-                    <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Name</TableCell>
-                    <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Email</TableCell>
-                    <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Phone</TableCell>
-                    <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Ticket Type</TableCell>
-                    <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Ticket Price</TableCell>
-                    <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Booked At</TableCell>
+                    <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Name</TableCell>
+                    <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Email</TableCell>
+                    <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Phone</TableCell>
+                    <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Ticket Type</TableCell>
+                    <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Ticket Price</TableCell>
+                    <TableCell isHeader className="px-4 py-3 font-medium text-gray-700 dark:text-gray-300">Booked At</TableCell>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {data.bookings.map((b) => (
                     <TableRow key={b._id} className="border-b border-gray-200 dark:border-gray-800">
-                      <TableCell className="py-4 text-gray-800 dark:text-white/90">{b.name}</TableCell>
-                      <TableCell className="py-4 text-gray-600 dark:text-gray-400">{b.email}</TableCell>
-                      <TableCell className="py-4 text-gray-600 dark:text-gray-400">{b.phone}</TableCell>
-                      <TableCell className="py-4 text-gray-600 dark:text-gray-400">{b.ticketType || "—"}</TableCell>
-                      <TableCell className="py-4 text-gray-600 dark:text-gray-400">
+                      <TableCell className="px-4 py-3 text-gray-800 dark:text-white/90 font-medium">
+                        <span className="block whitespace-normal line-clamp-2 break-words" title={b.name}>{b.name}</span>
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-gray-600 dark:text-gray-400">
+                        <span className="block whitespace-normal line-clamp-2 break-words" title={b.email}>{b.email}</span>
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-gray-600 dark:text-gray-400">{b.phone}</TableCell>
+                      <TableCell className="px-4 py-3 text-gray-600 dark:text-gray-400">{b.ticketType || "—"}</TableCell>
+                      <TableCell className="px-4 py-3 text-gray-600 dark:text-gray-400">
                         {typeof b.ticketPrice === "number" ? b.ticketPrice : "—"}
                       </TableCell>
-                      <TableCell className="py-4 text-gray-600 dark:text-gray-400">
+                      <TableCell className="px-4 py-3 text-gray-600 dark:text-gray-400">
                         {new Date(b.createdAt).toLocaleString()}
                       </TableCell>
                     </TableRow>

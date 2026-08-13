@@ -13,6 +13,8 @@ import TextArea from "@/components/form/input/TextArea";
 import Switch from "@/components/form/switch/Switch";
 import LoadingLottie from "@/components/common/LoadingLottie";
 
+import DashedDropzone from "@/components/form/input/DashedDropzone";
+
 export default function EditNewsMediaClient({ idPromise }: { idPromise: Promise<string> }) {
   const router = useRouter();
   const id = use(idPromise);
@@ -100,7 +102,6 @@ export default function EditNewsMediaClient({ idPromise }: { idPromise: Promise<
       formData.append("title", form.title.trim());
       formData.append("content", form.content.trim());
       
-      
       if (form.existingFeaturedImage && !featuredImage) {
         formData.append("existingFeaturedImage", form.existingFeaturedImage);
       }
@@ -139,30 +140,29 @@ export default function EditNewsMediaClient({ idPromise }: { idPromise: Promise<
   if (loading) return <LoadingLottie variant="block" />;
 
   return (
-    <div className="w-full">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="w-full space-y-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <PageBreadcrumb pageTitle="Edit News Media" />
         <Link href="/admin/news-media">
-          <Button size="sm" variant="outline">Back to list</Button>
+          <Button size="sm" variant="outline" className="h-10 px-4 text-xs">Back to list</Button>
         </Link>
       </div>
 
       <ComponentCard title="Edit News Media" desc="Update the details, image, or attached files.">
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
-            <p className="rounded-lg bg-error-50 px-4 py-2 text-sm text-error-600">
+            <p className="rounded-[10px] border border-rose-200 bg-rose-50/50 p-3.5 text-xs text-rose-600 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-400">
               {error}
             </p>
           )}
 
-          <div className="grid gap-6 sm:grid-cols-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
             <div className="sm:col-span-2">
               <Label>Title *</Label>
               <Input
                 value={form.title}
                 onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
                 required
-                className="mt-1"
               />
             </div>
             
@@ -172,28 +172,52 @@ export default function EditNewsMediaClient({ idPromise }: { idPromise: Promise<
                 value={form.content}
                 onChange={(v) => setForm((f) => ({ ...f, content: v }))}
                 rows={6}
-                className="mt-1"
               />
             </div>
 
             <div className="sm:col-span-2 md:col-span-1">
               <Label>Featured Image (Max 10MB)</Label>
-              {form.existingFeaturedImage && !featuredImage && (
-                <div className="mb-2">
-                  <img src={form.existingFeaturedImage} alt="Featured" className="w-32 h-32 object-cover rounded" />
+              {form.existingFeaturedImage && !featuredImage ? (
+                <div className="flex items-center gap-3 rounded-[10px] border border-gray-200 bg-gray-50/50 p-3 dark:border-gray-800 dark:bg-gray-800/30">
+                  <img src={form.existingFeaturedImage} alt="Featured" className="h-14 w-14 rounded-[10px] object-cover" />
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-gray-900 dark:text-white">Current featured image</p>
+                    <p className="text-[11px] text-gray-400">Click change to update</p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setForm((f) => ({ ...f, existingFeaturedImage: "" }))}
+                    className="h-8 text-xs"
+                  >
+                    Change
+                  </Button>
                 </div>
-              )}
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100"
-              />
-              {featuredImage && (
-                <div className="mt-2">
-                  <p className="text-sm text-gray-500 mb-1">New selected: {featuredImage.name}</p>
-                  <img src={URL.createObjectURL(featuredImage)} alt="Preview" className="w-32 h-32 object-cover rounded" />
+              ) : featuredImage ? (
+                <div className="flex items-center gap-3 rounded-[10px] border border-gray-200 bg-gray-50/50 p-3 dark:border-gray-800 dark:bg-gray-800/30">
+                  <img src={URL.createObjectURL(featuredImage)} alt="Preview" className="h-14 w-14 rounded-[10px] object-cover" />
+                  <div className="flex-1 truncate">
+                    <p className="text-xs font-medium text-gray-900 dark:text-white truncate">{featuredImage.name}</p>
+                    <p className="text-[11px] text-gray-400">{(featuredImage.size / 1024 / 1024).toFixed(2)} MB</p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setFeaturedImage(null)}
+                    className="h-8 text-xs"
+                  >
+                    Remove
+                  </Button>
                 </div>
+              ) : (
+                <DashedDropzone
+                  onChange={handleImageChange}
+                  accept="image/*"
+                  label="Click or drag new featured image"
+                  sublabel="PNG, JPG, or WEBP (max 10MB)"
+                />
               )}
             </div>
 
@@ -201,34 +225,36 @@ export default function EditNewsMediaClient({ idPromise }: { idPromise: Promise<
               <Label>Files (Max 10MB each)</Label>
               {form.existingFiles.length > 0 && (
                 <div className="mb-3">
-                  <p className="text-sm font-semibold mb-1">Existing Files:</p>
-                  <ul className="text-sm text-gray-500 space-y-1">
+                  <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Existing Files:</p>
+                  <div className="space-y-1.5">
                     {form.existingFiles.map((f, i) => (
-                      <li key={i} className="flex items-center justify-between bg-gray-50 p-2 rounded">
-                        <a href={f} target="_blank" rel="noreferrer" className="truncate text-brand-600 max-w-[200px]">{f.split('/').pop()}</a>
-                        <button type="button" onClick={() => removeExistingFile(f)} className="text-red-500 text-xs">Remove</button>
-                      </li>
+                      <div key={i} className="flex items-center justify-between rounded-[6px] border border-gray-200 bg-gray-50/50 px-2.5 py-1.5 text-xs dark:border-gray-800 dark:bg-gray-800/30">
+                        <a href={f} target="_blank" rel="noreferrer" className="truncate text-brand-500 hover:text-brand-600 max-w-[180px]">{f.split('/').pop()}</a>
+                        <button type="button" onClick={() => removeExistingFile(f)} className="text-rose-500 hover:text-rose-600 text-xs font-medium">Remove</button>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 </div>
               )}
               
-              <input
-                type="file"
-                multiple
+              <DashedDropzone
                 onChange={handleFilesChange}
-                className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
+                multiple
+                label="Click or drag additional files"
+                sublabel="Images, PDFs, or docs (max 10MB each)"
               />
               {files.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-2">
+                <div className="mt-3 flex flex-wrap gap-2">
                   {files.map((f, i) => (
-                    <div key={i} className="border border-gray-200 dark:border-gray-800 rounded p-2 flex flex-col items-center max-w-[150px]">
-                      {f.type.startsWith("image/") ? (
-                        <img src={URL.createObjectURL(f)} alt={f.name} className="w-20 h-20 object-cover rounded mb-1" />
-                      ) : (
-                        <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded flex items-center justify-center mb-1 text-xs text-gray-500">File</div>
-                      )}
-                      <span className="text-xs text-gray-500 truncate w-full text-center" title={f.name}>{f.name}</span>
+                    <div key={i} className="flex items-center gap-2 rounded-[6px] border border-gray-200 bg-gray-50/50 px-2.5 py-1.5 dark:border-gray-800 dark:bg-gray-800/30 text-xs">
+                      <span className="truncate max-w-[120px] text-gray-700 dark:text-gray-300" title={f.name}>{f.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => setFiles(prev => prev.filter((_, idx) => idx !== i))}
+                        className="text-gray-400 hover:text-rose-500"
+                      >
+                        ×
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -236,13 +262,15 @@ export default function EditNewsMediaClient({ idPromise }: { idPromise: Promise<
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-3 border-t border-gray-200 pt-6">
-            <Button type="submit" size="sm" disabled={submitting}>
+          <div className="flex items-center justify-end gap-3 border-t border-gray-200 pt-4 mt-6 dark:border-gray-800">
+            <Link href="/admin/news-media">
+              <Button type="button" variant="outline" size="sm" className="h-10 px-4 text-xs">
+                Cancel
+              </Button>
+            </Link>
+            <Button type="submit" size="sm" disabled={submitting} className="h-10 px-4 text-xs">
               {submitting ? "Saving..." : "Save Changes"}
             </Button>
-            <Link href="/admin/news-media">
-              <Button type="button" variant="outline" size="sm">Cancel</Button>
-            </Link>
           </div>
         </form>
       </ComponentCard>

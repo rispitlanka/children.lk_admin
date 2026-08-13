@@ -115,22 +115,24 @@ function renderSuperHeroDetail(row: RequestItem, org: { name?: string } | undefi
           <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">{org.name}</p>
         )}
       </div>
-      <div className="rounded-xl border border-gray-200 bg-gray-50/50 dark:border-gray-800 dark:bg-gray-800/30 p-4 space-y-3">
-        <div className="flex justify-between gap-2 text-sm">
-          <span className="text-gray-500 dark:text-gray-400">Contact Number</span>
-          <a href={`tel:${row.contactNumber}`} className="font-medium text-gray-900 dark:text-white truncate">
-            {String(row.contactNumber ?? "—")}
-          </a>
-        </div>
-        <div className="flex justify-between gap-2 text-sm">
-          <span className="text-gray-500 dark:text-gray-400">Color</span>
-          <span className="inline-flex items-center gap-2 font-medium text-gray-900 dark:text-white">
-            <span
-              className="h-4 w-4 rounded-full border border-gray-300 dark:border-gray-600"
-              style={{ backgroundColor: String(row.color ?? "#ffffff") }}
-            />
-            {String(row.color ?? "—")}
-          </span>
+      <div className="rounded-xl border border-gray-200 bg-gray-50/50 dark:border-gray-800 dark:bg-gray-800/30 p-5 space-y-4">
+        <div className="grid grid-cols-1 gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Contact Number</p>
+            <a href={`tel:${row.contactNumber}`} className="mt-1 block font-medium text-gray-900 dark:text-white truncate">
+              {String(row.contactNumber ?? "—")}
+            </a>
+          </div>
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Color</p>
+            <span className="mt-1 inline-flex items-center gap-2 font-medium text-gray-900 dark:text-white">
+              <span
+                className="h-4 w-4 rounded-full border border-gray-300 dark:border-gray-600"
+                style={{ backgroundColor: String(row.color ?? "#ffffff") }}
+              />
+              {String(row.color ?? "—")}
+            </span>
+          </div>
         </div>
         <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
           <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Description</p>
@@ -344,7 +346,6 @@ function renderDetail(requestType: RequestType, row: RequestItem): React.ReactNo
             <p className="font-medium text-gray-800 dark:text-white/90">Description</p>
             <div
               className="prose prose-sm dark:prose-invert mt-1 max-w-none text-gray-700 dark:text-gray-300"
-              // eslint-disable-next-line react/no-danger -- admin-reviewed organizer HTML
               dangerouslySetInnerHTML={{ __html: String(row.description ?? "") || "—" }}
             />
           </div>
@@ -404,25 +405,82 @@ function renderDetail(requestType: RequestType, row: RequestItem): React.ReactNo
   }
 }
 
+function getColumnWidthClass(key: string): string {
+  switch (key) {
+    case "name":
+      return "min-w-[200px]";
+    case "contentType":
+      return "min-w-[130px]";
+    case "contactNumber":
+      return "min-w-[140px]";
+    case "organizationId":
+      return "min-w-[160px]";
+    case "createdAt":
+      return "w-28";
+    default:
+      return "";
+  }
+}
+
+function renderColGroup(requestType: RequestType) {
+  switch (requestType) {
+    case "resource":
+      return (
+        <colgroup>
+          <col className="w-[30%]" />
+          <col className="w-[15%]" />
+          <col className="w-[25%]" />
+          <col className="w-[10%]" />
+          <col className="w-[10%]" />
+          <col className="w-[100px]" />
+        </colgroup>
+      );
+    case "media":
+    case "event":
+      return (
+        <colgroup>
+          <col className="w-[35%]" />
+          <col className="w-[35%]" />
+          <col className="w-[10%]" />
+          <col className="w-[10%]" />
+          <col className="w-[100px]" />
+        </colgroup>
+      );
+    case "super-hero":
+      return (
+        <colgroup>
+          <col className="w-[25%]" />
+          <col className="w-[20%]" />
+          <col className="w-[25%]" />
+          <col className="w-[10%]" />
+          <col className="w-[10%]" />
+          <col className="w-[100px]" />
+        </colgroup>
+      );
+  }
+}
+
 export default function RequestListWithActions({
   title,
   breadcrumb,
   requestType,
   detailViewBasePath,
 }: Props) {
+  const [list, setList] = useState<RequestItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<RequestItem | null>(null);
+  const [actionStatus, setActionStatus] = useState<"approved" | "denied" | null>(null);
+  const [actionModal, setActionModal] = useState(false);
+  const [denyReason, setDenyReason] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+
   const fetchUrl = `/api/admin/${requestType}-requests`;
   const patchUrl = (id: string) => `/api/admin/${requestType}-requests/${id}`;
   const columns = getColumns(requestType);
   const viewHref = detailViewBasePath ? (row: RequestItem) => `${detailViewBasePath}/${row._id}` : null;
-
-  const [list, setList] = useState<RequestItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState<RequestItem | null>(null);
-  const [actionModal, setActionModal] = useState(false);
-  const [denyReason, setDenyReason] = useState("");
-  const [actionStatus, setActionStatus] = useState<"approved" | "denied" | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
 
   const load = () => {
     fetch(fetchUrl)
@@ -437,6 +495,7 @@ export default function RequestListWithActions({
 
   useEffect(() => {
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- load is stable relative to requestType; adding it causes infinite re-fetch
   }, [requestType]);
 
   const openApprove = (row: RequestItem) => {
@@ -493,107 +552,164 @@ export default function RequestListWithActions({
   };
 
   const statusBadge = (status: string) => {
-    if (status === "pending") return <Badge color="warning">Pending</Badge>;
-    if (status === "approved") return <Badge color="success">Approved</Badge>;
-    return <Badge color="error">Denied</Badge>;
+    if (status === "pending")
+      return (
+        <span className="inline-flex items-center rounded-[6px] bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400">
+          Pending
+        </span>
+      );
+    if (status === "approved")
+      return (
+        <span className="inline-flex items-center rounded-[6px] bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+          Approved
+        </span>
+      );
+    return (
+      <span className="inline-flex items-center rounded-[6px] bg-rose-500/10 px-2.5 py-0.5 text-xs font-medium text-rose-600 dark:text-rose-400">
+        Denied
+      </span>
+    );
   };
 
-  const actionIconClass =
-    "inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 transition hover:bg-gray-50 hover:text-brand-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700";
+  const ghostActionClass =
+    "inline-flex h-8 w-8 items-center justify-center rounded-[6px] bg-transparent text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white";
+
+  const filteredList = list.filter((item) => {
+    const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+    const nameStr = String(item.name ?? "").toLowerCase();
+    const orgStr = String((item.organizationId as { name?: string })?.name ?? "").toLowerCase();
+    const searchLower = searchTerm.toLowerCase();
+    const matchesSearch = !searchTerm || nameStr.includes(searchLower) || orgStr.includes(searchLower);
+    return matchesStatus && matchesSearch;
+  });
 
   return (
-    <div>
+    <div className="space-y-8">
       <PageBreadcrumb pageTitle={breadcrumb} />
       <ComponentCard title={title}>
         {loading ? (
           <LoadingLottie variant="block" />
         ) : (
-          <div className="overflow-x-auto">
-            <Table className="w-full text-left text-theme-sm">
-              <TableHeader>
-                <TableRow className="border-b border-gray-200 dark:border-gray-800">
-                  {columns.map((col) => (
-                    <TableCell key={col.key} isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">
-                      {col.label}
-                    </TableCell>
-                  ))}
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Status</TableCell>
-                  <TableCell isHeader className="py-4 font-medium text-gray-700 dark:text-gray-300">Actions</TableCell>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {list.map((row) => (
-                  <TableRow key={row._id} className="border-b border-gray-200 dark:border-gray-800">
+          <div>
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-wrap items-center gap-3">
+                <input
+                  type="text"
+                  placeholder="Search requests..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="h-10 w-full min-w-[220px] sm:w-64 rounded-[10px] border border-gray-200 bg-white px-3.5 text-xs text-gray-800 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none dark:border-gray-800 dark:bg-gray-dark dark:text-white/90 dark:placeholder:text-white/30"
+                />
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="h-10 rounded-[10px] border border-gray-200 bg-white px-3 text-xs font-medium text-gray-700 focus:border-brand-500 focus:outline-none dark:border-gray-800 dark:bg-gray-dark dark:text-gray-300"
+                >
+                  <option value="all">All Status</option>
+                  <option value="pending">Pending</option>
+                  <option value="approved">Approved</option>
+                  <option value="denied">Denied</option>
+                </select>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <Table className="table-fixed w-full text-left text-theme-sm">
+                {renderColGroup(requestType)}
+                <TableHeader>
+                  <TableRow className="border-b border-gray-200 bg-transparent dark:border-gray-800">
                     {columns.map((col) => (
-                      <TableCell key={col.key} className="py-4 text-gray-800 dark:text-white/90">
-                        {col.key === "name" ? (
-                          <span className="block max-w-[260px] truncate" title={String(row.name ?? "")}>
-                            {String(row.name ?? "—")}
-                          </span>
-                        ) : (
-                          getCellValue(row, col)
-                        )}
+                      <TableCell key={col.key} isHeader className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                        {col.label}
                       </TableCell>
                     ))}
-                    <TableCell className="py-4">{statusBadge(row.status)}</TableCell>
-                    <TableCell className="py-4">
-                      {viewHref ? (
-                        <div className="flex items-center gap-2">
-                          <Link
-                            href={viewHref(row)}
-                            className={actionIconClass}
-                            aria-label="View request"
-                            title="View"
-                          >
-                            <EyeIcon className="h-4 w-4" />
-                          </Link>
-                        </div>
-                      ) : (
-                        <div className="flex flex-wrap items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelected(row);
-                              setActionModal(false);
-                            }}
-                            className={actionIconClass}
-                            aria-label="View request"
-                            title="View"
-                          >
-                            <EyeIcon className="h-4 w-4" />
-                          </button>
-                          {row.status === "pending" && (
-                            <>
-                              <button
-                                type="button"
-                                onClick={() => openApprove(row)}
-                                className={`${actionIconClass} text-success-600 hover:text-success-700 dark:text-success-500 dark:hover:text-success-400`}
-                                aria-label="Approve request"
-                                title="Approve"
-                              >
-                                <CheckCircleIcon className="h-4 w-4" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => openDeny(row)}
-                                className={`${actionIconClass} text-error-500 hover:text-error-600 dark:text-error-400 dark:hover:text-error-300`}
-                                aria-label="Deny request"
-                                title="Deny"
-                              >
-                                <CloseLineIcon className="h-4 w-4" />
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      )}
-                    </TableCell>
+                    <TableCell isHeader className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</TableCell>
+                    <TableCell isHeader className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 text-right">Actions</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-            {list.length === 0 && (
-              <p className="py-8 text-center text-gray-500 dark:text-gray-400">No requests yet.</p>
-            )}
+                </TableHeader>
+                <TableBody>
+                  {filteredList.map((row) => (
+                    <TableRow key={row._id} className="border-b border-gray-200 transition-colors hover:bg-gray-50/60 dark:border-gray-800 dark:hover:bg-white/[0.02]">
+                      {columns.map((col) => (
+                        <TableCell key={col.key} className="px-4 py-3 text-gray-800 dark:text-white/90">
+                          {col.key === "name" ? (
+                            <span className="block whitespace-normal line-clamp-3 break-words font-medium" title={String(row.name ?? "")}>
+                              {String(row.name ?? "—")}
+                            </span>
+                          ) : (
+                            <span className="block whitespace-normal line-clamp-2 break-words">
+                              {getCellValue(row, col)}
+                            </span>
+                          )}
+                        </TableCell>
+                      ))}
+                      <TableCell className="px-4 py-3">{statusBadge(row.status)}</TableCell>
+                      <TableCell className="px-4 py-3 text-right">
+                        {viewHref ? (
+                          <div className="flex items-center justify-end gap-3">
+                            <Link
+                              href={viewHref(row)}
+                              className={ghostActionClass}
+                              aria-label="View request"
+                              title="View"
+                            >
+                              <EyeIcon className="h-4 w-4" />
+                            </Link>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-end gap-3">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelected(row);
+                                setActionModal(false);
+                              }}
+                              className={ghostActionClass}
+                              aria-label="View request"
+                              title="View"
+                            >
+                              <EyeIcon className="h-4 w-4" />
+                            </button>
+                            {row.status === "pending" && (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => openApprove(row)}
+                                  className="inline-flex h-8 w-8 items-center justify-center rounded-[6px] bg-transparent text-emerald-600 transition-colors hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10"
+                                  aria-label="Approve request"
+                                  title="Approve"
+                                >
+                                  <CheckCircleIcon className="h-4 w-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => openDeny(row)}
+                                  className="inline-flex h-8 w-8 items-center justify-center rounded-[6px] bg-transparent text-rose-500 transition-colors hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-500/10"
+                                  aria-label="Deny request"
+                                  title="Deny"
+                                >
+                                  <CloseLineIcon className="h-4 w-4" />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              {filteredList.length === 0 && (
+                <div className="py-12 text-center">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800/50 text-gray-400 dark:text-gray-600 mb-3">
+                    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                    </svg>
+                  </div>
+                  <h4 className="text-sm font-medium text-gray-900 dark:text-white">No requests found</h4>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">There are no records matching your criteria.</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </ComponentCard>
@@ -604,7 +720,7 @@ export default function RequestListWithActions({
           setSelected(null);
           setActionModal(false);
         }}
-        className="max-w-md w-full shadow-xl border border-gray-200 dark:border-gray-800"
+        className="max-w-2xl w-full border border-gray-200 dark:border-gray-800"
       >
         <div className="max-h-[90vh] overflow-y-auto p-6">
           {selected && (
@@ -612,7 +728,7 @@ export default function RequestListWithActions({
               {requestType !== "super-hero" && (
                 <h2 className="mb-4 text-lg font-semibold text-gray-800 dark:text-white/90">Request details</h2>
               )}
-              <div className={requestType === "super-hero" ? "" : "space-y-3 text-sm text-gray-700 dark:text-gray-300"}>
+              <div className={requestType === "super-hero" ? "" : "space-y-4 text-sm text-gray-700 dark:text-gray-300"}>
                 {renderDetail(requestType, selected)}
               </div>
               {selected.status === "pending" && actionModal && (

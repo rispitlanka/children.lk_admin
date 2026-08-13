@@ -19,17 +19,11 @@ export default function DemographicCard() {
   }
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] sm:p-6">
-      <div className="flex justify-between">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-            Customers Demographic
-          </h3>
-          <p className="mt-1 text-gray-500 text-theme-sm dark:text-gray-400">
-            Number of customer based on country
-          </p>
-        </div>
-
+    <div className="rounded-[10px] border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-dark sm:p-6">
+      <div className="flex justify-between flex-col gap-2 font-semibold text-gray-800 dark:text-white/90 sm:flex-row sm:items-center">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
+          Customers Demographic
+        </h3>
         <div className="relative inline-block">
           <button onClick={toggleDropdown} className="dropdown-toggle">
             <MoreDotIcon className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" />
@@ -54,7 +48,7 @@ export default function DemographicCard() {
           </Dropdown>
         </div>
       </div>
-      <div className="px-4 py-6 my-6 overflow-hidden border border-gary-200 rounded-2xl bg-gray-50 dark:border-gray-800 dark:bg-gray-900 sm:px-6">
+      <div className="px-4 py-6 my-6 overflow-hidden border border-gary-200 rounded-[10px] bg-gray-50 dark:border-gray-800 dark:bg-gray-dark sm:px-6">
         <div
           id="mapOne"
           className="mapOne map-btn -mx-4 -my-6 h-[212px] w-[252px] 2xsm:w-[307px] xsm:w-[358px] sm:-mx-6 md:w-[668px] lg:w-[634px] xl:w-[393px] 2xl:w-[554px]"

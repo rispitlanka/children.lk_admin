@@ -108,45 +108,54 @@ export default function ResourceTaxonomyClient() {
   };
 
   return (
-    <div>
-      <PageBreadcrumb pageTitle="Resource taxonomy" />
-      <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
-        Categories and sub categories appear in the organizer &quot;Add resource&quot; form.
-      </p>
+    <div className="space-y-8">
+      <div>
+        <PageBreadcrumb pageTitle="Resource taxonomy" />
+        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+          Categories and sub categories appear in the organizer &quot;Add resource&quot; form.
+        </p>
+      </div>
 
       {loading ? (
         <p className="text-sm text-gray-500">Loading…</p>
       ) : (
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-8 lg:grid-cols-2">
           <ComponentCard title="Categories" desc="Super-admin list: top-level resource categories.">
-            <div className="flex flex-wrap gap-2">
-              <Input
+            <div className="flex flex-wrap items-center gap-3">
+              <input
+                type="text"
                 value={newCat}
                 onChange={(e) => setNewCat(e.target.value)}
                 placeholder="New category name"
-                className="min-w-[200px] flex-1"
+                className="h-10 flex-1 min-w-[200px] rounded-[10px] border border-gray-200 bg-white px-3.5 text-xs text-gray-800 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none dark:border-gray-800 dark:bg-gray-dark dark:text-white/90 dark:placeholder:text-white/30"
               />
-              <Button type="button" size="sm" onClick={addCategory}>
+              <Button type="button" size="sm" onClick={addCategory} className="h-10 px-4 text-xs">
                 Add
               </Button>
             </div>
-            <ul className="mt-4 space-y-2">
+            <ul className="mt-4 divide-y divide-gray-200 dark:divide-gray-800">
               {categories.map((c) => (
                 <li
                   key={c._id}
-                  className="flex items-center justify-between gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700"
+                  className="flex items-center justify-between gap-2 py-3 px-1 transition-colors hover:bg-gray-50/60 dark:hover:bg-white/[0.02]"
                 >
                   <span>
-                    <span className="font-medium text-gray-900 dark:text-white">{c.name}</span>
-                    <span className="ml-2 text-xs text-gray-500">{c.slug}</span>
+                    <span className="font-medium text-gray-900 dark:text-white text-sm">{c.name}</span>
+                    <span className="ml-2 text-xs text-gray-400">{c.slug}</span>
                   </span>
-                  <Button type="button" variant="outline" size="sm" onClick={() => removeCat(c._id)}>
+                  <button
+                    type="button"
+                    onClick={() => removeCat(c._id)}
+                    className="inline-flex h-8 items-center justify-center rounded-[6px] bg-transparent px-2.5 text-xs font-medium text-rose-600 transition-colors hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-500/10"
+                  >
                     Delete
-                  </Button>
+                  </button>
                 </li>
               ))}
               {categories.length === 0 && (
-                <li className="text-sm text-gray-500">No categories yet. Add one above.</li>
+                <li className="py-8 text-center">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">No categories yet. Add one above.</p>
+                </li>
               )}
             </ul>
           </ComponentCard>
@@ -154,11 +163,11 @@ export default function ResourceTaxonomyClient() {
           <ComponentCard title="Sub categories" desc="Must belong to a category.">
             <div className="space-y-3">
               <div>
-                <Label>Parent category</Label>
+                <Label className="text-xs text-gray-500 mb-1">Parent category</Label>
                 <select
                   value={newSubCategoryId}
                   onChange={(e) => setNewSubCategoryId(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-900"
+                  className="h-10 w-full rounded-[10px] border border-gray-200 bg-white px-3.5 text-xs font-medium text-gray-700 focus:border-brand-500 focus:outline-none dark:border-gray-800 dark:bg-gray-dark dark:text-gray-300"
                 >
                   {categories.map((c) => (
                     <option key={c._id} value={c._id}>
@@ -167,40 +176,47 @@ export default function ResourceTaxonomyClient() {
                   ))}
                 </select>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <Input
+              <div className="flex flex-wrap items-center gap-3">
+                <input
+                  type="text"
                   value={newSubName}
                   onChange={(e) => setNewSubName(e.target.value)}
                   placeholder="New sub category name"
-                  className="min-w-[200px] flex-1"
+                  className="h-10 flex-1 min-w-[200px] rounded-[10px] border border-gray-200 bg-white px-3.5 text-xs text-gray-800 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none dark:border-gray-800 dark:bg-gray-dark dark:text-white/90 dark:placeholder:text-white/30"
                 />
-                <Button type="button" size="sm" onClick={addSub} disabled={!categories.length}>
+                <Button type="button" size="sm" onClick={addSub} disabled={!categories.length} className="h-10 px-4 text-xs">
                   Add
                 </Button>
               </div>
             </div>
-            <ul className="mt-4 max-h-80 space-y-2 overflow-y-auto">
+            <ul className="mt-4 max-h-80 divide-y divide-gray-200 overflow-y-auto dark:divide-gray-800">
               {subs.map((s) => {
                 const parent = categories.find((c) => c._id === s.categoryId);
                 return (
                   <li
                     key={s._id}
-                    className="flex items-center justify-between gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700"
+                    className="flex items-center justify-between gap-2 py-3 px-1 transition-colors hover:bg-gray-50/60 dark:hover:bg-white/[0.02]"
                   >
                     <span>
-                      <span className="font-medium text-gray-900 dark:text-white">{s.name}</span>
-                      <span className="ml-2 text-xs text-gray-500">
+                      <span className="font-medium text-gray-900 dark:text-white text-sm">{s.name}</span>
+                      <span className="ml-2 text-xs text-gray-400">
                         under {parent?.name ?? "?"}
                       </span>
                     </span>
-                    <Button type="button" variant="outline" size="sm" onClick={() => removeSub(s._id)}>
+                    <button
+                      type="button"
+                      onClick={() => removeSub(s._id)}
+                      className="inline-flex h-8 items-center justify-center rounded-[6px] bg-transparent px-2.5 text-xs font-medium text-rose-600 transition-colors hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-500/10"
+                    >
                       Delete
-                    </Button>
+                    </button>
                   </li>
                 );
               })}
               {subs.length === 0 && (
-                <li className="text-sm text-gray-500">No sub categories yet.</li>
+                <li className="py-8 text-center">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">No sub categories yet.</p>
+                </li>
               )}
             </ul>
           </ComponentCard>

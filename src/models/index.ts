@@ -34,3 +34,19 @@ export {
   DocumentDownloadCount,
   type IDocumentDownloadCount,
 } from "./DocumentDownloadCount";
+export {
+  Course,
+  type ICourse,
+  type CourseVisibilityStatus,
+  type CourseAgeGroup,
+  type CourseTargetAudience,
+} from "./Course";
+export {
+  Lesson,
+  type ILesson,
+  type IQuizQuestion,
+  type IQuizOption,
+  type LessonContentType,
+  type LessonVisibilityStatus,
+  type QuizQuestionType,
+} from "./Lesson";

@@ -293,211 +293,176 @@ export default function ResourceViewClient() {
           )}
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-3">
-          <div className="space-y-6 lg:col-span-2">
-            <ComponentCard title="Description">
-              {safeDescriptionHtml ? (
-                <div
-                  className="prose prose-sm max-w-none leading-relaxed text-gray-700 dark:prose-invert dark:text-gray-300"
-                  // eslint-disable-next-line react/no-danger -- sanitized rich-text HTML
-                  dangerouslySetInnerHTML={{ __html: safeDescriptionHtml }}
-                />
-              ) : (
-                <p className="whitespace-pre-wrap leading-relaxed text-gray-700 dark:text-gray-300">
-                  {resource.shortDescription}
-                </p>
-              )}
-            </ComponentCard>
-
-            {(resource.publicationDate || resource.contentPublishedAt) && (
-              <ComponentCard title="Dates">
-                <dl className="grid gap-3 text-sm sm:grid-cols-2">
-                  {resource.publicationDate && (
-                    <>
-                      <dt className="text-gray-500 dark:text-gray-400">Publication date</dt>
-                      <dd className="font-medium text-gray-900 dark:text-white">
-                        {new Date(resource.publicationDate).toLocaleDateString()}
-                      </dd>
-                    </>
-                  )}
-                  {resource.contentPublishedAt && (
-                    <>
-                      <dt className="text-gray-500 dark:text-gray-400">Published (visibility)</dt>
-                      <dd className="font-medium text-gray-900 dark:text-white">
-                        {new Date(resource.contentPublishedAt).toLocaleDateString()}
-                      </dd>
-                    </>
-                  )}
-                </dl>
-              </ComponentCard>
-            )}
-
-            {resource.source && (
-              <ComponentCard title="Source">
-                <p className="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">{resource.source}</p>
-              </ComponentCard>
-            )}
-
-            {resource.rightsNotice && (
-              <ComponentCard title="Rights / © notice">
-                <p className="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">{resource.rightsNotice}</p>
-              </ComponentCard>
-            )}
-
-            {resource.status === "denied" && resource.adminReason && (
-              <div
-                className={`rounded-xl border p-6 ${getStatusInfo(resource.status, resource.visibilityStatus).bgColor} ${getStatusInfo(resource.status, resource.visibilityStatus).borderColor}`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className={`flex-shrink-0 ${getStatusInfo(resource.status, resource.visibilityStatus).color}`}>
-                    <CloseLineIcon className="h-6 w-6" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className={`mb-2 text-lg font-semibold ${getStatusInfo(resource.status, resource.visibilityStatus).color}`}>
-                      Admin feedback
-                    </h3>
-                    <p className="text-gray-800 dark:text-gray-200">{resource.adminReason}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-6">
-            <ComponentCard title="Review status">
-              <div
-                className={`rounded-lg border p-4 ${getStatusInfo(resource.status, resource.visibilityStatus).bgColor} ${getStatusInfo(resource.status, resource.visibilityStatus).borderColor}`}
-              >
-                <div className="flex items-center gap-3">
-                  <div className={getStatusInfo(resource.status, resource.visibilityStatus).color}>
-                    {React.createElement(getStatusInfo(resource.status, resource.visibilityStatus).icon, { className: "h-6 w-6" })}
-                  </div>
-                  <div>
-                    <p className={`font-semibold capitalize ${getStatusInfo(resource.status, resource.visibilityStatus).color}`}>
-                      {resource.visibilityStatus === "draft"
-                        ? "draft"
-                        : resource.visibilityStatus === "archived"
-                          ? "archived"
-                          : resource.status}
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {resource.visibilityStatus === "draft"
-                        ? "Saved as draft (not sent for admin review)"
-                        : resource.visibilityStatus === "archived"
-                          ? "Saved as archived (not sent for admin review)"
-                          : resource.status === "approved"
-                            ? "Approved by admin"
-                            : resource.status === "denied"
-                              ? "Not approved"
-                              : "Awaiting admin review"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </ComponentCard>
-
-            <ComponentCard title="Classification">
-              <dl className="space-y-3 text-sm">
-                <div>
-                  <dt className="text-gray-500 dark:text-gray-400">Category</dt>
-                  <dd className="mt-0.5 font-medium text-gray-900 dark:text-white">{taxonomyLine(cat, sub)}</dd>
+        <div className="space-y-6">
+          <ComponentCard title="Review status">
+            <div
+              className={`rounded-lg border p-4 ${getStatusInfo(resource.status, resource.visibilityStatus).bgColor} ${getStatusInfo(resource.status, resource.visibilityStatus).borderColor}`}
+            >
+              <div className="flex items-center gap-3">
+                <div className={getStatusInfo(resource.status, resource.visibilityStatus).color}>
+                  {React.createElement(getStatusInfo(resource.status, resource.visibilityStatus).icon, { className: "h-6 w-6" })}
                 </div>
                 <div>
-                  <dt className="text-gray-500 dark:text-gray-400">Content type</dt>
-                  <dd className="mt-0.5 font-medium text-gray-900 dark:text-white">
+                  <p className={`font-semibold capitalize ${getStatusInfo(resource.status, resource.visibilityStatus).color}`}>
+                    {resource.visibilityStatus === "draft"
+                      ? "draft"
+                      : resource.visibilityStatus === "archived"
+                        ? "archived"
+                        : resource.status}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {resource.visibilityStatus === "draft"
+                      ? "Saved as draft (not sent for admin review)"
+                      : resource.visibilityStatus === "archived"
+                        ? "Saved as archived (not sent for admin review)"
+                        : resource.status === "approved"
+                          ? "Approved by admin"
+                          : resource.status === "denied"
+                            ? "Not approved"
+                            : "Awaiting admin review"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </ComponentCard>
+
+          {resource.status === "denied" && resource.adminReason && (
+            <div
+              className={`rounded-xl border p-6 ${getStatusInfo(resource.status, resource.visibilityStatus).bgColor} ${getStatusInfo(resource.status, resource.visibilityStatus).borderColor}`}
+            >
+              <div className="flex items-start gap-3">
+                <div className={`flex-shrink-0 ${getStatusInfo(resource.status, resource.visibilityStatus).color}`}>
+                  <CloseLineIcon className="h-6 w-6" />
+                </div>
+                <div className="flex-1">
+                  <h3 className={`mb-2 text-lg font-semibold ${getStatusInfo(resource.status, resource.visibilityStatus).color}`}>
+                    Admin feedback
+                  </h3>
+                  <p className="text-gray-800 dark:text-gray-200">{resource.adminReason}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <ComponentCard title="Overview & Details">
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Description</p>
+                {safeDescriptionHtml ? (
+                  <div
+                    className="prose prose-sm max-w-none leading-relaxed text-gray-700 dark:prose-invert dark:text-gray-300"
+                    dangerouslySetInnerHTML={{ __html: safeDescriptionHtml }}
+                  />
+                ) : (
+                  <p className="whitespace-pre-wrap leading-relaxed text-gray-700 dark:text-gray-300">
+                    {resource.shortDescription}
+                  </p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 gap-x-6 gap-y-5 border-t border-gray-200 pt-4 text-sm dark:border-gray-800 md:grid-cols-2 min-[1200px]:grid-cols-3">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Category</p>
+                  <p className="mt-1 font-medium text-gray-900 dark:text-white">{taxonomyLine(cat, sub)}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Content type</p>
+                  <p className="mt-1 font-medium text-gray-900 dark:text-white">
                     {labelContentType(resource.contentType)}
-                  </dd>
+                  </p>
                 </div>
                 <div>
-                  <dt className="text-gray-500 dark:text-gray-400">Visibility</dt>
-                  <dd className="mt-0.5 font-medium text-gray-900 dark:text-white">
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Visibility</p>
+                  <p className="mt-1 font-medium text-gray-900 dark:text-white">
                     {labelVisibility(resource.visibilityStatus)}
-                  </dd>
+                  </p>
                 </div>
-                {resource.slug && (
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Audience</p>
+                  <p className="mt-1 text-gray-800 dark:text-gray-200">
+                    {resource.ageAudienceGroups && resource.ageAudienceGroups.length > 0
+                      ? formatAgeAudienceGroups(resource.ageAudienceGroups)
+                      : resource.targetAudience
+                        ? getAudienceInfo(resource.targetAudience).label
+                        : "—"}
+                  </p>
+                </div>
+                {resource.publicationDate && (
                   <div>
-                    <dt className="text-gray-500 dark:text-gray-400">Slug</dt>
-                    <dd className="mt-0.5 font-mono text-xs text-gray-800 dark:text-gray-200">{resource.slug}</dd>
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Publication date</p>
+                    <p className="mt-1 font-medium text-gray-900 dark:text-white">
+                      {new Date(resource.publicationDate).toLocaleDateString()}
+                    </p>
                   </div>
                 )}
-              </dl>
-            </ComponentCard>
-
-            <ComponentCard title="Audience">
-              {resource.ageAudienceGroups && resource.ageAudienceGroups.length > 0 ? (
-                <p className="text-sm text-gray-800 dark:text-gray-200">
-                  {formatAgeAudienceGroups(resource.ageAudienceGroups)}
-                </p>
-              ) : resource.targetAudience ? (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-3 dark:bg-gray-800/50">
-                    <span className="text-lg">{getAudienceInfo(resource.targetAudience).emoji}</span>
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-900 dark:text-white">
-                        {getAudienceInfo(resource.targetAudience).label}
-                      </p>
-                    </div>
-                    {React.createElement(getAudienceInfo(resource.targetAudience).icon, {
-                      className: "h-4 w-4 text-brand-600 dark:text-brand-400",
-                    })}
-                  </div>
-                  {resource.targetAudience === "children" && resource.ageGroup && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Age band: {getAgeGroupLabel(resource.ageGroup).label}
+                {resource.contentPublishedAt && (
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Published (visibility)</p>
+                    <p className="mt-1 font-medium text-gray-900 dark:text-white">
+                      {new Date(resource.contentPublishedAt).toLocaleDateString()}
                     </p>
-                  )}
-                </div>
-              ) : (
-                <p className="text-sm text-gray-500">—</p>
-              )}
-            </ComponentCard>
-
-            <ComponentCard title="Publishers">
-              <dl className="space-y-2 text-sm">
+                  </div>
+                )}
                 <div>
-                  <dt className="text-gray-500 dark:text-gray-400">Main</dt>
-                  <dd className="font-medium text-gray-900 dark:text-white">
-                    {resource.mainPublisherName ?? "—"}
-                  </dd>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Main publisher</p>
+                  <p className="mt-1 font-medium text-gray-900 dark:text-white">{resource.mainPublisherName ?? "—"}</p>
                 </div>
                 {coNames.length > 0 && (
-                  <div>
-                    <dt className="text-gray-500 dark:text-gray-400">Co-publishers</dt>
-                    <dd className="font-medium text-gray-900 dark:text-white">{coNames.join(", ")}</dd>
+                  <div className="col-span-1 md:col-span-2 min-[1200px]:col-span-2">
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Co-publishers</p>
+                    <p className="mt-1 font-medium text-gray-900 dark:text-white">{coNames.join(", ")}</p>
                   </div>
                 )}
-              </dl>
-            </ComponentCard>
-
-            {(resource.countries?.length || resource.regions?.length) ? (
-              <ComponentCard title="Geography">
-                {!!resource.countries?.length && (
-                  <p className="text-sm text-gray-800 dark:text-gray-200">
-                    <span className="text-gray-500">Countries: </span>
-                    {resource.countries.join(", ")}
-                  </p>
+                {resource.slug && (
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Slug</p>
+                    <p className="mt-1 font-mono text-xs text-gray-800 dark:text-gray-200">{resource.slug}</p>
+                  </div>
                 )}
-                {!!resource.regions?.length && (
-                  <p className="mt-2 text-sm text-gray-800 dark:text-gray-200">
-                    <span className="text-gray-500">Regions: </span>
-                    {resource.regions.join(", ")}
-                  </p>
+                {resource.source && (
+                  <div className="col-span-1 md:col-span-2 min-[1200px]:col-span-3">
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Source</p>
+                    <p className="mt-1 text-gray-700 dark:text-gray-300">{resource.source}</p>
+                  </div>
                 )}
-              </ComponentCard>
-            ) : null}
+                {resource.rightsNotice && (
+                  <div className="col-span-1 md:col-span-2 min-[1200px]:col-span-3">
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Rights / © notice</p>
+                    <p className="mt-1 text-gray-700 dark:text-gray-300">{resource.rightsNotice}</p>
+                  </div>
+                )}
+                {(resource.countries?.length || resource.regions?.length) ? (
+                  <div className="col-span-1 md:col-span-2 min-[1200px]:col-span-3 border-t border-gray-200 pt-3 dark:border-gray-800">
+                    {!!resource.countries?.length && (
+                      <p className="text-sm text-gray-800 dark:text-gray-200">
+                        <span className="text-gray-500">Countries: </span>
+                        {resource.countries.join(", ")}
+                      </p>
+                    )}
+                    {!!resource.regions?.length && (
+                      <p className="mt-1 text-sm text-gray-800 dark:text-gray-200">
+                        <span className="text-gray-500">Regions: </span>
+                        {resource.regions.join(", ")}
+                      </p>
+                    )}
+                  </div>
+                ) : null}
+              </div>
 
-            {resource.tags && resource.tags.length > 0 && (
-              <ComponentCard title="Tags">
-                <div className="flex flex-wrap gap-2">
-                  {resource.tags.map((tag, index) => (
-                    <Badge key={index} color="info" size="sm">
-                      {tag}
-                    </Badge>
-                  ))}
+              {resource.tags && resource.tags.length > 0 && (
+                <div className="border-t border-gray-200 pt-4 dark:border-gray-800">
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Tags</p>
+                  <div className="flex flex-wrap gap-2">
+                    {resource.tags.map((tag, index) => (
+                      <Badge key={index} color="info" size="sm">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
-              </ComponentCard>
-            )}
-          </div>
+              )}
+            </div>
+          </ComponentCard>
         </div>
 
         {resource.externalDownloadUrl && (

@@ -79,14 +79,17 @@ async function uploadImage(file: File, folder = "childrenlk/media"): Promise<{ u
   return { url: data.url, publicId: data.publicId };
 }
 
+const selectClass =
+  "h-10 w-full appearance-none rounded-[10px] border border-gray-200 bg-white px-3.5 text-xs text-gray-800 shadow-none focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-dark dark:text-white/90";
+
 export default function AddMediaClient() {
   const richTextEditorClass = [
-    "resource-description-editor mt-1 rounded-lg border border-gray-300 shadow-theme-xs overflow-hidden",
-    "dark:border-gray-700",
-    "[&_.ql-toolbar]:rounded-t-lg [&_.ql-toolbar]:border-0 [&_.ql-toolbar]:border-b [&_.ql-toolbar]:border-gray-200 [&_.ql-toolbar]:bg-gray-50",
-    "dark:[&_.ql-toolbar]:border-gray-700 dark:[&_.ql-toolbar]:bg-gray-800/80",
-    "[&_.ql-container]:rounded-b-lg [&_.ql-container]:border-0 [&_.ql-container]:bg-transparent dark:[&_.ql-container]:bg-gray-900",
-    "[&_.ql-editor]:min-h-[180px] [&_.ql-editor]:px-3 [&_.ql-editor]:py-2.5 [&_.ql-editor]:text-sm",
+    "resource-description-editor mt-1 rounded-[10px] border border-gray-200 shadow-none overflow-hidden",
+    "dark:border-gray-800",
+    "[&_.ql-toolbar]:rounded-t-[10px] [&_.ql-toolbar]:border-0 [&_.ql-toolbar]:border-b [&_.ql-toolbar]:border-gray-200 [&_.ql-toolbar]:bg-gray-50/50",
+    "dark:[&_.ql-toolbar]:border-gray-800 dark:[&_.ql-toolbar]:bg-gray-800/50",
+    "[&_.ql-container]:rounded-b-[10px] [&_.ql-container]:border-0 [&_.ql-container]:bg-transparent dark:[&_.ql-container]:bg-gray-dark",
+    "[&_.ql-editor]:min-h-[180px] [&_.ql-editor]:px-3.5 [&_.ql-editor]:py-2.5 [&_.ql-editor]:text-xs",
     "text-gray-800 dark:[&_.ql-editor]:text-white/90",
     "[&_.ql-stroke]:stroke-gray-600 dark:[&_.ql-stroke]:stroke-gray-400",
     "[&_.ql-fill]:fill-gray-600 dark:[&_.ql-fill]:fill-gray-400",
@@ -510,7 +513,7 @@ export default function AddMediaClient() {
                 <div><Label>Age *</Label><Input className="mt-1" value={childInfo.age} onChange={(e)=>setChildInfo((p)=>({...p,age:e.target.value}))} /></div>
                 <div>
                   <Label>Gender *</Label>
-                  <select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={childInfo.gender} onChange={(e)=>setChildInfo((p)=>({...p,gender:e.target.value}))}>
+                  <select className={selectClass} value={childInfo.gender} onChange={(e)=>setChildInfo((p)=>({...p,gender:e.target.value}))}>
                     <option value="">Select</option>{GENDERS.map((g)=><option key={g} value={g}>{g}</option>)}
                   </select>
                 </div>
@@ -590,7 +593,7 @@ export default function AddMediaClient() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <Label>Status</Label>
-                  <select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={visibilityStatus} onChange={(e)=>setVisibilityStatus(e.target.value as VisibilityStatus)}>
+                  <select className={selectClass} value={visibilityStatus} onChange={(e)=>setVisibilityStatus(e.target.value as VisibilityStatus)}>
                     <option value="draft">Draft</option>
                     <option value="published">Published</option>
                     <option value="archived">Archived</option>
@@ -632,7 +635,7 @@ export default function AddMediaClient() {
               <div className="space-y-5">
                 <div>
                   <Label>Content Type *</Label>
-                  <select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={contentType} onChange={(e)=>setContentType(e.target.value as ContentType)}>
+                  <select className={selectClass} value={contentType} onChange={(e)=>setContentType(e.target.value as ContentType)}>
                     {Object.entries(CONTENT_TYPE_LABELS).map(([value,label])=><option key={value} value={value}>{label}</option>)}
                   </select>
                 </div>
@@ -658,8 +661,8 @@ export default function AddMediaClient() {
                         className={richTextEditorClass}
                       />
                     </div>
-                    <div><Label>Medium *</Label><select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={artwork.medium} onChange={(e)=>setArtwork((p)=>({...p,medium:e.target.value}))}>{MEDIUMS.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
-                    <div><Label>Theme *</Label><select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={artwork.theme} onChange={(e)=>setArtwork((p)=>({...p,theme:e.target.value}))}>{THEMES.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
+                    <div><Label>Medium *</Label><select className={selectClass} value={artwork.medium} onChange={(e)=>setArtwork((p)=>({...p,medium:e.target.value}))}>{MEDIUMS.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
+                    <div><Label>Theme *</Label><select className={selectClass} value={artwork.theme} onChange={(e)=>setArtwork((p)=>({...p,theme:e.target.value}))}>{THEMES.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
                     <div className="sm:col-span-2"><TagsSelect label="Tags" value={artworkTags} onChange={setArtworkTags} placeholder="Add tags" /></div>
                     <div className="sm:col-span-2">
                       <Label>Artwork *</Label>
@@ -681,8 +684,8 @@ export default function AddMediaClient() {
                         onChange={(nextDate) => setStoryPoem((p) => ({ ...p, dateWritten: nextDate }))}
                       />
                     </div>
-                    <div><Label>Written Work Type *</Label><select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={storyPoem.writtenWorkType} onChange={(e)=>setStoryPoem((p)=>({...p,writtenWorkType:e.target.value}))}>{WRITTEN_WORK_TYPES.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
-                    <div><Label>Language *</Label><select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={storyPoem.language} onChange={(e)=>setStoryPoem((p)=>({...p,language:e.target.value}))}>{LANGUAGES.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
+                    <div><Label>Written Work Type *</Label><select className={selectClass} value={storyPoem.writtenWorkType} onChange={(e)=>setStoryPoem((p)=>({...p,writtenWorkType:e.target.value}))}>{WRITTEN_WORK_TYPES.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
+                    <div><Label>Language *</Label><select className={selectClass} value={storyPoem.language} onChange={(e)=>setStoryPoem((p)=>({...p,language:e.target.value}))}>{LANGUAGES.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
                     <div className="sm:col-span-2">
                       <Label>Article (Rich Text) *</Label>
                       <ResourceDescriptionQuill
@@ -692,7 +695,7 @@ export default function AddMediaClient() {
                         className={richTextEditorClass}
                       />
                     </div>
-                    <div><Label>Theme *</Label><select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={storyPoem.theme} onChange={(e)=>setStoryPoem((p)=>({...p,theme:e.target.value}))}>{THEMES.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
+                    <div><Label>Theme *</Label><select className={selectClass} value={storyPoem.theme} onChange={(e)=>setStoryPoem((p)=>({...p,theme:e.target.value}))}>{THEMES.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
                     <div className="sm:col-span-2"><TagsSelect label="Tags" value={storyPoemTags} onChange={setStoryPoemTags} placeholder="Add tags" /></div>
                     <div className="sm:col-span-2">
                       <Label>Cover Image (optional)</Label>
@@ -723,8 +726,8 @@ export default function AddMediaClient() {
                         className={richTextEditorClass}
                       />
                     </div>
-                    <div><Label>Medium *</Label><select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={photo.medium} onChange={(e)=>setPhoto((p)=>({...p,medium:e.target.value}))}>{MEDIUMS.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
-                    <div><Label>Theme *</Label><select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={photo.theme} onChange={(e)=>setPhoto((p)=>({...p,theme:e.target.value}))}>{THEMES.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
+                    <div><Label>Medium *</Label><select className={selectClass} value={photo.medium} onChange={(e)=>setPhoto((p)=>({...p,medium:e.target.value}))}>{MEDIUMS.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
+                    <div><Label>Theme *</Label><select className={selectClass} value={photo.theme} onChange={(e)=>setPhoto((p)=>({...p,theme:e.target.value}))}>{THEMES.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
                     <div className="sm:col-span-2"><TagsSelect label="Tags" value={photoTags} onChange={setPhotoTags} placeholder="Add tags" /></div>
                     <div className="sm:col-span-2">
                       <Label>Photo *</Label>
@@ -738,7 +741,7 @@ export default function AddMediaClient() {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div><Label>Video Title *</Label><Input className="mt-1" value={video.title} onChange={(e)=>setVideo((p)=>({...p,title:e.target.value}))} /></div>
                     <div><Label>Duration *</Label><Input className="mt-1" placeholder="e.g. 3m 20s" value={video.duration} onChange={(e)=>setVideo((p)=>({...p,duration:e.target.value}))} /></div>
-                    <div><Label>Video Type *</Label><select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={video.videoType} onChange={(e)=>setVideo((p)=>({...p,videoType:e.target.value}))}>{VIDEO_TYPES.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
+                    <div><Label>Video Type *</Label><select className={selectClass} value={video.videoType} onChange={(e)=>setVideo((p)=>({...p,videoType:e.target.value}))}>{VIDEO_TYPES.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
                     <div>
                       <DatePicker
                         id="media-video-released-date"
@@ -748,8 +751,8 @@ export default function AddMediaClient() {
                         onChange={(nextDate) => setVideo((p) => ({ ...p, releasedDate: nextDate }))}
                       />
                     </div>
-                    <div><Label>Language *</Label><select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={video.language} onChange={(e)=>setVideo((p)=>({...p,language:e.target.value}))}>{LANGUAGES.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
-                    <div><Label>Aspect Ratio *</Label><select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={video.aspectRatio} onChange={(e)=>setVideo((p)=>({...p,aspectRatio:e.target.value}))}>{ASPECT_RATIOS.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
+                    <div><Label>Language *</Label><select className={selectClass} value={video.language} onChange={(e)=>setVideo((p)=>({...p,language:e.target.value}))}>{LANGUAGES.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
+                    <div><Label>Aspect Ratio *</Label><select className={selectClass} value={video.aspectRatio} onChange={(e)=>setVideo((p)=>({...p,aspectRatio:e.target.value}))}>{ASPECT_RATIOS.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
                     <div className="sm:col-span-2"><Label>YouTube Link *</Label><Input className="mt-1" value={video.youtubeLink} onChange={(e)=>setVideo((p)=>({...p,youtubeLink:e.target.value}))} placeholder="https://youtube.com/..." /></div>
                     <div className="sm:col-span-2">
                       <Label>Synopsis (optional)</Label>
@@ -760,7 +763,7 @@ export default function AddMediaClient() {
                         className={richTextEditorClass}
                       />
                     </div>
-                    <div><Label>Theme *</Label><select className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900" value={video.theme} onChange={(e)=>setVideo((p)=>({...p,theme:e.target.value}))}>{THEMES.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
+                    <div><Label>Theme *</Label><select className={selectClass} value={video.theme} onChange={(e)=>setVideo((p)=>({...p,theme:e.target.value}))}>{THEMES.map((x)=><option key={x} value={x}>{x}</option>)}</select></div>
                     <div className="sm:col-span-2"><TagsSelect label="Tags" value={videoTags} onChange={setVideoTags} placeholder="Add tags" /></div>
                     <div className="sm:col-span-2">
                       <Label>Thumbnail *</Label>

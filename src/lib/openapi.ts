@@ -610,6 +610,186 @@ const OPERATION_OVERRIDES: Record<string, Partial<Record<Lowercase<HttpMethod>, 
       summary: "Delete news media",
     },
   },
+  "/api/admin/learning-courses": {
+    get: {
+      summary: "List admin learning courses",
+    },
+    post: {
+      summary: "Create learning course",
+      requestBody: buildRequestBody(
+        {
+          name: { type: "string" },
+          slug: { type: "string", description: "Optional custom slug. Generated from name if omitted." },
+          shortDescription: { type: "string" },
+          description: { type: "string", description: "HTML rich text" },
+          coverImage: { type: "string", format: "uri" },
+          coverImagePublicId: { type: "string" },
+          tags: { type: "array", items: { type: "string" } },
+          ageGroup: { type: "string", enum: ["early_childhood", "middle_childhood", "adolescence"] },
+          targetAudience: { type: "string", enum: ["children", "people_work_for_children"] },
+          visibilityStatus: { type: "string", enum: ["draft", "published", "archived"] },
+        },
+        ["name", "shortDescription", "description", "coverImage", "ageGroup", "targetAudience"],
+        {
+          name: "Child Online Safety Essentials",
+          shortDescription: "Learn how to keep children safe online.",
+          description: "<p>Comprehensive guide to online safety and digital privacy for kids.</p>",
+          coverImage: "https://res.cloudinary.com/demo/image/upload/v1/course.jpg",
+          ageGroup: "middle_childhood",
+          targetAudience: "children",
+          visibilityStatus: "published",
+        }
+      ),
+    },
+  },
+  "/api/admin/learning-courses/{id}": {
+    get: {
+      summary: "Get learning course by ID",
+    },
+    patch: {
+      summary: "Update learning course",
+      requestBody: buildRequestBody({
+        name: { type: "string" },
+        slug: { type: "string" },
+        shortDescription: { type: "string" },
+        description: { type: "string", description: "HTML rich text" },
+        coverImage: { type: "string", format: "uri" },
+        coverImagePublicId: { type: "string" },
+        tags: { type: "array", items: { type: "string" } },
+        ageGroup: { type: "string", enum: ["early_childhood", "middle_childhood", "adolescence"] },
+        targetAudience: { type: "string", enum: ["children", "people_work_for_children"] },
+        visibilityStatus: { type: "string", enum: ["draft", "published", "archived"] },
+      }),
+    },
+    delete: {
+      summary: "Delete learning course and cascade delete all associated lessons",
+    },
+  },
+  "/api/admin/learning-courses/{id}/lessons": {
+    get: {
+      summary: "List lessons for course ordered by display position",
+    },
+    post: {
+      summary: "Create lesson in course",
+      requestBody: buildRequestBody(
+        {
+          title: { type: "string" },
+          contentType: { type: "string", enum: ["video", "text", "quiz"] },
+          visibilityStatus: { type: "string", enum: ["draft", "published"] },
+          youtubeUrl: { type: "string", format: "uri", description: "Required for contentType 'video'" },
+          youtubeVideoId: { type: "string", description: "11-character YouTube video ID" },
+          durationSeconds: { type: "number" },
+          textContent: { type: "string", description: "HTML rich text for contentType 'text'" },
+          passPercentage: { type: "number", minimum: 0, maximum: 100, description: "Pass threshold for contentType 'quiz' (default: 70)" },
+          quizQuestions: {
+            type: "array",
+            description: "Quiz question blocks (for contentType 'quiz')",
+            items: {
+              type: "object",
+              properties: {
+                questionText: { type: "string" },
+                questionType: { type: "string", enum: ["single", "multiple", "true_false"] },
+                points: { type: "number", default: 1 },
+                explanation: { type: "string" },
+                options: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      text: { type: "string" },
+                      isCorrect: { type: "boolean" },
+                    },
+                    required: ["text", "isCorrect"],
+                  },
+                },
+              },
+              required: ["questionText", "questionType", "options"],
+            },
+          },
+        },
+        ["title", "contentType"],
+        {
+          title: "Introduction to Child Rights",
+          contentType: "quiz",
+          visibilityStatus: "published",
+          passPercentage: 80,
+          quizQuestions: [
+            {
+              questionText: "What is the primary objective of UNCRC?",
+              questionType: "single",
+              points: 1,
+              explanation: "UNCRC focuses on fundamental rights of all children.",
+              options: [
+                { text: "Protecting child rights globally", isCorrect: true },
+                { text: "Promoting commercial trade", isCorrect: false },
+              ],
+            },
+          ],
+        }
+      ),
+    },
+  },
+  "/api/admin/learning-courses/{id}/lessons/{lessonId}": {
+    get: {
+      summary: "Get lesson detail by ID",
+    },
+    patch: {
+      summary: "Update lesson detail",
+      requestBody: buildRequestBody({
+        title: { type: "string" },
+        contentType: { type: "string", enum: ["video", "text", "quiz"] },
+        visibilityStatus: { type: "string", enum: ["draft", "published"] },
+        youtubeUrl: { type: "string" },
+        youtubeVideoId: { type: "string" },
+        durationSeconds: { type: "number" },
+        textContent: { type: "string" },
+        passPercentage: { type: "number" },
+        quizQuestions: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              questionText: { type: "string" },
+              questionType: { type: "string", enum: ["single", "multiple", "true_false"] },
+              points: { type: "number" },
+              explanation: { type: "string" },
+              options: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    text: { type: "string" },
+                    isCorrect: { type: "boolean" },
+                  },
+                },
+              },
+            },
+          },
+        },
+      }),
+    },
+    delete: {
+      summary: "Delete lesson and decrement parent course lesson count",
+    },
+  },
+  "/api/admin/learning-courses/{id}/lessons/reorder": {
+    patch: {
+      summary: "Reorder lessons within a course",
+      requestBody: buildRequestBody(
+        {
+          lessonIds: {
+            type: "array",
+            items: { type: "string" },
+            description: "Ordered list of all lesson IDs in the course",
+          },
+        },
+        ["lessonIds"],
+        {
+          lessonIds: ["65f123456789abcdef000001", "65f123456789abcdef000002"],
+        }
+      ),
+    },
+  },
 };
 
 export function buildOpenApiSpec() {

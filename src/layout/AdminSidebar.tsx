@@ -12,6 +12,7 @@ import {
   CalenderIcon,
   ShootingStarIcon,
   PageIcon,
+  BookIcon,
 } from "@/icons/index";
 
 const adminNavItems: NavItem[] = [
@@ -44,6 +45,11 @@ const adminNavItems: NavItem[] = [
     icon: <VideoIcon />,
     name: "Media Requests",
     path: "/admin/media-requests",
+  },
+  {
+    icon: <BookIcon />,
+    name: "Learning Hub",
+    path: "/admin/learning-hub",
   },
   {
     icon: <CalenderIcon />,

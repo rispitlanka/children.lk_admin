@@ -4,7 +4,8 @@
 
 @theme {
   --font-*: initial;
-  --font-outfit: Outfit, sans-serif;
+  --font-sans: Inter, sans-serif;
+  --font-inter: Inter, sans-serif;
 
   --breakpoint-*: initial;
   --breakpoint-2xsm: 375px;
@@ -15,6 +16,14 @@
   --breakpoint-lg: 1024px;
   --breakpoint-xl: 1280px;
   --breakpoint-2xl: 1536px;
+
+  --radius-*: initial;
+  --radius-sm: 10px;
+  --radius-md: 10px;
+  --radius-lg: 10px;
+  --radius-xl: 10px;
+  --radius-2xl: 10px;
+  --radius-3xl: 10px;
 
   --text-title-2xl: 72px;
   --text-title-2xl--line-height: 90px;
@@ -36,20 +45,20 @@
   --color-current: currentColor;
   --color-transparent: transparent;
   --color-white: #ffffff;
-  --color-black: #101828;
+  --color-black: #0a0a0a;
 
-  --color-brand-25: #f2f7ff;
-  --color-brand-50: #ecf3ff;
-  --color-brand-100: #dde9ff;
-  --color-brand-200: #c2d6ff;
-  --color-brand-300: #9cb9ff;
-  --color-brand-400: #7592ff;
-  --color-brand-500: #465fff;
-  --color-brand-600: #3641f5;
-  --color-brand-700: #2a31d8;
-  --color-brand-800: #252dae;
-  --color-brand-900: #262e89;
-  --color-brand-950: #161950;
+  --color-brand-25: #f4f6ff;
+  --color-brand-50: #eef2ff;
+  --color-brand-100: #e0e7ff;
+  --color-brand-200: #c7d2fe;
+  --color-brand-300: #a5b4fc;
+  --color-brand-400: #818cf8;
+  --color-brand-500: #4f6bf0;
+  --color-brand-600: #435cd8;
+  --color-brand-700: #3749b4;
+  --color-brand-800: #2d3a8f;
+  --color-brand-900: #242e70;
+  --color-brand-950: #161c45;
 
   --color-blue-light-25: #f5fbff;
   --color-blue-light-50: #f0f9ff;
@@ -64,19 +73,19 @@
   --color-blue-light-900: #0b4a6f;
   --color-blue-light-950: #062c41;
 
-  --color-gray-25: #fcfcfd;
-  --color-gray-50: #f9fafb;
-  --color-gray-100: #f2f4f7;
-  --color-gray-200: #e4e7ec;
-  --color-gray-300: #d0d5dd;
-  --color-gray-400: #98a2b3;
-  --color-gray-500: #667085;
-  --color-gray-600: #475467;
-  --color-gray-700: #344054;
-  --color-gray-800: #1d2939;
-  --color-gray-900: #101828;
-  --color-gray-950: #0c111d;
-  --color-gray-dark: #1a2231;
+  --color-gray-25: #fafafa;
+  --color-gray-50: #fafafa;
+  --color-gray-100: #f4f4f5;
+  --color-gray-200: #e5e5e5;
+  --color-gray-300: #d4d4d8;
+  --color-gray-400: #a1a1aa;
+  --color-gray-500: #737373;
+  --color-gray-600: #52525b;
+  --color-gray-700: #3f3f46;
+  --color-gray-800: #262626;
+  --color-gray-900: #0a0a0a;
+  --color-gray-950: #0a0a0a;
+  --color-gray-dark: #141414;
 
   --color-orange-25: #fffaf5;
   --color-orange-50: #fff6ed;
@@ -130,33 +139,16 @@
   --color-warning-900: #7a2e0e;
   --color-warning-950: #4e1d09;
 
-  --color-theme-pink-500: #ee46bc;
-
-  --color-theme-purple-500: #7a5af8;
-
-  --shadow-theme-md:
-    0px 4px 8px -2px rgba(16, 24, 40, 0.1),
-    0px 2px 4px -2px rgba(16, 24, 40, 0.06);
-  --shadow-theme-lg:
-    0px 12px 16px -4px rgba(16, 24, 40, 0.08),
-    0px 4px 6px -2px rgba(16, 24, 40, 0.03);
-  --shadow-theme-sm:
-    0px 1px 3px 0px rgba(16, 24, 40, 0.1),
-    0px 1px 2px 0px rgba(16, 24, 40, 0.06);
-  --shadow-theme-xs: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
-  --shadow-theme-xl:
-    0px 20px 24px -4px rgba(16, 24, 40, 0.08),
-    0px 8px 8px -4px rgba(16, 24, 40, 0.03);
-  --shadow-datepicker: -5px 0 0 #262d3c, 5px 0 0 #262d3c;
-  --shadow-focus-ring: 0px 0px 0px 4px rgba(70, 95, 255, 0.12);
-  --shadow-slider-navigation:
-    0px 1px 2px 0px rgba(16, 24, 40, 0.1), 0px 1px 3px 0px rgba(16, 24, 40, 0.1);
-  --shadow-tooltip:
-    0px 4px 6px -2px rgba(16, 24, 40, 0.05),
-    -8px 0px 20px 8px rgba(16, 24, 40, 0.05);
-
-  --drop-shadow-4xl:
-    0 35px 35px rgba(0, 0, 0, 0.25), 0 45px 65px rgba(0, 0, 0, 0.15);
+  --shadow-theme-md: none;
+  --shadow-theme-lg: none;
+  --shadow-theme-sm: none;
+  --shadow-theme-xs: none;
+  --shadow-theme-xl: none;
+  --shadow-datepicker: none;
+  --shadow-focus-ring: none;
+  --shadow-slider-navigation: none;
+  --shadow-tooltip: none;
+  --drop-shadow-4xl: none;
 
   --z-index-1: 1;
   --z-index-9: 9;
@@ -167,14 +159,6 @@
   --z-index-999999: 999999;
 }
 
-/*
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
 @layer base {
   *,
   ::after,
@@ -188,32 +172,32 @@
     cursor: pointer;
   }
   body {
-    @apply relative font-normal font-outfit z-1 bg-gray-50;
+    @apply relative font-normal font-sans z-1 bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-white/90;
   }
 }
 
 @utility menu-item {
-  @apply relative flex items-center w-full gap-3 px-3 py-2 font-medium rounded-lg text-theme-sm;
+  @apply relative flex items-center h-[44px] w-full gap-3 px-4 text-theme-sm font-medium transition-colors border-l-2;
 }
 
 @utility menu-item-active {
-  @apply bg-brand-50 text-brand-500 dark:bg-brand-500/[0.12] dark:text-brand-400;
+  @apply border-brand-500 text-brand-500 font-semibold bg-transparent dark:text-brand-500;
 }
 
 @utility menu-item-inactive {
-  @apply text-gray-700 hover:bg-gray-100 group-hover:text-gray-700 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-gray-300;
+  @apply border-transparent text-gray-700 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 bg-transparent;
 }
 
 @utility menu-item-icon {
-  @apply text-gray-500 group-hover:text-gray-700 dark:text-gray-400;
+  @apply flex items-center justify-center w-5 h-5 min-w-[20px] shrink-0 text-gray-500 dark:text-gray-400;
 }
 
 @utility menu-item-icon-active {
-  @apply text-brand-500 dark:text-brand-400;
+  @apply flex items-center justify-center w-5 h-5 min-w-[20px] shrink-0 text-brand-500 dark:text-brand-500;
 }
 
 @utility menu-item-icon-inactive {
-  @apply text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300;
+  @apply flex items-center justify-center w-5 h-5 min-w-[20px] shrink-0 text-gray-500 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-gray-200;
 }
 
 @utility menu-item-arrow {
@@ -221,35 +205,35 @@
 }
 
 @utility menu-item-arrow-active {
-  @apply rotate-180 text-brand-500 dark:text-brand-400;
+  @apply rotate-180 text-brand-500 dark:text-brand-500;
 }
 
 @utility menu-item-arrow-inactive {
-  @apply text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300;
+  @apply text-gray-500 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-gray-200;
 }
 
 @utility menu-dropdown-item {
-  @apply relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-theme-sm font-medium;
+  @apply relative flex items-center gap-3 px-4 py-2 text-theme-sm font-medium border-l-2 transition-colors;
 }
 
 @utility menu-dropdown-item-active {
-  @apply bg-brand-50 text-brand-500 dark:bg-brand-500/[0.12] dark:text-brand-400;
+  @apply border-brand-500 text-brand-500 font-semibold bg-transparent dark:text-brand-500;
 }
 
 @utility menu-dropdown-item-inactive {
-  @apply text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5;
+  @apply border-transparent text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 bg-transparent;
 }
 
 @utility menu-dropdown-badge {
-  @apply block rounded-full px-2.5 py-0.5 text-xs font-medium uppercase text-brand-500 dark:text-brand-400;
+  @apply block rounded-full px-2 py-0.5 text-xs font-medium uppercase text-brand-500 dark:text-brand-400;
 }
 
 @utility menu-dropdown-badge-active {
-  @apply bg-brand-100 dark:bg-brand-500/20;
+  @apply bg-brand-50 dark:bg-brand-500/20;
 }
 
 @utility menu-dropdown-badge-inactive {
-  @apply bg-brand-50 group-hover:bg-brand-100 dark:bg-brand-500/15 dark:group-hover:bg-brand-500/20;
+  @apply bg-gray-100 dark:bg-gray-800;
 }
 
 @utility no-scrollbar {
@@ -275,11 +259,10 @@
   }
 }
 
+/* #344054 ≈ gray-700; @apply not supported in standard CSS selectors outside @utility */
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: #344054;
 }
-
-
 
 @layer utilities {
   /* For Remove Date Icon */
@@ -302,7 +285,7 @@
 }
 
 .apexcharts-tooltip.apexcharts-theme-light {
-  @apply gap-1 !rounded-lg !border-gray-200 p-3 !shadow-theme-sm dark:!border-gray-800 dark:!bg-gray-900;
+  @apply gap-1 !rounded-lg !border-gray-200 p-3 dark:!border-gray-800 dark:!bg-gray-900;
 }
 
 .apexcharts-legend-text {
@@ -332,7 +315,7 @@
   @apply w-full;
 }
 .flatpickr-calendar {
-  @apply mt-2 !bg-white !rounded-xl !p-5 !border !border-gray-200 dark:!border-gray-800 !text-gray-500 dark:!bg-gray-dark dark:!text-gray-400 dark:!shadow-theme-xl 2xsm:!w-auto;
+  @apply mt-2 !bg-white !rounded-xl !p-5 !border !border-gray-200 dark:!border-gray-800 !text-gray-500 dark:!bg-gray-dark dark:!text-gray-400 2xsm:!w-auto;
 }
 
 .flatpickr-months .flatpickr-prev-month:hover svg,
@@ -362,7 +345,7 @@
 }
 
 .flatpickr-calendar {
-  @apply mt-2 !bg-white !rounded-xl !p-5 !shadow-none !border !border-gray-200 dark:!border-white/5 !text-gray-500 dark:!bg-gray-dark dark:!text-gray-400 dark:!shadow-theme-xl 2xsm:!w-auto;
+  @apply mt-2 !bg-white !rounded-xl !p-5 !shadow-none !border !border-gray-200 dark:!border-white/5 !text-gray-500 dark:!bg-gray-dark dark:!text-gray-400 2xsm:!w-auto;
 }
 
 @media (max-width: 525px) {
@@ -426,8 +409,7 @@ span.flatpickr-weekday,
   @apply !bg-none;
 }
 .flatpickr-day.inRange {
-  box-shadow: -5px 0 0 #f9fafb, 5px 0 0 #f9fafb !important;
-  @apply dark:!shadow-datepicker;
+  @apply dark:!border-0;
 }
 .flatpickr-day.inRange,
 .flatpickr-day.prevMonthDay.inRange,
@@ -473,7 +455,6 @@ span.flatpickr-weekday,
 .flatpickr-day.selected.startRange + .endRange:not(:nth-child(7n + 1)),
 .flatpickr-day.startRange.startRange + .endRange:not(:nth-child(7n + 1)),
 .flatpickr-day.endRange.startRange + .endRange:not(:nth-child(7n + 1)) {
-  box-shadow: -10px 0 0 #465fff;
 }
 
 .flatpickr-months .flatpickr-prev-month svg,
@@ -680,7 +661,7 @@ span.flatpickr-weekday,
 .carouselTwo .swiper-button-prev,
 .carouselFour .swiper-button-next,
 .carouselFour .swiper-button-prev {
-  @apply h-10 w-10 rounded-full border-[0.5px] border-white/10 bg-white/90 !text-gray-700 shadow-slider-navigation backdrop-blur-[10px];
+  @apply h-10 w-10 rounded-full border-[0.5px] border-white/10 bg-white/90 !text-gray-700 backdrop-blur-[10px];
 }
 
 .carouselTwo .swiper-button-prev,
@@ -695,12 +676,12 @@ span.flatpickr-weekday,
 
 .carouselThree .swiper-pagination,
 .carouselFour .swiper-pagination {
-  @apply !bottom-3 !left-1/2 inline-flex !w-auto -translate-x-1/2 items-center gap-1.5 rounded-[40px] border-[0.5px] border-white/10 bg-white/60 px-2 py-1.5 shadow-slider-navigation backdrop-blur-[10px] sm:!bottom-5;
+  @apply !bottom-3 !left-1/2 inline-flex !w-auto -translate-x-1/2 items-center gap-1.5 rounded-[40px] border-[0.5px] border-white/10 bg-white/60 px-2 py-1.5 backdrop-blur-[10px] sm:!bottom-5;
 }
 
 .carouselThree .swiper-pagination-bullet,
 .carouselFour .swiper-pagination-bullet {
-  @apply !m-0 h-2.5 w-2.5 bg-white opacity-100 shadow-theme-xs duration-200 ease-in-out;
+  @apply !m-0 h-2.5 w-2.5 bg-white opacity-100 duration-200 ease-in-out;
 }
 
 .carouselThree .swiper-pagination-bullet-active,

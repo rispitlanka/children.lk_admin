@@ -790,7 +790,33 @@ const OPERATION_OVERRIDES: Record<string, Partial<Record<Lowercase<HttpMethod>, 
       ),
     },
   },
+  "/api/public/learning-courses": {
+    get: {
+      summary: "List public published learning courses",
+    },
+  },
+  "/api/public/learning-courses/{id}": {
+    get: {
+      summary: "Get public published learning course by ID",
+    },
+  },
+  "/api/public/learning-courses/by-slug/{slug}": {
+    get: {
+      summary: "Get public published learning course by slug",
+    },
+  },
+  "/api/public/learning-courses/{id}/lessons": {
+    get: {
+      summary: "List public published lessons for a learning course",
+    },
+  },
+  "/api/public/learning-courses/{id}/lessons/{lessonId}": {
+    get: {
+      summary: "Get public published lesson detail by ID",
+    },
+  },
 };
+
 
 export function buildOpenApiSpec() {
   const routeFiles = walkApiRoutes(API_ROOT);
